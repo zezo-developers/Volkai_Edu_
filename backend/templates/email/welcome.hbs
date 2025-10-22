@@ -1,0 +1,62 @@
+<!-- subject: Welcome to Volkai HR Edu! -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Volkai HR Edu</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to Volkai HR Edu! 🎉</h1>
+    </div>
+    
+    <div class="content">
+        <h2>Hello {{firstName}}!</h2>
+        
+        <p>Welcome to Volkai HR Edu - your comprehensive platform for HR education, career development, and professional growth!</p>
+        
+        <p>We're excited to have you join our community of learners and professionals. Here's what you can do with your new account:</p>
+        
+        <ul>
+            <li>📚 Access comprehensive HR courses and training materials</li>
+            <li>💼 Build professional resumes with our advanced resume builder</li>
+            <li>🎯 Practice with AI-powered mock interviews</li>
+            <li>🔍 Explore job opportunities from top companies</li>
+            <li>📊 Track your learning progress and achievements</li>
+        </ul>
+        
+        {{#if verificationUrl}}
+        <p><strong>Important:</strong> Please verify your email address to activate all features:</p>
+        <div style="text-align: center;">
+            <a href="{{verificationUrl}}" class="button">Verify Email Address</a>
+        </div>
+        {{/if}}
+        
+        <p>Ready to get started? Visit your dashboard to explore all the amazing features we have prepared for you:</p>
+        
+        <div style="text-align: center;">
+            <a href="{{frontendUrl}}/dashboard" class="button">Go to Dashboard</a>
+        </div>
+        
+        <p>If you have any questions or need assistance, our support team is here to help. Just reply to this email or visit our help center.</p>
+        
+        <p>Welcome aboard!</p>
+        
+        <p>Best regards,<br>
+        The Volkai HR Edu Team</p>
+    </div>
+    
+    <div class="footer">
+        <p>© 2023 Volkai HR Edu. All rights reserved.</p>
+        <p>This email was sent to you because you created an account on Volkai HR Edu.</p>
+    </div>
+</body>
+</html>

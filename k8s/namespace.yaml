@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: volkai-edu
+  labels:
+    name: volkai-edu
+    environment: production
+    app: volkai-hr-edu

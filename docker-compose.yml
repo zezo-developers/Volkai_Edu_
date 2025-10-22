@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: volkai-postgres
+    environment:
+      POSTGRES_DB: volkai_hr_edu_dev
+      POSTGRES_USER: volkai_user
+      POSTGRES_PASSWORD: volkai_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - volkai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U volkai_user -d volkai_hr_edu_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: volkai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - volkai-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: volkai-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://volkai_user:volkai_password@postgres:5432/volkai_hr_edu_dev
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=development_jwt_secret_key_32_chars
+      - JWT_REFRESH_SECRET=development_refresh_secret_32_chars
+      - ENCRYPTION_KEY=development_encryption_key_32_ch
+      - FRONTEND_URL=http://localhost:3001
+      - CORS_ORIGIN=http://localhost:3001
+      - LOG_LEVEL=debug
+      - BCRYPT_ROUNDS=10
+      - CACHE_TTL=3600
+      - QUERY_CACHE_ENABLED=true
+      - COMPRESSION_ENABLED=true
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    networks:
+      - volkai-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Adminer (Database Management UI)
+  adminer:
+    image: adminer:4.8.1
+    container_name: volkai-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - volkai-network
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+  # Redis Commander (Redis Management UI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: volkai-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - volkai-network
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  volkai-network:
+    driver: bridge
