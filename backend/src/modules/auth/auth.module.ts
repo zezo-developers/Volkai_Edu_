@@ -11,6 +11,9 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
+import { PasswordSecurityService } from './services/password-security.service';
+import { SecurityModule } from '../security/security.module';
+import { CommonModule } from '@/common/common.module';
 
 /**
  * Authentication Module
@@ -36,6 +39,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
       }),
       inject: [ConfigService],
     }),
+    CommonModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -43,6 +47,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
     JwtStrategy,
     JwtAuthGuard,
     PermissionsGuard,
+    PasswordSecurityService,
   ],
   exports: [
     AuthService,

@@ -33,7 +33,6 @@ async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule, {
       
     });
-    console.log('app: ', app);
 
     // Get configuration service
     const configService = app.get(ConfigService);

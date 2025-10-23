@@ -156,9 +156,9 @@ import { CommonModule } from '@common/common.module';
 
     // Core application modules
     CommonModule,
-    // DatabaseModule,
-    // HealthModule,
-    // AuthModule,
+    DatabaseModule,
+    HealthModule,
+    AuthModule,
     // UsersModule,
     // OrganizationsModule,
     // AuditModule,
@@ -180,7 +180,7 @@ import { CommonModule } from '@common/common.module';
     
     // // Performance & Security modules
     // PerformanceModule,
-    // SecurityModule,
+    SecurityModule,
     // AdvancedCacheModule,
     // MonitoringModule,
   ],
