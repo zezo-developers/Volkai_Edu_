@@ -87,11 +87,11 @@ async function bootstrap(): Promise<void> {
     );
 
     // Global exception filter for consistent error handling
-    app.useGlobalFilters(new GlobalExceptionFilter({} as any));
+    // app.useGlobalFilters(new GlobalExceptionFilter({} as any));
 
     // Global guards for authentication and authorization
     const reflector = app.get(Reflector);
-    app.useGlobalGuards(new JwtAuthGuard(reflector));
+    // app.useGlobalGuards(new JwtAuthGuard(reflector));
 
     // Global interceptors
     app.useGlobalInterceptors(

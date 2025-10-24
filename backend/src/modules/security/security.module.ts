@@ -16,6 +16,7 @@ import { User } from '../../database/entities/user.entity';
   providers: [SecurityService, RateLimitingService],
   exports: [SecurityService, RateLimitingService],
 })
+
 export class SecurityModule {
   constructor() {
     console.log('🔒 SecurityModule initialized');

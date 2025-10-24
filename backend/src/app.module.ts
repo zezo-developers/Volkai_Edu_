@@ -46,6 +46,9 @@ import { MonitoringModule } from '@modules/monitoring/monitoring.module';
 
 // Common modules
 import { CommonModule } from '@common/common.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { MyTestModule } from './my-test/my-test.module';
+import { User } from './database/entities/user.entity';
 
 /**
  * Root application module that orchestrates all feature modules
@@ -56,7 +59,7 @@ import { CommonModule } from '@common/common.module';
     // Configuration module - loads environment variables and validates them
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '.env.development'],
       load: [databaseConfig, redisConfig, jwtConfig, emailConfig],
       validationOptions: {
         allowUnknown: true,
@@ -72,16 +75,19 @@ import { CommonModule } from '@common/common.module';
     // Database module with TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('database.host'),
+        host: configService.get<string>('DB_HOST'),
         port: configService.get<number>('database.port'),
-        username: configService.get<string>('database.username'),
-        password: configService.get<string>('database.password'),
-        database: configService.get<string>('database.database'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+         autoLoadEntities: true,
+        entities: [ __dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
-        synchronize: configService.get<boolean>('database.synchronize', false),
+        synchronize: false,
+        // migrationsRun:true,
         logging: configService.get<boolean>('database.logging', false),
         ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
         extra: {
@@ -91,21 +97,40 @@ import { CommonModule } from '@common/common.module';
           idle: 10000, // Maximum time connection can be idle
         },
       }),
+    }),
+
+        // Add RedisModule for ioredis
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        console.log('Connecting to Redis at', '172.17.0.2' + ':' + configService.get<number>('redis.port'));
+        return {
+          type: 'single',
+          options: {
+            host: 'localhost',
+            port: configService.get<number>('redis.port'),
+            password: configService.get<string>('redis.password'),
+            db: configService.get<number>('redis.db'),
+          },
+        };
+      },
       inject: [ConfigService],
     }),
 
     // Redis cache module for high-performance caching
     CacheModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => {
+        console.log('Connecting to Redis Cache at', '172.17.0.2' + ':' + configService.get<number>('redis.port'));
+        return{
         store: redisStore as any,
-        host: configService.get<string>('redis.host'),
+        host: '172.17.0.2',
         port: configService.get<number>('redis.port'),
         password: configService.get<string>('redis.password'),
         db: configService.get<number>('redis.db'),
         ttl: 300, // Default TTL of 5 minutes
         max: 1000, // Maximum number of items in cache
-      }),
+      }},
       inject: [ConfigService],
       isGlobal: true,
     }),
@@ -159,7 +184,7 @@ import { CommonModule } from '@common/common.module';
     DatabaseModule,
     HealthModule,
     AuthModule,
-    // UsersModule,
+    UsersModule,
     // OrganizationsModule,
     // AuditModule,
     // EmailModule,
@@ -181,6 +206,7 @@ import { CommonModule } from '@common/common.module';
     // // Performance & Security modules
     // PerformanceModule,
     SecurityModule,
+    MyTestModule,
     // AdvancedCacheModule,
     // MonitoringModule,
   ],

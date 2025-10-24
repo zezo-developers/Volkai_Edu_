@@ -17,12 +17,14 @@ import { RateLimitingService } from './services/rate-limiting.service';
     LoggingInterceptor,
     ErrorSanitizationService,
     RateLimitingService,
+    ErrorSanitizationService,
   ],
   exports: [
     GlobalExceptionFilter,
     ResponseInterceptor,
     LoggingInterceptor,
     RateLimitingService,
+    ErrorSanitizationService,
   ],
 })
 export class CommonModule {}

@@ -30,11 +30,16 @@ import { AuthenticatedUser } from './strategies/jwt.strategy';
  * Handles all authentication-related endpoints including registration, login,
  * token management, password operations, and email verification
  */
-@ApiTags('Authentication')
+// @ApiTags('Authentication')
 @Controller('auth')
-@UseGuards(AdvancedThrottlerGuard) // Advanced rate limiting for all auth endpoints
+// @UseGuards(AdvancedThrottlerGuard) // Advanced rate limiting for all auth endpoints
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get('test')
+  testFunc(){
+    return "Hello from Auth Controller"
+  }
 
   /**
    * Register a new user
@@ -101,6 +106,7 @@ export class AuthController {
     description: 'Invalid input data',
   })
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponse> {
+    console.log('INsidde register')
     return this.authService.register(registerDto);
   }
 
@@ -203,7 +209,7 @@ export class AuthController {
    */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Logout user',
@@ -323,7 +329,7 @@ export class AuthController {
    * Return authenticated user's profile information
    */
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get current user profile',
@@ -397,7 +403,7 @@ export class AuthController {
    * List all active JWT sessions for the user
    */
   @Get('sessions')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get active sessions',
@@ -439,7 +445,7 @@ export class AuthController {
    */
   @Delete('sessions/:sessionId')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Revoke session',

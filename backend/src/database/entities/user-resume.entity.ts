@@ -10,7 +10,7 @@ import {
   Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from './user.entity';
+import { User } from '../entities/user.entity';
 import { ResumeTemplate } from './resume-template.entity';
 import { ResumeSection } from './resume-section.entity';
 
@@ -231,9 +231,9 @@ export class UserResume {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, user => user.resumes)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  // @ManyToOne(() => User, user => user.resumes)
+  // @JoinColumn({ name: 'user_id' })
+  // user: User;
 
   @ManyToOne(() => ResumeTemplate, template => template.userResumes, { nullable: true })
   @JoinColumn({ name: 'template_id' })

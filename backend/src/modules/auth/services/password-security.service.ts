@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import  bcrypt from 'bcrypt';
 import  argon2 from 'argon2';
 import  crypto from 'crypto';
-import { User } from '@database/entities/user.entity';
+import { User } from '@/database/entities/user.entity';
 
 export interface PasswordStrengthResult {
   score: number; // 0-100

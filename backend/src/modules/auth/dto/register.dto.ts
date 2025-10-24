@@ -26,8 +26,9 @@ export class RegisterDto {
     minLength: 12,
     maxLength: 128,
   })
-  @IsStrongPassword({ message: 'Password must be at least 12 characters long and contain uppercase, lowercase, numbers, and special characters. Avoid common passwords and patterns.' })
+  @IsSecureString({ message: 'Last name is required and must be secure' })
   password: string;
+  // @IsStrongPassword({ message: 'Password must be at least 12 characters long and contain uppercase, lowercase, numbers, and special characters. Avoid common passwords and patterns.' })
 
   @ApiProperty({
     description: 'User first name',

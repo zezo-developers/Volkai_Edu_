@@ -12,7 +12,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { v4 as uuidv4 } from 'uuid';
 import { Organization, OrganizationStatus } from '@database/entities/organization.entity';
 import { OrganizationMembership, MembershipRole, MembershipStatus } from '@database/entities/organization-membership.entity';
-import { User, UserStatus } from '@database/entities/user.entity';
+import { User, UserStatus } from '@/database/entities/user.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';

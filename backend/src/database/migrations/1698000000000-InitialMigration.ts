@@ -33,27 +33,31 @@ export class InitialMigration1698000000000 implements MigrationInterface {
     await queryRunner.query(`
       CREATE TABLE "users" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-        "email" character varying(255) NOT NULL,
-        "passwordHash" character varying(255),
-        "firstName" character varying(100) NOT NULL,
-        "lastName" character varying(100) NOT NULL,
-        "phone" character varying(20),
-        "avatarUrl" text,
-        "locale" character varying(10) NOT NULL DEFAULT 'en',
-        "timezone" character varying(50) NOT NULL DEFAULT 'UTC',
-        "status" "user_status_enum" NOT NULL DEFAULT 'active',
-        "emailVerified" boolean NOT NULL DEFAULT false,
-        "phoneVerified" boolean NOT NULL DEFAULT false,
-        "lastLoginAt" TIMESTAMP,
-        "emailVerificationToken" character varying(255),
-        "emailVerificationExpiresAt" TIMESTAMP,
-        "passwordResetToken" character varying(255),
-        "passwordResetExpiresAt" TIMESTAMP,
-        "refreshTokenHash" character varying(255),
-        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-        "deletedAt" TIMESTAMP,
-        CONSTRAINT "PK_users_id" PRIMARY KEY ("id")
+    "email" character varying(255) NOT NULL,
+    "roles" character varying(255) NOT NULL,
+    "passwordHash" character varying(255),
+    "organizationId" character varying(255),
+    "failedLoginAttempts" character varying(255),
+    "lastLoginIp" character varying(255),
+    "firstName" character varying(100) NOT NULL,
+    "lastName" character varying(100) NOT NULL,
+    "phone" character varying(20),
+    "avatarUrl" text,
+    "locale" character varying(10) NOT NULL DEFAULT 'en',
+    "timezone" character varying(50) NOT NULL DEFAULT 'UTC',
+    "status" "user_status_enum" NOT NULL DEFAULT 'active',
+    "emailVerified" boolean NOT NULL DEFAULT false,
+    "phoneVerified" boolean NOT NULL DEFAULT false,
+    "lastLoginAt" TIMESTAMP,
+    "emailVerificationToken" character varying(255),
+    "emailVerificationExpiresAt" TIMESTAMP,
+    "passwordResetToken" character varying(255),
+    "passwordResetExpiresAt" TIMESTAMP,
+    "refreshTokenHash" character varying(255),
+    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "deletedAt" TIMESTAMP,
+    CONSTRAINT "PK_users_id" PRIMARY KEY ("id")
       )
     `);
 
@@ -72,8 +76,8 @@ export class InitialMigration1698000000000 implements MigrationInterface {
         "status" "organization_status_enum" NOT NULL DEFAULT 'trial',
         "settings" jsonb NOT NULL DEFAULT '{}',
         "createdBy" uuid NOT NULL,
-        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_organizations_id" PRIMARY KEY ("id"),
         CONSTRAINT "FK_organizations_createdBy" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE
       )
@@ -92,7 +96,7 @@ export class InitialMigration1698000000000 implements MigrationInterface {
         "joinedAt" TIMESTAMP,
         "invitationToken" character varying(255),
         "invitationExpiresAt" TIMESTAMP,
-        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_organization_memberships_id" PRIMARY KEY ("id"),
         CONSTRAINT "UQ_organization_memberships_user_org" UNIQUE ("userId", "organizationId"),
         CONSTRAINT "FK_organization_memberships_userId" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -109,7 +113,7 @@ export class InitialMigration1698000000000 implements MigrationInterface {
         "resource" character varying(50) NOT NULL,
         "action" character varying(50) NOT NULL,
         "description" text,
-        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_permissions_id" PRIMARY KEY ("id")
       )
     `);
@@ -123,7 +127,7 @@ export class InitialMigration1698000000000 implements MigrationInterface {
         "organizationId" uuid,
         "isSystem" boolean NOT NULL DEFAULT false,
         "permissions" text array NOT NULL DEFAULT '{}',
-        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_roles_id" PRIMARY KEY ("id"),
         CONSTRAINT "FK_roles_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE
       )
@@ -154,12 +158,57 @@ export class InitialMigration1698000000000 implements MigrationInterface {
         "metadata" jsonb NOT NULL DEFAULT '{}',
         "ipAddress" inet,
         "userAgent" text,
-        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "PK_audit_logs_id" PRIMARY KEY ("id"),
         CONSTRAINT "FK_audit_logs_actorId" FOREIGN KEY ("actorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE,
         CONSTRAINT "FK_audit_logs_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE
       )
     `);
+
+    await queryRunner.query(`
+  CREATE TYPE "ai_interview_status_enum" AS ENUM ('pending', 'in_progress', 'completed', 'failed', 'cancelled');
+  CREATE TYPE "interview_format_enum" AS ENUM ('voice_only', 'video', 'text_only', 'mixed');
+  CREATE TYPE "interview_difficulty_enum" AS ENUM ('easy', 'medium', 'hard');
+
+  CREATE TABLE "ai_mock_interviews" (
+    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+    "user_id" uuid NOT NULL,
+    "job_role" character varying(255) NOT NULL,
+    "job_description" text,
+    "cancellationReason" text,
+    "failureReason" text,
+    "company_name" character varying(255),
+    "difficulty" "interview_difficulty_enum" NOT NULL DEFAULT 'medium',
+    "duration_minutes" integer NOT NULL DEFAULT 30,
+    "format" "interview_format_enum" NOT NULL DEFAULT 'voice_only',
+    "status" "ai_interview_status_enum" NOT NULL DEFAULT 'pending',
+    "started_at" TIMESTAMP,
+    "completed_at" TIMESTAMP,
+    "config" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "transcript" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "ai_feedback" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "overall_score" integer,
+    "performance_metrics" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "improvement_areas" text[] NOT NULL DEFAULT '{}',
+    "strengths" text[] NOT NULL DEFAULT '{}',
+    "skills_assessed" text[] NOT NULL DEFAULT '{}',
+    "skill_scores" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "ai_model_version" character varying(255),
+    "recording_urls" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "analytics" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "follow_up_recommendations" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT "PK_ai_mock_interviews_id" PRIMARY KEY ("id"),
+    CONSTRAINT "FK_ai_mock_interviews_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
+  );
+
+  CREATE INDEX "IDX_ai_mock_interviews_userId_status" ON "ai_mock_interviews" ("user_id", "status");
+  CREATE INDEX "IDX_ai_mock_interviews_jobRole_difficulty" ON "ai_mock_interviews" ("job_role", "difficulty");
+  CREATE INDEX "IDX_ai_mock_interviews_createdAt" ON "ai_mock_interviews" ("created_at");
+`);
+
 
     // Create indexes for better performance
     await queryRunner.query(`CREATE UNIQUE INDEX "IDX_users_email" ON "users" ("email")`);
@@ -183,7 +232,7 @@ export class InitialMigration1698000000000 implements MigrationInterface {
     await queryRunner.query(`CREATE INDEX "IDX_audit_logs_organizationId" ON "audit_logs" ("organizationId")`);
     await queryRunner.query(`CREATE INDEX "IDX_audit_logs_resourceType_resourceId" ON "audit_logs" ("resourceType", "resourceId")`);
     await queryRunner.query(`CREATE INDEX "IDX_audit_logs_action" ON "audit_logs" ("action")`);
-    await queryRunner.query(`CREATE INDEX "IDX_audit_logs_createdAt" ON "audit_logs" ("createdAt")`);
+    await queryRunner.query(`CREATE INDEX "IDX_audit_logs_created_at" ON "audit_logs" ("created_at")`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

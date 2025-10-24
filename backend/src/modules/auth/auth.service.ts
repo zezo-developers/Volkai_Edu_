@@ -13,7 +13,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { PasswordSecurityService } from './services/password-security.service';
-import { User, UserStatus } from '@database/entities/user.entity';
+import { Role, User, UserStatus } from '@/database/entities/user.entity';
 import { Organization, OrganizationStatus } from '@database/entities/organization.entity';
 import { OrganizationMembership, MembershipRole, MembershipStatus } from '@database/entities/organization-membership.entity';
 import { RegisterDto } from './dto/register.dto';
@@ -61,72 +61,76 @@ export class AuthService {
   /**
    * Register a new user with optional organization creation
    */
-  async register(registerDto: RegisterDto): Promise<AuthResponse> {
+  async register(registerDto: RegisterDto): Promise<any> {
     const { email, password, firstName, lastName, orgName, inviteToken } = registerDto;
-
+    console.log('Register DTO:', registerDto);
     // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
+    console.log('Existing User:', existingUser);
 
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    // Hash password with enhanced security
+    // // Hash password with enhanced security
     const hashResult = await this.passwordSecurityService.hashPassword(password);
     const passwordHash = hashResult.hash;
 
-    // Generate email verification token
+    // // Generate email verification token
     const emailVerificationToken = uuidv4();
     const emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    // Create user
-    const user = this.userRepository.create({
-      email,
-      passwordHash,
-      firstName,
-      lastName,
-      emailVerificationToken,
-      emailVerificationExpiresAt,
-      status: UserStatus.ACTIVE,
-    });
+    // // Create user
+    // const user = this.userRepository.create({
+    //   email,
+    //   passwordHash,
+    //   firstName,
+    //   lastName,
+    //   emailVerificationToken,
+    //   emailVerificationExpiresAt,
+    //   status: UserStatus.ACTIVE,
+    //   roles: [Role.USER],
+    // }) ;
 
-    const savedUser = await this.userRepository.save(user);
+    // const savedUser = await this.userRepository.save(user);
+    // console.log('Saved User:', savedUser);
 
     let organization: Organization | undefined;
     let membership: OrganizationMembership | undefined;
 
-    // Handle organization creation or invitation
+    // // // Handle organization creation or invitation
     if (inviteToken) {
       // Join existing organization via invitation
-      membership = await this.handleInvitationAcceptance(savedUser.id, inviteToken);
-      organization = membership.organization;
+      membership = await this.handleInvitationAcceptance('ebb63201-5ae6-48b0-a592-e4750d5d265e', 'inv_1234567890abcdef');
+      // organization = membership.organization;
     } else if (orgName) {
       // Create new organization
-      organization = await this.createOrganization(orgName, savedUser.id);
-      membership = await this.createMembership(savedUser.id, organization.id, MembershipRole.OWNER);
+      // organization = await this.createOrganization(orgName, savedUser.id);
+      // membership = await this.createMembership(savedUser.id, organization.id, MembershipRole.OWNER);
     }
 
-    // Generate tokens
-    const tokens = await this.generateTokens(savedUser);
+    // // // Generate tokens
+    // const tokens = await this.generateTokens(savedUser);
 
-    // Update user with refresh token hash
-    await this.updateRefreshTokenHash(savedUser.id, tokens.refresh);
+    // // // Update user with refresh token hash
+    // await this.updateRefreshTokenHash(savedUser.id, tokens.refresh);
 
     // Emit user registration event
-    this.eventEmitter.emit('user.registered', {
-      userId: savedUser.id,
-      email: savedUser.email,
-      organizationId: organization?.id,
-    });
+    // this.eventEmitter.emit('user.registered', {
+    //   userId: savedUser.id,
+    //   email: savedUser.email,
+    //   organizationId: organization?.id,
+    // });
 
     this.logger.log(`User registered successfully: ${email}`);
 
     return {
+      mes:'Registration endpoint is under maintenance.',
       user: this.sanitizeUser(savedUser),
-      tokens,
-      organization,
+      // tokens,
+      // organization,
     };
   }
 

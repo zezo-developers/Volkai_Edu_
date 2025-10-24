@@ -19,7 +19,7 @@ import {
 } from '@database/entities/certificate.entity';
 import { Enrollment } from '@database/entities/enrollment.entity';
 import { Course } from '@database/entities/course.entity';
-import { User } from '@database/entities/user.entity';
+import { User } from '@/database/entities/user.entity';
 import { Organization } from '@database/entities/organization.entity';
 import { FileManagerService } from '@modules/files/services/file-manager.service';
 import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';

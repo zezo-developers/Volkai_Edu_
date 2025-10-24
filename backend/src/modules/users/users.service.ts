@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { User, UserStatus } from '@database/entities/user.entity';
+import { User, UserStatus } from '@/database/entities/user.entity';
 import { OrganizationMembership, MembershipStatus } from '@database/entities/organization-membership.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';

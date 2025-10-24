@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { Request } from 'express';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -108,8 +109,8 @@ export class RateLimitingService {
   };
 
   constructor(
-    @InjectRedis() private readonly redis: Redis,
-    private readonly configService: ConfigService,
+     @InjectRedis() private readonly redis: Redis,
+    // private readonly configService: ConfigService,
   ) {}
 
   /**

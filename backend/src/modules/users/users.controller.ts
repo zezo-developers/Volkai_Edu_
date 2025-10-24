@@ -20,7 +20,7 @@ import { PermissionsGuard } from '@modules/auth/guards/permissions.guard';
 import { RequirePermissions } from '@modules/auth/decorators/permissions.decorator';
 import { CurrentUser } from '@modules/auth/decorators/current-user.decorator';
 import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';
-import { User } from '@database/entities/user.entity';
+import { User } from '@/database/entities/user.entity';
 import { OrganizationMembership } from '@database/entities/organization-membership.entity';
 
 /**

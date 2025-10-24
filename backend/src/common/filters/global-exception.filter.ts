@@ -29,7 +29,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // Extract basic error information
     const { status, message, errors } = this.extractErrorInfo(exception);
-    
+    console.log('GlobalExceptionFilter caught an exception:', {
+      status,
+      message,
+      errors,
+    });
     // Generate error code
     const errorCode = this.errorSanitizationService.generateErrorCode(exception, status);
     
