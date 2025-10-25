@@ -203,7 +203,7 @@ export class AdminService {
 
     // Apply pagination
     const users = await query
-      .orderBy('user.createdAt', 'DESC')
+      .orderBy('user.created_at', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();

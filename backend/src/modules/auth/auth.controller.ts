@@ -209,7 +209,7 @@ export class AuthController {
    */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Logout user',
@@ -403,7 +403,7 @@ export class AuthController {
    * List all active JWT sessions for the user
    */
   @Get('sessions')
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get active sessions',

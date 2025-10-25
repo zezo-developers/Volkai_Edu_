@@ -40,15 +40,15 @@ export class Notification {
   id: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ name: 'userId', nullable: true })
   userId?: string;
 
   @ApiProperty({ description: 'Organization ID' })
-  @Column({ name: 'org_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'Template key reference' })
-  @Column({ name: 'template_key', length: 100, nullable: true })
+  @Column({ name: 'templateKey', length: 100, nullable: true })
   templateKey?: string;
 
   @ApiProperty({ enum: NotificationChannel, description: 'Notification channel' })
@@ -59,61 +59,47 @@ export class Notification {
   channel: NotificationChannel;
 
   @ApiProperty({ description: 'Notification subject' })
-  @Column({ length: 255, nullable: true })
+  @Column({ name: 'subject', length: 255, nullable: true })
   subject?: string;
 
   @ApiProperty({ description: 'Notification body content' })
-  @Column({ type: 'text' })
+  @Column({ name: 'body', type: 'text' })
   body: string;
 
   @ApiProperty({ description: 'Additional notification data' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'data', type: 'jsonb', default: {} })
   data: {
-    // Common data
     actionUrl?: string;
     actionText?: string;
     imageUrl?: string;
     category?: string;
-    
-    // Email specific
     htmlBody?: string;
     attachments?: Array<{
       filename: string;
       url: string;
       contentType: string;
     }>;
-    
-    // SMS specific
     shortUrl?: string;
-    
-    // Push notification specific
     icon?: string;
     sound?: string;
     badge?: number;
     clickAction?: string;
-    
-    // In-app specific
     persistent?: boolean;
     dismissible?: boolean;
     expiresAt?: Date;
-    
-    // Webhook specific
     webhookUrl?: string;
     webhookMethod?: 'GET' | 'POST' | 'PUT';
     webhookHeaders?: Record<string, string>;
-    
-    // Tracking data
     campaignId?: string;
     segmentId?: string;
     experimentId?: string;
-    
-    // Related entities
     relatedEntityType?: string;
     relatedEntityId?: string;
   };
 
   @ApiProperty({ enum: NotificationStatus, description: 'Notification status' })
   @Column({
+    name: 'status',
     type: 'enum',
     enum: NotificationStatus,
     default: NotificationStatus.PENDING,
@@ -122,6 +108,7 @@ export class Notification {
 
   @ApiProperty({ enum: NotificationPriority, description: 'Notification priority' })
   @Column({
+    name: 'priority',
     type: 'enum',
     enum: NotificationPriority,
     default: NotificationPriority.MEDIUM,
@@ -129,46 +116,41 @@ export class Notification {
   priority: NotificationPriority;
 
   @ApiProperty({ description: 'Scheduled delivery time' })
-  @Column({ name: 'scheduled_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'scheduledAt', type: 'timestamp', nullable: true })
   scheduledAt?: Date;
 
   @ApiProperty({ description: 'Actual sent time' })
-  @Column({ name: 'sent_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'sentAt', type: 'timestamp', nullable: true })
   sentAt?: Date;
 
   @ApiProperty({ description: 'Delivery confirmation time' })
-  @Column({ name: 'delivered_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'deliveredAt', type: 'timestamp', nullable: true })
   deliveredAt?: Date;
 
   @ApiProperty({ description: 'Read/opened time' })
-  @Column({ name: 'read_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'readAt', type: 'timestamp', nullable: true })
   readAt?: Date;
 
   @ApiProperty({ description: 'Error message if failed' })
-  @Column({ name: 'error_message', type: 'text', nullable: true })
+  @Column({ name: 'errorMessage', type: 'text', nullable: true })
   errorMessage?: string;
 
   @ApiProperty({ description: 'Number of retry attempts' })
-  @Column({ name: 'retry_count', default: 0 })
+  @Column({ name: 'retryCount', default: 0 })
   retryCount: number;
 
   @ApiProperty({ description: 'Next retry time' })
-  @Column({ name: 'next_retry_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'nextRetryAt', type: 'timestamp', nullable: true })
   nextRetryAt?: Date;
 
   @ApiProperty({ description: 'Delivery tracking information' })
-  @Column({ name: 'delivery_info', type: 'jsonb', default: {} })
+  @Column({ name: 'deliveryInfo', type: 'jsonb', default: {} })
   deliveryInfo: {
-    // Provider specific tracking
     providerId?: string;
     providerMessageId?: string;
     providerStatus?: string;
-    
-    // Delivery metrics
     deliveryAttempts?: number;
-    deliveryDuration?: number; // in milliseconds
-    
-    // Email specific
+    deliveryDuration?: number;
     opens?: Array<{
       timestamp: Date;
       userAgent?: string;
@@ -185,90 +167,67 @@ export class Notification {
       type: 'hard' | 'soft';
       reason: string;
     }>;
-    
-    // SMS specific
     segments?: number;
     cost?: number;
-    
-    // Push specific
     deviceTokens?: string[];
     failedTokens?: string[];
-    
-    // Webhook specific
     responseStatus?: number;
     responseBody?: string;
     responseHeaders?: Record<string, string>;
   };
 
   @ApiProperty({ description: 'User interaction data' })
-  @Column({ name: 'interaction_data', type: 'jsonb', default: {} })
+  @Column({ name: 'interactionData', type: 'jsonb', default: {} })
   interactionData: {
     opened?: boolean;
     clicked?: boolean;
     dismissed?: boolean;
     replied?: boolean;
     forwarded?: boolean;
-    
-    // Engagement metrics
-    timeToOpen?: number; // seconds
-    timeToClick?: number; // seconds
-    timeToRead?: number; // seconds
-    
-    // Device/client info
+    timeToOpen?: number;
+    timeToClick?: number;
+    timeToRead?: number;
     deviceType?: 'mobile' | 'desktop' | 'tablet';
     platform?: string;
     appVersion?: string;
-    
-    // Location data (if available and permitted)
     country?: string;
     city?: string;
     timezone?: string;
   };
 
   @ApiProperty({ description: 'Notification metadata' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata: {
-    // Batch information
     batchId?: string;
     batchSize?: number;
     batchIndex?: number;
-    
-    // A/B testing
     variant?: string;
     testGroup?: string;
-    
-    // Personalization
     personalizationScore?: number;
     recommendationEngine?: string;
-    
-    // Compliance
     consentId?: string;
     privacyLevel?: 'public' | 'internal' | 'confidential';
     dataRetentionDays?: number;
-    
-    // Source tracking
     sourceSystem?: string;
     sourceEvent?: string;
     sourceUserId?: string;
-    
-    // Custom fields
     customFields?: Record<string, any>;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user?: User;
 
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'org_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
   @ManyToOne(() => NotificationTemplate, { nullable: true })
-  @JoinColumn({ name: 'template_key', referencedColumnName: 'key' })
+  @JoinColumn({ name: 'templateKey', referencedColumnName: 'key' })
   template?: NotificationTemplate;
 
   // Virtual properties
@@ -304,7 +263,6 @@ export class Notification {
     if (this.data.expiresAt) {
       return new Date() > new Date(this.data.expiresAt);
     }
-    // Default expiration: 30 days for failed notifications
     if (this.isFailed) {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -322,17 +280,13 @@ export class Notification {
 
   get engagementScore(): number {
     let score = 0;
-    
     if (this.interactionData.opened) score += 25;
     if (this.interactionData.clicked) score += 50;
     if (this.interactionData.replied) score += 75;
     if (this.isRead) score += 100;
-    
-    // Bonus for quick engagement
-    if (this.interactionData.timeToOpen && this.interactionData.timeToOpen < 300) { // 5 minutes
+    if (this.interactionData.timeToOpen && this.interactionData.timeToOpen < 300) {
       score += 10;
     }
-    
     return Math.min(score, 100);
   }
 
@@ -340,92 +294,53 @@ export class Notification {
   markAsSent(providerMessageId?: string): void {
     this.status = NotificationStatus.SENT;
     this.sentAt = new Date();
-    
-    if (providerMessageId) {
-      this.deliveryInfo.providerMessageId = providerMessageId;
-    }
-    
+    if (providerMessageId) this.deliveryInfo.providerMessageId = providerMessageId;
     this.deliveryInfo.deliveryAttempts = (this.deliveryInfo.deliveryAttempts || 0) + 1;
   }
 
   markAsDelivered(): void {
     this.status = NotificationStatus.DELIVERED;
     this.deliveredAt = new Date();
-    
-    if (this.sentAt) {
-      this.deliveryInfo.deliveryDuration = this.deliveredAt.getTime() - this.sentAt.getTime();
-    }
+    if (this.sentAt) this.deliveryInfo.deliveryDuration = this.deliveredAt.getTime() - this.sentAt.getTime();
   }
 
   markAsRead(): void {
     this.status = NotificationStatus.READ;
     this.readAt = new Date();
-    
-    if (this.sentAt) {
-      this.interactionData.timeToRead = Math.floor((this.readAt.getTime() - this.sentAt.getTime()) / 1000);
-    }
+    if (this.sentAt) this.interactionData.timeToRead = Math.floor((this.readAt.getTime() - this.sentAt.getTime()) / 1000);
   }
 
   markAsFailed(errorMessage: string): void {
     this.status = NotificationStatus.FAILED;
     this.errorMessage = errorMessage;
     this.retryCount++;
-    
-    // Calculate next retry time with exponential backoff
     if (this.canRetry) {
-      const backoffMinutes = Math.pow(2, this.retryCount) * 5; // 5, 10, 20 minutes
+      const backoffMinutes = Math.pow(2, this.retryCount) * 5;
       this.nextRetryAt = new Date(Date.now() + backoffMinutes * 60 * 1000);
     }
   }
 
   cancel(reason?: string): void {
     this.status = NotificationStatus.CANCELLED;
-    if (reason) {
-      this.errorMessage = `Cancelled: ${reason}`;
-    }
+    if (reason) this.errorMessage = `Cancelled: ${reason}`;
   }
 
   trackOpen(userAgent?: string, ipAddress?: string): void {
     this.interactionData.opened = true;
-    
-    if (!this.deliveryInfo.opens) {
-      this.deliveryInfo.opens = [];
-    }
-    
-    this.deliveryInfo.opens.push({
-      timestamp: new Date(),
-      userAgent,
-      ipAddress,
-    });
-    
-    if (this.sentAt && !this.interactionData.timeToOpen) {
-      this.interactionData.timeToOpen = Math.floor((Date.now() - this.sentAt.getTime()) / 1000);
-    }
+    if (!this.deliveryInfo.opens) this.deliveryInfo.opens = [];
+    this.deliveryInfo.opens.push({ timestamp: new Date(), userAgent, ipAddress });
+    if (this.sentAt && !this.interactionData.timeToOpen) this.interactionData.timeToOpen = Math.floor((Date.now() - this.sentAt.getTime()) / 1000);
   }
 
   trackClick(url: string, userAgent?: string, ipAddress?: string): void {
     this.interactionData.clicked = true;
-    
-    if (!this.deliveryInfo.clicks) {
-      this.deliveryInfo.clicks = [];
-    }
-    
-    this.deliveryInfo.clicks.push({
-      timestamp: new Date(),
-      url,
-      userAgent,
-      ipAddress,
-    });
-    
-    if (this.sentAt && !this.interactionData.timeToClick) {
-      this.interactionData.timeToClick = Math.floor((Date.now() - this.sentAt.getTime()) / 1000);
-    }
+    if (!this.deliveryInfo.clicks) this.deliveryInfo.clicks = [];
+    this.deliveryInfo.clicks.push({ timestamp: new Date(), url, userAgent, ipAddress });
+    if (this.sentAt && !this.interactionData.timeToClick) this.interactionData.timeToClick = Math.floor((Date.now() - this.sentAt.getTime()) / 1000);
   }
 
   addCustomData(key: string, value: any): void {
-    if (!this.metadata.customFields) {
-      this.metadata.customFields = {};
-    }
+    if (!this.metadata.customFields) this.metadata.customFields = {};
     this.metadata.customFields[key] = value;
   }
 
@@ -456,7 +371,6 @@ export class Notification {
     };
   }
 
-  // Static helper methods
   static createFromTemplate(
     template: NotificationTemplate,
     channel: NotificationChannel,
@@ -465,10 +379,7 @@ export class Notification {
     organizationId?: string,
   ): Partial<Notification> {
     const validation = template.validateVariables(variables);
-    if (!validation.isValid) {
-      throw new Error(`Template validation failed: ${validation.errors.join(', ')}`);
-    }
-
+    if (!validation.isValid) throw new Error(`Template validation failed: ${validation.errors.join(', ')}`);
     return {
       userId,
       organizationId,
@@ -484,7 +395,7 @@ export class Notification {
       interactionData: {},
       metadata: {
         sourceSystem: 'template',
-        personalizationScore: Object.keys(variables).length * 10, // Simple scoring
+        personalizationScore: Object.keys(variables).length * 10,
       },
     };
   }
@@ -512,6 +423,6 @@ export class Notification {
   }
 
   static getDefaultRetrySchedule(): number[] {
-    return [5, 15, 60]; // minutes: 5min, 15min, 1hour
+    return [5, 15, 60];
   }
 }

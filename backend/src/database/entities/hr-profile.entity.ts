@@ -31,32 +31,32 @@ export class HRProfile {
   id: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id', unique: true })
+  @Column({ name: 'userId', unique: true })
   userId: string;
 
   @ApiProperty({ description: 'Employee ID' })
-  @Column({ name: 'employee_id', length: 50, nullable: true })
+  @Column({ name: 'employeeId', length: 50, nullable: true })
   employeeId?: string;
 
   @ApiProperty({ description: 'Department' })
-  @Column({ length: 100, nullable: true })
+  @Column({ name: 'department', length: 100, nullable: true })
   department?: string;
 
   @ApiProperty({ description: 'Job position/title' })
-  @Column({ length: 255, nullable: true })
+  @Column({ name: 'position', length: 255, nullable: true })
   position?: string;
 
   @ApiProperty({ description: 'Manager user ID' })
-  @Column({ name: 'manager_id', nullable: true })
+  @Column({ name: 'managerId', nullable: true })
   managerId?: string;
 
   @ApiProperty({ description: 'Hire date' })
-  @Column({ name: 'hire_date', type: 'date', nullable: true })
+  @Column({ name: 'hireDate', type: 'date', nullable: true })
   hireDate?: Date;
 
   @ApiProperty({ enum: EmploymentType, description: 'Employment type' })
   @Column({
-    name: 'employment_type',
+    name: 'employmentType',
     type: 'enum',
     enum: EmploymentType,
     nullable: true,
@@ -64,15 +64,15 @@ export class HRProfile {
   employmentType?: EmploymentType;
 
   @ApiProperty({ description: 'Base salary' })
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ name: 'salary', type: 'decimal', precision: 12, scale: 2, nullable: true })
   salary?: number;
 
   @ApiProperty({ description: 'Salary currency' })
-  @Column({ length: 3, default: 'USD' })
+  @Column({ name: 'currency', length: 3, default: 'USD' })
   currency: string;
 
   @ApiProperty({ description: 'Employee benefits' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'benefits', type: 'jsonb', default: {} })
   benefits: {
     healthInsurance?: {
       provider: string;
@@ -99,7 +99,7 @@ export class HRProfile {
   };
 
   @ApiProperty({ description: 'Emergency contact information' })
-  @Column({ name: 'emergency_contact', type: 'jsonb', nullable: true })
+  @Column({ name: 'emergencyContact', type: 'jsonb', nullable: true })
   emergencyContact?: {
     name: string;
     relationship: string;
@@ -115,12 +115,12 @@ export class HRProfile {
   };
 
   @ApiProperty({ description: 'Employee documents' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'documents', type: 'jsonb', default: {} })
   documents: {
     contracts?: Array<{
       id: string;
       name: string;
-      type: 'employment' | 'nda' | 'offer_letter' | 'amendment';
+      type: 'employment' | 'nda' | 'offerLetter' | 'amendment';
       url: string;
       signedDate?: Date;
       expiryDate?: Date;
@@ -155,7 +155,7 @@ export class HRProfile {
   };
 
   @ApiProperty({ description: 'Performance tracking data' })
-  @Column({ name: 'performance_data', type: 'jsonb', default: {} })
+  @Column({ name: 'performanceData', type: 'jsonb', default: {} })
   performanceData: {
     currentGoals?: Array<{
       id: string;
@@ -164,8 +164,8 @@ export class HRProfile {
       category: 'individual' | 'team' | 'company';
       priority: 'low' | 'medium' | 'high';
       dueDate?: Date;
-      progress: number; // 0-100
-      status: 'not_started' | 'in_progress' | 'completed' | 'overdue';
+      progress: number;
+      status: 'notStarted' | 'inProgress' | 'completed' | 'overdue';
     }>;
     reviews?: Array<{
       id: string;
@@ -200,16 +200,16 @@ export class HRProfile {
   };
 
   @ApiProperty({ description: 'Work schedule and preferences' })
-  @Column({ name: 'work_schedule', type: 'jsonb', default: {} })
+  @Column({ name: 'workSchedule', type: 'jsonb', default: {} })
   workSchedule: {
     workingHours?: {
-      monday?: { start: string; end: string; };
-      tuesday?: { start: string; end: string; };
-      wednesday?: { start: string; end: string; };
-      thursday?: { start: string; end: string; };
-      friday?: { start: string; end: string; };
-      saturday?: { start: string; end: string; };
-      sunday?: { start: string; end: string; };
+      monday?: { start: string; end: string };
+      tuesday?: { start: string; end: string };
+      wednesday?: { start: string; end: string };
+      thursday?: { start: string; end: string };
+      friday?: { start: string; end: string };
+      saturday?: { start: string; end: string };
+      sunday?: { start: string; end: string };
     };
     timezone?: string;
     workLocation?: 'office' | 'remote' | 'hybrid';
@@ -218,7 +218,7 @@ export class HRProfile {
   };
 
   @ApiProperty({ description: 'Training and development' })
-  @Column({ name: 'training_data', type: 'jsonb', default: {} })
+  @Column({ name: 'trainingData', type: 'jsonb', default: {} })
   trainingData: {
     completedTraining?: Array<{
       id: string;
@@ -235,7 +235,7 @@ export class HRProfile {
       provider: string;
       scheduledDate?: Date;
       priority: 'low' | 'medium' | 'high';
-      status: 'planned' | 'enrolled' | 'in_progress' | 'completed';
+      status: 'planned' | 'enrolled' | 'inProgress' | 'completed';
     }>;
     skillDevelopment?: Array<{
       skill: string;
@@ -246,19 +246,15 @@ export class HRProfile {
     }>;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
-  // @OneToOne(() => User, user => user.hrProfile)
-  // @JoinColumn({ name: 'user_id' })
-  // user: User;
-
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'manager_id' })
+  @JoinColumn({ name: 'managerId' })
   manager?: User;
 
   @OneToMany(() => HRProfile, profile => profile.manager)
@@ -301,7 +297,7 @@ export class HRProfile {
   get activeGoalsCount(): number {
     if (!this.performanceData.currentGoals) return 0;
     return this.performanceData.currentGoals.filter(
-      goal => goal.status === 'in_progress' || goal.status === 'not_started'
+      goal => goal.status === 'inProgress' || goal.status === 'notStarted'
     ).length;
   }
 

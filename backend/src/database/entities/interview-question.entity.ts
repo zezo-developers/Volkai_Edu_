@@ -33,23 +33,23 @@ export class InterviewQuestion {
   id: string;
 
   @ApiProperty({ description: 'Question bank ID' })
-  @Column({ name: 'bank_id' })
+  @Column({ name: 'questionBankId' })
   questionBankId: string;
 
   @ApiProperty({ description: 'Question text' })
-  @Column({ name: 'question_text', type: 'text' })
+  @Column({ name: 'questionText', type: 'text' })
   questionText: string;
 
   @ApiProperty({ description: 'Expected answer or guidelines' })
-  @Column({ name: 'expected_answer', type: 'text', nullable: true })
+  @Column({ name: 'expectedAnswer', type: 'text', nullable: true })
   expectedAnswer?: string;
 
   @ApiProperty({ description: 'Follow-up questions' })
-  @Column({ name: 'follow_up_questions', type: 'simple-array', default: [] })
+  @Column({ name: 'followUpQuestions', type: 'simple-array', default: [] })
   followUpQuestions: string[];
 
   @ApiProperty({ description: 'Evaluation criteria' })
-  @Column({ name: 'evaluation_criteria', type: 'jsonb', default: {} })
+  @Column({ name: 'evaluationCriteria', type: 'jsonb', default: {} })
   evaluationCriteria: {
     technical_accuracy?: number;
     communication?: number;
@@ -61,23 +61,15 @@ export class InterviewQuestion {
   };
 
   @ApiProperty({ description: 'Time limit in minutes' })
-  @Column({ name: 'time_limit_minutes', nullable: true })
+  @Column({ name: 'timeLimitMinutes', nullable: true })
   timeLimitMinutes?: number;
 
   @ApiProperty({ enum: InterviewDifficulty, description: 'Question difficulty' })
-  @Column({
-    type: 'enum',
-    enum: InterviewDifficulty,
-    default: InterviewDifficulty.MEDIUM,
-  })
+  @Column({ type: 'enum', enum: InterviewDifficulty, default: InterviewDifficulty.MEDIUM })
   difficulty: InterviewDifficulty;
 
   @ApiProperty({ enum: QuestionType, description: 'Question type' })
-  @Column({
-    type: 'enum',
-    enum: QuestionType,
-    default: QuestionType.GENERAL,
-  })
+  @Column({ type: 'enum', enum: QuestionType, default: QuestionType.GENERAL })
   type: QuestionType;
 
   @ApiProperty({ description: 'Question tags for categorization' })
@@ -89,7 +81,7 @@ export class InterviewQuestion {
   hints: string[];
 
   @ApiProperty({ description: 'Sample answers or examples' })
-  @Column({ name: 'sample_answers', type: 'jsonb', default: [] })
+  @Column({ name: 'sampleAnswers', type: 'jsonb', default: [] })
   sampleAnswers: Array<{
     answer: string;
     rating: number;
@@ -124,26 +116,26 @@ export class InterviewQuestion {
   };
 
   @ApiProperty({ description: 'Whether question is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Question order in bank' })
-  @Column({ name: 'order_index', nullable: true })
+  @Column({ name: 'orderIndex', nullable: true })
   orderIndex?: number;
 
   @ApiProperty({ description: 'Question metadata' })
   @Column({ type: 'jsonb', default: {} })
   metadata: Record<string, any>;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => InterviewQuestionBank, bank => bank.questions)
-  @JoinColumn({ name: 'bank_id' })
+  @JoinColumn({ name: 'questionBankId' })
   questionBank: InterviewQuestionBank;
 
   @OneToMany(() => InterviewResponse, response => response.question)
@@ -184,11 +176,9 @@ export class InterviewQuestion {
   updateStatistics(responseTime: number, score: number): void {
     const stats = this.statistics;
     const currentCount = stats.timesUsed || 0;
-    
-    // Update usage count
+
     stats.timesUsed = currentCount + 1;
-    
-    // Update average score
+
     if (currentCount === 0) {
       stats.averageScore = score;
       stats.averageTime = responseTime;
@@ -196,11 +186,10 @@ export class InterviewQuestion {
       stats.averageScore = ((stats.averageScore * currentCount) + score) / (currentCount + 1);
       stats.averageTime = ((stats.averageTime * currentCount) + responseTime) / (currentCount + 1);
     }
-    
-    // Update success rate (considering score > 70 as success)
+
     const successCount = currentCount * (stats.successRate || 0) + (score > 70 ? 1 : 0);
     stats.successRate = successCount / (currentCount + 1);
-    
+
     stats.lastUsed = new Date();
     this.statistics = stats;
   }
@@ -223,28 +212,18 @@ export class InterviewQuestion {
   }
 
   addSampleAnswer(answer: string, rating: number, explanation?: string): void {
-    this.sampleAnswers.push({
-      answer,
-      rating,
-      explanation,
-    });
+    this.sampleAnswers.push({ answer, rating, explanation });
   }
 
   addResource(title: string, url: string, type: 'article' | 'video' | 'documentation' | 'book'): void {
-    this.resources.push({
-      title,
-      url,
-      type,
-    });
+    this.resources.push({ title, url, type });
   }
 
   getEvaluationScore(responses: Record<string, number>): number {
     const criteria = this.evaluationCriteria;
     const criteriaKeys = Object.keys(criteria);
-    
-    if (criteriaKeys.length === 0) {
-      return 0;
-    }
+
+    if (criteriaKeys.length === 0) return 0;
 
     let totalScore = 0;
     let totalWeight = 0;
@@ -262,19 +241,16 @@ export class InterviewQuestion {
   isRelevantFor(skills: string[], jobRole?: string): boolean {
     const questionTags = this.tags.map(t => t.toLowerCase());
     const skillsLower = skills.map(s => s.toLowerCase());
-    
-    // Check if any skills match question tags
-    const skillMatch = skillsLower.some(skill => 
+
+    const skillMatch = skillsLower.some(skill =>
       questionTags.some(tag => tag.includes(skill) || skill.includes(tag))
     );
 
-    // Check if job role matches question type or tags
     let roleMatch = true;
     if (jobRole) {
       const roleLower = jobRole.toLowerCase();
-      roleMatch = questionTags.some(tag => 
-        tag.includes(roleLower) || roleLower.includes(tag)
-      ) || this.type.toString().toLowerCase().includes(roleLower);
+      roleMatch = questionTags.some(tag => tag.includes(roleLower) || roleLower.includes(tag))
+        || this.type.toString().toLowerCase().includes(roleLower);
     }
 
     return skillMatch || roleMatch;
@@ -294,11 +270,7 @@ export class InterviewQuestion {
       sampleAnswers: [...this.sampleAnswers],
       resources: [...this.resources],
       config: { ...this.config },
-      metadata: {
-        ...this.metadata,
-        clonedFrom: this.id,
-        clonedAt: new Date(),
-      },
+      metadata: { ...this.metadata, clonedFrom: this.id, clonedAt: new Date() },
     };
   }
 
@@ -322,9 +294,6 @@ export class InterviewQuestion {
       errors.push('Evaluation criteria weights must be between 0 and 10');
     }
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
+    return { isValid: errors.length === 0, errors };
   }
 }

@@ -13,8 +13,8 @@ import { OrganizationMembership, MembershipStatus } from '@database/entities/org
 export interface JwtPayload {
   sub: string; // User ID
   email: string;
-  iat: number;
-  exp: number;
+  iat?: number;
+  exp?: number;
 }
 
 /**

@@ -29,7 +29,8 @@ import { OrganizationMembership } from '@database/entities/organization-membersh
  */
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+// @UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

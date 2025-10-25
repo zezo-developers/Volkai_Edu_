@@ -67,203 +67,135 @@ export enum ExportReason {
 @Index(['exportType', 'createdAt'])
 @Index(['expiresAt'])
 export class DataExport {
-  @ApiProperty({ description: 'Export ID' })
+ @ApiProperty({ description: 'Export ID' })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ApiProperty({ description: 'Export name/title' })
-  @Column({ length: 200 })
+  @Column({ name: 'name', length: 200 })
   name: string;
 
   @ApiProperty({ description: 'Export description' })
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'description', type: 'text', nullable: true })
   description?: string;
 
   @ApiProperty({ enum: ExportType, description: 'Type of data being exported' })
-  @Column({
-    type: 'enum',
-    enum: ExportType,
-  })
+  @Column({ name: 'exportType', type: 'enum', enum: ExportType })
   exportType: ExportType;
 
   @ApiProperty({ enum: ExportStatus, description: 'Export processing status' })
-  @Column({
-    type: 'enum',
-    enum: ExportStatus,
-    default: ExportStatus.PENDING,
-  })
+  @Column({ name: 'status', type: 'enum', enum: ExportStatus, default: ExportStatus.PENDING })
   status: ExportStatus;
 
   @ApiProperty({ enum: ExportFormat, description: 'Export file format' })
-  @Column({
-    type: 'enum',
-    enum: ExportFormat,
-    default: ExportFormat.CSV,
-  })
+  @Column({ name: 'format', type: 'enum', enum: ExportFormat, default: ExportFormat.CSV })
   format: ExportFormat;
 
   @ApiProperty({ enum: ExportReason, description: 'Reason for export' })
-  @Column({
-    type: 'enum',
-    enum: ExportReason,
-    default: ExportReason.CUSTOM,
-  })
+  @Column({ name: 'reason', type: 'enum', enum: ExportReason, default: ExportReason.CUSTOM })
   reason: ExportReason;
 
   @ApiProperty({ description: 'Organization ID (nullable for system exports)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'User who requested the export' })
-  @Column({ name: 'requested_by' })
+  @Column({ name: 'requestedBy' })
   requestedBy: string;
 
   @ApiProperty({ description: 'Export filters and parameters' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'filters', type: 'jsonb', default: {} })
   filters: {
-    // Date range filters
     dateFrom?: Date;
     dateTo?: Date;
     createdAfter?: Date;
     createdBefore?: Date;
     updatedAfter?: Date;
     updatedBefore?: Date;
-    
-    // Entity filters
     entityIds?: string[];
     userIds?: string[];
     organizationIds?: string[];
-    
-    // Status filters
     statuses?: string[];
-    
-    // Type filters
     types?: string[];
     categories?: string[];
-    
-    // Custom field filters
     customFilters?: Record<string, any>;
-    
-    // Search filters
     searchQuery?: string;
     searchFields?: string[];
-    
-    // Relationship filters
     includeRelated?: boolean;
     relatedEntities?: string[];
-    
-    // Data filters
     includeDeleted?: boolean;
     includeArchived?: boolean;
     includePersonalData?: boolean;
     includeSensitiveData?: boolean;
-    
-    // Pagination (for large exports)
     batchSize?: number;
     maxRecords?: number;
   };
 
   @ApiProperty({ description: 'Export configuration and options' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'config', type: 'jsonb', default: {} })
   config: {
-    // Field selection
     fields?: string[];
     excludeFields?: string[];
-    
-    // Data transformation
     transformations?: Array<{
       field: string;
       type: 'mask' | 'hash' | 'encrypt' | 'anonymize' | 'format';
       options?: Record<string, any>;
     }>;
-    
-    // File options
     compression?: boolean;
     encryption?: boolean;
     password?: string;
-    
-    // CSV specific options
     delimiter?: string;
     quote?: string;
     escape?: string;
     header?: boolean;
-    
-    // Excel specific options
     worksheetName?: string;
     includeFormulas?: boolean;
-    
-    // JSON specific options
     prettyPrint?: boolean;
     includeSchema?: boolean;
-    
-    // Privacy options
     anonymizePersonalData?: boolean;
     maskSensitiveFields?: boolean;
     excludePersonalInfo?: boolean;
-    
-    // Compliance options
     gdprCompliant?: boolean;
     includeConsentStatus?: boolean;
     dataRetentionInfo?: boolean;
-    
-    // Notification options
     notifyOnCompletion?: boolean;
     notificationEmails?: string[];
-    
-    // Access control
     requireApproval?: boolean;
     approvedBy?: string;
     approvalDate?: Date;
-    
-    // Retention
     retentionDays?: number;
     autoDelete?: boolean;
-    
-    // Custom options
     customOptions?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'Export processing metadata' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata: {
-    // Processing info
     processingStarted?: Date;
     processingCompleted?: Date;
-    processingDuration?: number; // milliseconds
-    
-    // Data info
+    processingDuration?: number;
     totalRecords?: number;
     processedRecords?: number;
     skippedRecords?: number;
     errorRecords?: number;
-    
-    // File info
     fileName?: string;
-    fileSize?: number; // bytes
+    fileSize?: number;
     filePath?: string;
     downloadUrl?: string;
     checksumMD5?: string;
     checksumSHA256?: string;
-    
-    // Progress tracking
-    progress?: number; // 0-100
+    progress?: number;
     currentStep?: string;
     estimatedCompletion?: Date;
-    
-    // Error info
     errors?: Array<{
       timestamp: Date;
       error: string;
       recordId?: string;
       context?: Record<string, any>;
     }>;
-    
-    // Performance metrics
     recordsPerSecond?: number;
     memoryUsage?: number;
     cpuUsage?: number;
-    
-    // Security info
     encryptionMethod?: string;
     accessLog?: Array<{
       timestamp: Date;
@@ -271,51 +203,45 @@ export class DataExport {
       action: string;
       ipAddress?: string;
     }>;
-    
-    // Compliance info
     dataClassification?: string;
     privacyLevel?: 'public' | 'internal' | 'confidential' | 'restricted';
     complianceChecks?: Record<string, boolean>;
-    
-    // Usage tracking
     downloadCount?: number;
     lastDownloaded?: Date;
     sharedWith?: string[];
-    
-    // Custom metadata
     tags?: string[];
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'Export expiration date' })
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
   @ApiProperty({ description: 'Export approval date' })
-  @Column({ name: 'approved_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'approvedAt', type: 'timestamp', nullable: true })
   approvedAt?: Date;
 
   @ApiProperty({ description: 'User who approved the export' })
-  @Column({ name: 'approved_by', nullable: true })
+  @Column({ name: 'approvedBy', nullable: true })
   approvedBy?: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'requested_by' })
+  @JoinColumn({ name: 'requestedBy' })
   requester: User;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'approved_by' })
+  @JoinColumn({ name: 'approvedBy' })
   approver?: User;
 
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
   // Virtual properties
@@ -365,11 +291,11 @@ export class DataExport {
 
   get estimatedTimeRemaining(): number | null {
     if (!this.metadata.processingStarted || this.progress === 0) return null;
-    
+
     const elapsed = Date.now() - this.metadata.processingStarted.getTime();
     const rate = this.progress / elapsed;
     const remaining = (100 - this.progress) / rate;
-    
+
     return Math.round(remaining);
   }
 

@@ -53,31 +53,31 @@ export class JobApplication {
   id: string;
 
   @ApiProperty({ description: 'Job ID' })
-  @Column({ name: 'job_id' })
+  @Column({ name: 'jobId' })
   jobId: string;
 
   @ApiProperty({ description: 'Candidate user ID' })
-  @Column({ name: 'candidate_id', nullable: true })
+  @Column({ name: 'candidateId', nullable: true })
   candidateId?: string;
 
   @ApiProperty({ description: 'External candidate email (for non-registered users)' })
-  @Column({ name: 'external_email', length: 255, nullable: true })
+  @Column({ name: 'externalEmail', length: 255, nullable: true })
   externalEmail?: string;
 
   @ApiProperty({ description: 'External candidate name (for non-registered users)' })
-  @Column({ name: 'external_name', length: 255, nullable: true })
+  @Column({ name: 'externalName', length: 255, nullable: true })
   externalName?: string;
 
-  @ApiProperty({ description: 'External candidate name (for non-registered users)' })
-  @Column({ name: 'parsed_resumeData', length: 255, nullable: true })
+  @ApiProperty({ description: 'Parsed resume data' })
+  @Column({ name: 'parsedResumeData', length: 255, nullable: true })
   parsedResumeData?: string;
 
   @ApiProperty({ description: 'Resume ID' })
-  @Column({ name: 'resume_id', nullable: true })
+  @Column({ name: 'resumeId', nullable: true })
   resumeId?: string;
 
   @ApiProperty({ description: 'Cover letter' })
-  @Column({ name: 'cover_letter', type: 'text', nullable: true })
+  @Column({ name: 'coverLetter', type: 'text', nullable: true })
   coverLetter?: string;
 
   @ApiProperty({ enum: ApplicationStatus, description: 'Application status' })
@@ -113,19 +113,19 @@ export class JobApplication {
   rating?: number;
 
   @ApiProperty({ description: 'Assigned recruiter/HR user ID' })
-  @Column({ name: 'assigned_to', nullable: true })
+  @Column({ name: 'assignedTo', nullable: true })
   assignedTo?: string;
 
   @ApiProperty({ description: 'Application submitted date' })
-  @Column({ name: 'applied_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'appliedAt', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   appliedAt: Date;
 
   @ApiProperty({ description: 'Last activity timestamp' })
-  @Column({ name: 'last_activity_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'lastActivityAt', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   lastActivityAt: Date;
 
   @ApiProperty({ description: 'Application form data' })
-  @Column({ name: 'form_data', type: 'jsonb', default: {} })
+  @Column({ name: 'formData', type: 'jsonb', default: {} })
   formData: {
     customFields?: Record<string, any>;
     questionnaire?: Array<{
@@ -154,7 +154,7 @@ export class JobApplication {
   }>;
 
   @ApiProperty({ description: 'Screening results and scores' })
-  @Column({ name: 'screening_data', type: 'jsonb', default: {} })
+  @Column({ name: 'screeningData', type: 'jsonb', default: {} })
   screeningData: {
     autoScreeningScore?: number;
     skillsMatch?: {
@@ -199,7 +199,7 @@ export class JobApplication {
   }>;
 
   @ApiProperty({ description: 'Interview scheduling data' })
-  @Column({ name: 'interview_data', type: 'jsonb', default: {} })
+  @Column({ name: 'interviewData', type: 'jsonb', default: {} })
   interviewData: {
     scheduledInterviews?: Array<{
       id: string;
@@ -218,7 +218,7 @@ export class JobApplication {
   };
 
   @ApiProperty({ description: 'Rejection or withdrawal details' })
-  @Column({ name: 'rejection_data', type: 'jsonb', nullable: true })
+  @Column({ name: 'rejectionData', type: 'jsonb', nullable: true })
   rejectionData?: {
     reason: string;
     feedback?: string;
@@ -227,41 +227,37 @@ export class JobApplication {
     sendFeedback: boolean;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Job, job => job.applications)
-  @JoinColumn({ name: 'job_id' })
+  @JoinColumn({ name: 'jobId' })
   job: Job;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'candidate_id' })
+  @JoinColumn({ name: 'candidateId' })
   candidate?: User;
 
   @ManyToOne(() => UserResume, { nullable: true })
-  @JoinColumn({ name: 'resume_id' })
+  @JoinColumn({ name: 'resumeId' })
   resume?: UserResume;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'assigned_to' })
+  @JoinColumn({ name: 'assignedTo' })
   assignee?: User;
 
   // Virtual properties
   get candidateName(): string {
-    if (this.candidate) {
-      return this.candidate.fullName;
-    }
+    if (this.candidate) return this.candidate.fullName;
     return this.externalName || 'Unknown Candidate';
   }
 
   get candidateEmail(): string {
-    if (this.candidate) {
-      return this.candidate.email;
-    }
+    if (this.candidate) return this.candidate.email;
     return this.externalEmail || '';
   }
 
@@ -271,20 +267,18 @@ export class JobApplication {
 
   get daysSinceApplied(): number {
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - this.appliedAt.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.ceil(Math.abs(now.getTime() - this.appliedAt.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   get daysSinceLastActivity(): number {
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - this.lastActivityAt.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.ceil(Math.abs(now.getTime() - this.lastActivityAt.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   get isStale(): boolean {
-    return this.daysSinceLastActivity > 7 && 
-           this.status !== ApplicationStatus.HIRED && 
-           this.status !== ApplicationStatus.REJECTED;
+    return this.daysSinceLastActivity > 7 &&
+      this.status !== ApplicationStatus.HIRED &&
+      this.status !== ApplicationStatus.REJECTED;
   }
 
   // Methods
@@ -292,15 +286,12 @@ export class JobApplication {
     const oldStatus = this.status;
     this.status = newStatus;
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'status_changed',
       description: `Status changed from ${oldStatus} to ${newStatus}`,
       performedBy,
       metadata: { oldStatus, newStatus, notes },
     });
-
-    // Auto-update stage based on status
     this.updateStageFromStatus(newStatus);
   }
 
@@ -308,7 +299,6 @@ export class JobApplication {
     const oldStage = this.stage;
     this.stage = newStage;
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'stage_changed',
       description: `Stage changed from ${oldStage} to ${newStage}`,
@@ -321,10 +311,9 @@ export class JobApplication {
     const timelineEntry = {
       id: `timeline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
-      performedByName: 'System', // This would be populated with actual user name
+      performedByName: 'System',
       ...entry,
     };
-
     this.timeline.push(timelineEntry);
   }
 
@@ -334,7 +323,6 @@ export class JobApplication {
       timestamp: new Date(),
       ...communication,
     };
-
     this.communications.push(comm);
     this.lastActivityAt = new Date();
   }
@@ -343,7 +331,6 @@ export class JobApplication {
     const oldAssignee = this.assignedTo;
     this.assignedTo = userId;
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'assigned',
       description: oldAssignee ? 'Reassigned to new recruiter' : 'Assigned to recruiter',
@@ -353,14 +340,10 @@ export class JobApplication {
   }
 
   rate(rating: number, performedBy: string, notes?: string): void {
-    if (rating < 1 || rating > 5) {
-      throw new Error('Rating must be between 1 and 5');
-    }
-
+    if (rating < 1 || rating > 5) throw new Error('Rating must be between 1 and 5');
     const oldRating = this.rating;
     this.rating = rating;
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'rated',
       description: `Application rated ${rating}/5`,
@@ -379,7 +362,6 @@ export class JobApplication {
       sendFeedback,
     };
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'rejected',
       description: `Application rejected: ${reason}`,
@@ -391,7 +373,6 @@ export class JobApplication {
   withdraw(reason?: string): void {
     this.status = ApplicationStatus.WITHDRAWN;
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'withdrawn',
       description: `Application withdrawn${reason ? `: ${reason}` : ''}`,
@@ -406,17 +387,9 @@ export class JobApplication {
     scheduledAt: Date;
     interviewers: string[];
   }, performedBy: string): void {
-    if (!this.interviewData.scheduledInterviews) {
-      this.interviewData.scheduledInterviews = [];
-    }
-
-    this.interviewData.scheduledInterviews.push({
-      ...interviewData,
-      status: 'scheduled',
-    });
-
+    if (!this.interviewData.scheduledInterviews) this.interviewData.scheduledInterviews = [];
+    this.interviewData.scheduledInterviews.push({ ...interviewData, status: 'scheduled' });
     this.updateStatus(ApplicationStatus.INTERVIEWING, performedBy);
-
     this.addTimelineEntry({
       action: 'interview_scheduled',
       description: `${interviewData.type} interview scheduled for ${interviewData.scheduledAt.toLocaleString()}`,
@@ -426,13 +399,9 @@ export class JobApplication {
   }
 
   addInterviewFeedback(feedback: JobApplication['interviewData']['feedback'][0], performedBy: string): void {
-    if (!this.interviewData.feedback) {
-      this.interviewData.feedback = [];
-    }
-
+    if (!this.interviewData.feedback) this.interviewData.feedback = [];
     this.interviewData.feedback.push(feedback);
     this.lastActivityAt = new Date();
-
     this.addTimelineEntry({
       action: 'interview_feedback',
       description: `Interview feedback received from ${feedback.interviewer}`,
@@ -449,61 +418,30 @@ export class JobApplication {
   calculateAutoScreeningScore(): number {
     let score = 0;
     let maxScore = 0;
-
-    // Skills matching (40% weight)
-    if (this.screeningData.skillsMatch) {
-      score += this.screeningData.skillsMatch.score * 0.4;
-      maxScore += 40;
-    }
-
-    // Experience matching (30% weight)
-    if (this.screeningData.experienceMatch) {
-      score += this.screeningData.experienceMatch.score * 0.3;
-      maxScore += 30;
-    }
-
-    // Resume quality (20% weight) - would come from resume ATS score
-    if (this.resume?.estimatedAtsScore) {
-      score += (this.resume.estimatedAtsScore / 100) * 20;
-      maxScore += 20;
-    }
-
-    // Application completeness (10% weight)
+    if (this.screeningData.skillsMatch) { score += this.screeningData.skillsMatch.score * 0.4; maxScore += 40; }
+    if (this.screeningData.experienceMatch) { score += this.screeningData.experienceMatch.score * 0.3; maxScore += 30; }
+    if (this.resume?.estimatedAtsScore) { score += (this.resume.estimatedAtsScore / 100) * 20; maxScore += 20; }
     let completenessScore = 0;
     if (this.coverLetter) completenessScore += 5;
     if (this.formData.questionnaire?.length > 0) completenessScore += 3;
     if (this.formData.attachments?.length > 0) completenessScore += 2;
-    
-    score += completenessScore;
-    maxScore += 10;
-
+    score += completenessScore; maxScore += 10;
     return maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
   }
 
   private updateStageFromStatus(status: ApplicationStatus): void {
     switch (status) {
-      case ApplicationStatus.APPLIED:
-        this.stage = ApplicationStage.SCREENING;
-        break;
-      case ApplicationStatus.SCREENING:
-        this.stage = ApplicationStage.PHONE_SCREEN;
-        break;
+      case ApplicationStatus.APPLIED: this.stage = ApplicationStage.SCREENING; break;
+      case ApplicationStatus.SCREENING: this.stage = ApplicationStage.PHONE_SCREEN; break;
       case ApplicationStatus.INTERVIEWING:
-        // Keep current stage or set to technical if not set
-        if (this.stage === ApplicationStage.SCREENING || this.stage === ApplicationStage.PHONE_SCREEN) {
+        if (this.stage === ApplicationStage.SCREENING || this.stage === ApplicationStage.PHONE_SCREEN)
           this.stage = ApplicationStage.TECHNICAL;
-        }
         break;
-      case ApplicationStatus.OFFERED:
-        this.stage = ApplicationStage.OFFER;
-        break;
-      case ApplicationStatus.HIRED:
-        this.stage = ApplicationStage.HIRED;
-        break;
+      case ApplicationStatus.OFFERED: this.stage = ApplicationStage.OFFER; break;
+      case ApplicationStatus.HIRED: this.stage = ApplicationStage.HIRED; break;
     }
   }
 
-  // Static helper methods
   static getStatusFlow(): Record<ApplicationStatus, ApplicationStatus[]> {
     return {
       [ApplicationStatus.APPLIED]: [ApplicationStatus.SCREENING, ApplicationStatus.REJECTED],
@@ -529,12 +467,10 @@ export class JobApplication {
   }
 
   canTransitionTo(newStatus: ApplicationStatus): boolean {
-    const allowedTransitions = JobApplication.getStatusFlow()[this.status];
-    return allowedTransitions.includes(newStatus);
+    return JobApplication.getStatusFlow()[this.status].includes(newStatus);
   }
 
   canAdvanceToStage(newStage: ApplicationStage): boolean {
-    const allowedStages = JobApplication.getStageFlow()[this.stage];
-    return allowedStages.includes(newStage);
+    return JobApplication.getStageFlow()[this.stage].includes(newStage);
   }
 }

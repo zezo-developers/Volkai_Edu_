@@ -28,16 +28,16 @@ export class Role {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', name: 'organizationId', nullable: true })
   organizationId?: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', name: 'isSystem', default: false })
   isSystem: boolean;
 
-  @Column({ type: 'text', array: true, default: '{}' })
+  @Column({ type: 'text', array: true, name: 'permissions', default: '{}' })
   permissions: string[];
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations

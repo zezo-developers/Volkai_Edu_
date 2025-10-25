@@ -33,7 +33,7 @@ export class ResumeSection {
   id: string;
 
   @ApiProperty({ description: 'Resume ID' })
-  @Column({ name: 'resume_id' })
+  @Column({ name: 'resumeId' })
   resumeId: string;
 
   @ApiProperty({ enum: SectionType, description: 'Section type' })
@@ -52,11 +52,11 @@ export class ResumeSection {
   content: Record<string, any>;
 
   @ApiProperty({ description: 'Section order index' })
-  @Column({ name: 'order_index' })
+  @Column({ name: 'orderIndex' })
   orderIndex: number;
 
   @ApiProperty({ description: 'Whether section is visible' })
-  @Column({ name: 'is_visible', default: true })
+  @Column({ name: 'isVisible', default: true })
   isVisible: boolean;
 
   @ApiProperty({ description: 'Section styling options' })
@@ -84,12 +84,12 @@ export class ResumeSection {
     displayFormat?: 'list' | 'grid' | 'timeline' | 'table';
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations
   @ManyToOne(() => UserResume, resume => resume.sections)
-  @JoinColumn({ name: 'resume_id' })
+  @JoinColumn({ name: 'resumeId' })
   resume: UserResume;
 
   // Methods
@@ -124,11 +124,8 @@ export class ResumeSection {
   }
 
   getDisplayTitle(): string {
-    if (this.title) {
-      return this.title;
-    }
+    if (this.title) return this.title;
 
-    // Default titles for standard sections
     const defaultTitles: Record<SectionType, string> = {
       [SectionType.PERSONAL_INFO]: 'Personal Information',
       [SectionType.SUMMARY]: 'Professional Summary',
@@ -149,7 +146,6 @@ export class ResumeSection {
   validate(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Validate based on section type
     switch (this.type) {
       case SectionType.PERSONAL_INFO:
         if (!this.content.firstName) errors.push('First name is required');
@@ -219,7 +215,6 @@ export class ResumeSection {
     };
   }
 
-  // Static helper methods
   static getDefaultContent(type: SectionType): Record<string, any> {
     switch (type) {
       case SectionType.PERSONAL_INFO:
@@ -237,60 +232,26 @@ export class ResumeSection {
           linkedin: '',
           github: '',
         };
-
       case SectionType.SUMMARY:
-        return {
-          text: '',
-        };
-
+        return { text: '' };
       case SectionType.EXPERIENCE:
-        return {
-          items: [],
-        };
-
+        return { items: [] };
       case SectionType.EDUCATION:
-        return {
-          items: [],
-        };
-
+        return { items: [] };
       case SectionType.SKILLS:
-        return {
-          items: [],
-          categories: [],
-        };
-
+        return { items: [], categories: [] };
       case SectionType.PROJECTS:
-        return {
-          items: [],
-        };
-
+        return { items: [] };
       case SectionType.CERTIFICATIONS:
-        return {
-          items: [],
-        };
-
+        return { items: [] };
       case SectionType.LANGUAGES:
-        return {
-          items: [],
-        };
-
+        return { items: [] };
       case SectionType.HOBBIES:
-        return {
-          items: [],
-        };
-
+        return { items: [] };
       case SectionType.REFERENCES:
-        return {
-          items: [],
-          showOnRequest: true,
-        };
-
+        return { items: [], showOnRequest: true };
       case SectionType.CUSTOM:
-        return {
-          text: '',
-          items: [],
-        };
-
+        return { text: '', items: [] };
       default:
         return {};
     }
@@ -307,38 +268,17 @@ export class ResumeSection {
   }
 
   static getDefaultConfig(type: SectionType): ResumeSection['config'] {
-    const baseConfig = {
-      showTitle: true,
-      showDivider: true,
-      collapsible: false,
-    };
+    const baseConfig = { showTitle: true, showDivider: true, collapsible: false };
 
     switch (type) {
       case SectionType.EXPERIENCE:
       case SectionType.EDUCATION:
       case SectionType.PROJECTS:
-        return {
-          ...baseConfig,
-          displayFormat: 'timeline' as const,
-          sortBy: 'startDate',
-          sortOrder: 'desc' as const,
-        };
-
+        return { ...baseConfig, displayFormat: 'timeline', sortBy: 'startDate', sortOrder: 'desc' };
       case SectionType.SKILLS:
-        return {
-          ...baseConfig,
-          displayFormat: 'grid' as const,
-          maxItems: 20,
-        };
-
+        return { ...baseConfig, displayFormat: 'grid', maxItems: 20 };
       case SectionType.CERTIFICATIONS:
-        return {
-          ...baseConfig,
-          displayFormat: 'list' as const,
-          sortBy: 'issueDate',
-          sortOrder: 'desc' as const,
-        };
-
+        return { ...baseConfig, displayFormat: 'list', sortBy: 'issueDate', sortOrder: 'desc' };
       default:
         return baseConfig;
     }

@@ -27,7 +27,7 @@ export class Skill {
   name: string;
 
   @ApiProperty({ description: 'Skill category ID' })
-  @Column({ name: 'category_id', nullable: true })
+  @Column({ name: 'categoryId', nullable: true })
   categoryId?: string;
 
   @ApiProperty({ description: 'Skill description' })
@@ -39,15 +39,15 @@ export class Skill {
   aliases: string[];
 
   @ApiProperty({ description: 'Whether skill is verified/official' })
-  @Column({ name: 'is_verified', default: false })
+  @Column({ name: 'isVerified', default: false })
   isVerified: boolean;
 
   @ApiProperty({ description: 'Whether skill is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Skill icon or image URL' })
-  @Column({ name: 'icon_url', nullable: true })
+  @Column({ name: 'iconUrl', nullable: true })
   iconUrl?: string;
 
   @ApiProperty({ description: 'Skill color for display' })
@@ -55,15 +55,15 @@ export class Skill {
   color?: string;
 
   @ApiProperty({ description: 'Skill popularity score (0-100)' })
-  @Column({ name: 'popularity_score', default: 0 })
+  @Column({ name: 'popularityScore', default: 0 })
   popularityScore: number;
 
   @ApiProperty({ description: 'Skill trending score (0-100)' })
-  @Column({ name: 'trending_score', default: 0 })
+  @Column({ name: 'trendingScore', default: 0 })
   trendingScore: number;
 
   @ApiProperty({ description: 'Number of users with this skill' })
-  @Column({ name: 'user_count', default: 0 })
+  @Column({ name: 'userCount', default: 0 })
   userCount: number;
 
   @ApiProperty({ description: 'Skill metadata and additional information' })
@@ -90,11 +90,11 @@ export class Skill {
       url?: string;
       difficulty: 'beginner' | 'intermediate' | 'advanced';
     }>;
-    jobTitles?: string[]; // Common job titles that require this skill
-    prerequisites?: string[]; // Skills that should be learned first
+    jobTitles?: string[];
+    prerequisites?: string[];
     difficulty?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
     timeToLearn?: {
-      beginner: number; // hours
+      beginner: number;
       intermediate: number;
       advanced: number;
     };
@@ -104,15 +104,15 @@ export class Skill {
   @Column({ type: 'simple-array', default: [] })
   tags: string[];
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => SkillCategory, category => category.skills, { nullable: true })
-  @JoinColumn({ name: 'category_id' })
+  @JoinColumn({ name: 'categoryId' })
   category?: SkillCategory;
 
   @OneToMany(() => UserSkill, userSkill => userSkill.skill)
@@ -253,7 +253,6 @@ export class Skill {
     this.metadata.salaryImpact = salaryImpact;
   }
 
-  // Search and matching methods
   matchesQuery(query: string): boolean {
     const lowerQuery = query.toLowerCase();
     return (
@@ -268,32 +267,24 @@ export class Skill {
     const lowerQuery = query.toLowerCase();
     let score = 0;
 
-    // Exact name match
     if (this.name.toLowerCase() === lowerQuery) score += 100;
-    // Name starts with query
     else if (this.name.toLowerCase().startsWith(lowerQuery)) score += 80;
-    // Name contains query
     else if (this.name.toLowerCase().includes(lowerQuery)) score += 60;
 
-    // Alias matches
     if (this.aliases.some(alias => alias === lowerQuery)) score += 70;
     else if (this.aliases.some(alias => alias.includes(lowerQuery))) score += 40;
 
-    // Tag matches
     if (this.tags.some(tag => tag === lowerQuery)) score += 50;
     else if (this.tags.some(tag => tag.includes(lowerQuery))) score += 30;
 
-    // Description match
     if (this.description && this.description.toLowerCase().includes(lowerQuery)) score += 20;
 
-    // Boost for popular/trending skills
     score += this.popularityScore * 0.1;
     score += this.trendingScore * 0.05;
 
     return score;
   }
 
-  // Static helper methods
   static createFromName(name: string, categoryId?: string): Partial<Skill> {
     return {
       name: name.trim(),

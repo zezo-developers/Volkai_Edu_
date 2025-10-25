@@ -49,19 +49,19 @@ export class InterviewSession {
   id: string;
 
   @ApiProperty({ description: 'Organization ID' })
-  @Column({ name: 'org_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'Candidate user ID' })
-  @Column({ name: 'candidate_id' })
+  @Column({ name: 'candidateId' })
   candidateId: string;
 
   @ApiProperty({ description: 'Interviewer user ID' })
-  @Column({ name: 'interviewer_id', nullable: true })
+  @Column({ name: 'interviewerId', nullable: true })
   interviewerId?: string;
 
   @ApiProperty({ description: 'Job ID this interview is for' })
-  @Column({ name: 'job_id', nullable: true })
+  @Column({ name: 'jobId', nullable: true })
   jobId?: string;
 
   @ApiProperty({ enum: InterviewType, description: 'Interview type' })
@@ -89,31 +89,31 @@ export class InterviewSession {
   status: InterviewStatus;
 
   @ApiProperty({ description: 'Scheduled interview time' })
-  @Column({ name: 'scheduled_at', type: 'timestamp' })
+  @Column({ name: 'scheduledAt', type: 'timestamp' })
   scheduledAt: Date;
 
   @ApiProperty({ description: 'Interview start time' })
-  @Column({ name: 'started_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'startedAt', type: 'timestamp', nullable: true })
   startedAt?: Date;
 
   @ApiProperty({ description: 'Interview end time' })
-  @Column({ name: 'ended_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'endedAt', type: 'timestamp', nullable: true })
   endedAt?: Date;
 
   @ApiProperty({ description: 'Interview duration in minutes' })
-  @Column({ name: 'duration_minutes', nullable: true })
+  @Column({ name: 'durationMinutes', nullable: true })
   durationMinutes?: number;
 
   @ApiProperty({ description: 'Meeting URL for video interviews' })
-  @Column({ name: 'meeting_url', nullable: true })
+  @Column({ name: 'meetingUrl', nullable: true })
   meetingUrl?: string;
 
   @ApiProperty({ description: 'Meeting ID from video service' })
-  @Column({ name: 'meeting_id', nullable: true })
+  @Column({ name: 'meetingId', nullable: true })
   meetingId?: string;
 
   @ApiProperty({ description: 'Recording URL if recorded' })
-  @Column({ name: 'recording_url', nullable: true })
+  @Column({ name: 'recordingUrl', nullable: true })
   recordingUrl?: string;
 
   @ApiProperty({ description: 'Interview notes' })
@@ -121,15 +121,15 @@ export class InterviewSession {
   notes?: string;
 
   @ApiProperty({ description: 'Interview feedback JSON' })
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ name: 'feedback', type: 'jsonb', nullable: true })
   feedback?: Record<string, any>;
 
   @ApiProperty({ description: 'Overall interview score (1-100)' })
-  @Column({ nullable: true })
+  @Column({ name: 'score', nullable: true })
   score?: number;
 
   @ApiProperty({ description: 'Interview difficulty level' })
-  @Column({ nullable: true })
+  @Column({ name: 'difficulty', nullable: true })
   difficulty?: string;
 
   @ApiProperty({ description: 'Interview tags' })
@@ -137,58 +137,58 @@ export class InterviewSession {
   tags?: string[];
 
   @ApiProperty({ description: 'Interview metadata' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata: Record<string, any>;
 
   @ApiProperty({ description: 'Whether interview is AI-powered' })
-  @Column({ name: 'is_ai_interview', default: false })
+  @Column({ name: 'isAiInterview', default: false })
   isAiInterview: boolean;
 
   @ApiProperty({ description: 'AI interview configuration' })
-  @Column({ name: 'ai_config', type: 'jsonb', nullable: true })
+  @Column({ name: 'aiConfig', type: 'jsonb', nullable: true })
   aiConfig?: Record<string, any>;
 
   @ApiProperty({ description: 'Interview preparation time in minutes' })
-  @Column({ name: 'preparation_time', default: 5 })
+  @Column({ name: 'preparationTime', default: 5 })
   preparationTime: number;
 
   @ApiProperty({ description: 'Whether candidate can reschedule' })
-  @Column({ name: 'allow_reschedule', default: true })
+  @Column({ name: 'allowReschedule', default: true })
   allowReschedule: boolean;
 
   @ApiProperty({ description: 'Reschedule deadline (hours before interview)' })
-  @Column({ name: 'reschedule_deadline_hours', default: 24 })
+  @Column({ name: 'rescheduleDeadlineHours', default: 24 })
   rescheduleDeadlineHours: number;
 
   @ApiProperty({ description: 'Interview reminder sent' })
-  @Column({ name: 'reminder_sent', default: false })
+  @Column({ name: 'reminderSent', default: false })
   reminderSent: boolean;
 
   @ApiProperty({ description: 'Follow-up email sent' })
-  @Column({ name: 'followup_sent', default: false })
+  @Column({ name: 'followupSent', default: false })
   followupSent: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'org_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'candidate_id' })
+  @JoinColumn({ name: 'candidateId' })
   candidate: User;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'interviewer_id' })
+  @JoinColumn({ name: 'interviewerId' })
   interviewer?: User;
 
   @ManyToOne(() => Job, { nullable: true })
-  @JoinColumn({ name: 'job_id' })
+  @JoinColumn({ name: 'jobId' })
   job?: Job;
 
   @OneToMany(() => InterviewResponse, response => response.interviewSession)
@@ -217,80 +217,55 @@ export class InterviewSession {
   }
 
   get canReschedule(): boolean {
-    if (!this.allowReschedule || this.status !== InterviewStatus.SCHEDULED) {
-      return false;
-    }
+    if (!this.allowReschedule || this.status !== InterviewStatus.SCHEDULED) return false;
     const deadline = new Date(this.scheduledAt.getTime() - (this.rescheduleDeadlineHours * 60 * 60 * 1000));
     return new Date() < deadline;
   }
 
   // Methods
   start(): void {
-    if (this.status !== InterviewStatus.SCHEDULED) {
-      throw new Error('Interview must be scheduled to start');
-    }
+    if (this.status !== InterviewStatus.SCHEDULED) throw new Error('Interview must be scheduled to start');
     this.status = InterviewStatus.IN_PROGRESS;
     this.startedAt = new Date();
   }
 
   complete(score?: number, feedback?: Record<string, any>): void {
-    if (this.status !== InterviewStatus.IN_PROGRESS) {
-      throw new Error('Interview must be in progress to complete');
-    }
+    if (this.status !== InterviewStatus.IN_PROGRESS) throw new Error('Interview must be in progress to complete');
     this.status = InterviewStatus.COMPLETED;
     this.endedAt = new Date();
     this.durationMinutes = this.actualDuration;
-    if (score !== undefined) {
-      this.score = score;
-    }
-    if (feedback) {
-      this.feedback = feedback;
-    }
+    if (score !== undefined) this.score = score;
+    if (feedback) this.feedback = feedback;
   }
 
   cancel(reason?: string): void {
-    if (this.status === InterviewStatus.COMPLETED) {
-      throw new Error('Cannot cancel completed interview');
-    }
+    if (this.status === InterviewStatus.COMPLETED) throw new Error('Cannot cancel completed interview');
     this.status = InterviewStatus.CANCELLED;
-    if (reason) {
-      this.metadata = { ...this.metadata, cancellationReason: reason };
-    }
+    if (reason) this.metadata = { ...this.metadata, cancellationReason: reason };
   }
 
   reschedule(newTime: Date): void {
-    if (!this.canReschedule) {
-      throw new Error('Interview cannot be rescheduled');
-    }
-    this.scheduledAt = newTime;
-    this.reminderSent = false;
+    if (!this.canReschedule) throw new Error('Interview cannot be rescheduled');
     this.metadata = { 
       ...this.metadata, 
       rescheduledAt: new Date(),
       previousScheduledAt: this.scheduledAt 
     };
+    this.scheduledAt = newTime;
+    this.reminderSent = false;
   }
 
   addFeedback(category: string, rating: number, comments?: string): void {
-    if (!this.feedback) {
-      this.feedback = {};
-    }
-    this.feedback[category] = {
-      rating,
-      comments,
-      timestamp: new Date(),
-    };
+    if (!this.feedback) this.feedback = {};
+    this.feedback[category] = { rating, comments, timestamp: new Date() };
   }
 
   calculateOverallScore(): number {
     if (!this.feedback) return 0;
-    
     const ratings = Object.values(this.feedback)
       .filter((item: any) => typeof item.rating === 'number')
       .map((item: any) => item.rating);
-    
     if (ratings.length === 0) return 0;
-    
     const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
     return Math.round(average);
   }

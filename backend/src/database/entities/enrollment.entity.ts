@@ -44,98 +44,99 @@ export class Enrollment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'userId' })
   userId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'courseId' })
   courseId: string;
 
   @Column({
     type: 'enum',
     enum: EnrollmentStatus,
     default: EnrollmentStatus.PENDING,
+    name: 'status',
   })
   @Index()
   status: EnrollmentStatus;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0, name: 'progressPercentage' })
   @Index()
   progressPercentage: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'completedLessons' })
   completedLessons: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalLessons' })
   totalLessons: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'completedAssessments' })
   completedAssessments: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalAssessments' })
   totalAssessments: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalTimeSpentMinutes' })
   totalTimeSpentMinutes: number;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true, name: 'finalScore' })
   finalScore?: number;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true, name: 'averageScore' })
   averageScore?: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'attemptCount' })
   attemptCount: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ type: 'integer', nullable: true, name: 'maxAttempts' })
   maxAttempts?: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'lastAccessedAt' })
   lastAccessedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'startedAt' })
   startedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'completedAt' })
   completedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'certificateIssuedAt' })
   certificateIssuedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'expiresAt' })
   expiresAt?: Date;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'paidAmount' })
   paidAmount?: number;
 
-  @Column({ type: 'varchar', length: 3, nullable: true })
+  @Column({ type: 'varchar', length: 3, nullable: true, name: 'currency' })
   currency?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'paymentTransactionId' })
   paymentTransactionId?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'paymentDate' })
   paymentDate?: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'notes' })
   notes?: string;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'metadata' })
   metadata: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'preferences' })
   preferences: Record<string, unknown>;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: true, name: 'receiveNotifications' })
   receiveNotifications: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isArchived' })
   isArchived: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'enrolledAt' })
   @Index()
   enrolledAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -219,7 +220,7 @@ export class Enrollment {
   }
 
   get isRecentlyActive(): boolean {
-    return this.daysSinceLastAccess <= 7; // Active within last 7 days
+    return this.daysSinceLastAccess <= 7;
   }
 
   get enrollmentDuration(): number {
@@ -229,9 +230,6 @@ export class Enrollment {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  /**
-   * Check if enrollment is eligible for certificate
-   */
   isEligibleForCertificate(passingScore?: number): boolean {
     if (!this.isCompleted) return false;
     
@@ -242,9 +240,6 @@ export class Enrollment {
     return this.progressPercentage >= 100;
   }
 
-  /**
-   * Update progress
-   */
   updateProgress(completedLessons: number, totalLessons: number): void {
     this.completedLessons = completedLessons;
     this.totalLessons = totalLessons;
@@ -252,37 +247,24 @@ export class Enrollment {
       ? Math.round((completedLessons / totalLessons) * 100) 
       : 0;
     
-    // Auto-complete if all lessons are done
     if (this.progressPercentage >= 100 && this.status === EnrollmentStatus.ACTIVE) {
       this.complete();
     }
   }
 
-  /**
-   * Update assessment progress
-   */
   updateAssessmentProgress(completedAssessments: number, totalAssessments: number): void {
     this.completedAssessments = completedAssessments;
     this.totalAssessments = totalAssessments;
   }
 
-  /**
-   * Add time spent
-   */
   addTimeSpent(minutes: number): void {
     this.totalTimeSpentMinutes += minutes;
   }
 
-  /**
-   * Update last accessed timestamp
-   */
   updateLastAccessed(): void {
     this.lastAccessedAt = new Date();
   }
 
-  /**
-   * Start the enrollment
-   */
   start(): void {
     if (this.status === EnrollmentStatus.PENDING) {
       this.status = EnrollmentStatus.ACTIVE;
@@ -291,9 +273,6 @@ export class Enrollment {
     }
   }
 
-  /**
-   * Complete the enrollment
-   */
   complete(): void {
     if (this.status === EnrollmentStatus.ACTIVE) {
       this.status = EnrollmentStatus.COMPLETED;
@@ -302,9 +281,6 @@ export class Enrollment {
     }
   }
 
-  /**
-   * Suspend the enrollment
-   */
   suspend(reason?: string): void {
     if (this.status === EnrollmentStatus.ACTIVE) {
       this.status = EnrollmentStatus.SUSPENDED;
@@ -314,9 +290,6 @@ export class Enrollment {
     }
   }
 
-  /**
-   * Reactivate suspended enrollment
-   */
   reactivate(): void {
     if (this.status === EnrollmentStatus.SUSPENDED) {
       this.status = EnrollmentStatus.ACTIVE;
@@ -324,9 +297,6 @@ export class Enrollment {
     }
   }
 
-  /**
-   * Cancel the enrollment
-   */
   cancel(reason?: string): void {
     if ([EnrollmentStatus.PENDING, EnrollmentStatus.ACTIVE, EnrollmentStatus.SUSPENDED].includes(this.status)) {
       this.status = EnrollmentStatus.CANCELLED;
@@ -336,47 +306,29 @@ export class Enrollment {
     }
   }
 
-  /**
-   * Mark as expired
-   */
   expire(): void {
     if (this.status === EnrollmentStatus.ACTIVE) {
       this.status = EnrollmentStatus.EXPIRED;
     }
   }
 
-  /**
-   * Update final score
-   */
   updateFinalScore(score: number): void {
     this.finalScore = Math.round(score * 100) / 100;
   }
 
-  /**
-   * Update average score
-   */
   updateAverageScore(score: number): void {
     this.averageScore = Math.round(score * 100) / 100;
   }
 
-  /**
-   * Increment attempt count
-   */
   incrementAttemptCount(): void {
     this.attemptCount += 1;
   }
 
-  /**
-   * Check if more attempts are allowed
-   */
   canAttempt(): boolean {
     if (!this.maxAttempts) return true;
     return this.attemptCount < this.maxAttempts;
   }
 
-  /**
-   * Record payment
-   */
   recordPayment(amount: number, currency: string, transactionId: string): void {
     this.paidAmount = amount;
     this.currency = currency;
@@ -384,23 +336,14 @@ export class Enrollment {
     this.paymentDate = new Date();
   }
 
-  /**
-   * Record certificate issuance
-   */
   recordCertificateIssuance(): void {
     this.certificateIssuedAt = new Date();
   }
 
-  /**
-   * Get metadata value by key
-   */
   getMetadata<T = unknown>(key: string, defaultValue?: T): T {
     return (this.metadata[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set metadata value
-   */
   setMetadata(key: string, value: unknown): void {
     this.metadata = {
       ...this.metadata,
@@ -408,16 +351,10 @@ export class Enrollment {
     };
   }
 
-  /**
-   * Get preference value by key
-   */
   getPreference<T = unknown>(key: string, defaultValue?: T): T {
     return (this.preferences[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set preference value
-   */
   setPreference(key: string, value: unknown): void {
     this.preferences = {
       ...this.preferences,
@@ -425,16 +362,8 @@ export class Enrollment {
     };
   }
 
-  /**
-   * Check if enrollment needs attention (inactive for too long)
-   */
   needsAttention(): boolean {
     if (!this.isActive) return false;
-    
-    // Consider enrollment needing attention if:
-    // - No progress for 30 days
-    // - Less than 10% progress after 14 days
-    // - No access for 14 days
     
     const daysSinceLastAccess = this.daysSinceLastAccess;
     const daysSinceEnrollment = this.daysSinceEnrollment;
@@ -446,9 +375,6 @@ export class Enrollment {
     return false;
   }
 
-  /**
-   * Get engagement level
-   */
   getEngagementLevel(): 'high' | 'medium' | 'low' {
     const daysSinceLastAccess = this.daysSinceLastAccess;
     const progressRate = this.progressPercentage / Math.max(this.daysSinceEnrollment, 1);

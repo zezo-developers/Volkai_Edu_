@@ -584,7 +584,7 @@ export class ResumeBuilderService {
   }
 
   // Private helper methods
-  private async validateResumeAccess(resume: UserResume, user: User): Promise<void> {
+  private async validateResumeAccess(resume: any, user: User): Promise<void> {
     const isOwner = resume.userId === user.id;
     const isAdmin = user.roles === UserRole.ADMIN;
     const isPublic = resume.visibility === ResumeVisibility.PUBLIC;

@@ -46,47 +46,49 @@ export class OrganizationMembership {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'userId', type: 'uuid' })
   userId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'organizationId', type: 'uuid' })
   organizationId: string;
 
   @Column({
+    name: 'role',
     type: 'enum',
     enum: MembershipRole,
   })
   role: MembershipRole;
 
   @Column({
+    name: 'status',
     type: 'enum',
     enum: MembershipStatus,
     default: MembershipStatus.ACTIVE,
   })
   status: MembershipStatus;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ name: 'invitedBy', type: 'uuid', nullable: true })
   invitedBy?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'invitedAt', type: 'timestamp', nullable: true })
   invitedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'joinedAt', type: 'timestamp', nullable: true })
   joinedAt?: Date;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'invitationToken', type: 'varchar', length: 255, nullable: true })
   invitationToken?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'invitationExpiresAt', type: 'timestamp', nullable: true })
   invitationExpiresAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations
-  // @ManyToOne(() => User, user => user.organizationMemberships, { eager: true })
-  // @JoinColumn({ name: 'userId' })
-  // user: User;
+  @ManyToOne(() => User, user => user.organizationMemberships, { eager: true })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @ManyToOne(() => Organization, organization => organization.memberships, { eager: true })
   @JoinColumn({ name: 'organizationId' })
@@ -166,7 +168,7 @@ export class OrganizationMembership {
    */
   private getRolePermissions(): string[] {
     const basePermissions = ['read:profile', 'update:profile'];
-    
+
     switch (this.role) {
       case MembershipRole.OWNER:
         return [
@@ -179,7 +181,7 @@ export class OrganizationMembership {
           'conduct:interviews',
           'view:analytics',
         ];
-      
+
       case MembershipRole.ADMIN:
         return [
           ...basePermissions,
@@ -189,7 +191,7 @@ export class OrganizationMembership {
           'conduct:interviews',
           'view:analytics',
         ];
-      
+
       case MembershipRole.MANAGER:
         return [
           ...basePermissions,
@@ -198,7 +200,7 @@ export class OrganizationMembership {
           'conduct:interviews',
           'view:team_analytics',
         ];
-      
+
       case MembershipRole.HR:
         return [
           ...basePermissions,
@@ -207,14 +209,14 @@ export class OrganizationMembership {
           'conduct:interviews',
           'view:hr_analytics',
         ];
-      
+
       case MembershipRole.INTERVIEWER:
         return [
           ...basePermissions,
           'conduct:interviews',
           'view:interview_analytics',
         ];
-      
+
       case MembershipRole.LEARNER:
         return [
           ...basePermissions,
@@ -222,7 +224,7 @@ export class OrganizationMembership {
           'take:assessments',
           'apply:jobs',
         ];
-      
+
       default:
         return basePermissions;
     }

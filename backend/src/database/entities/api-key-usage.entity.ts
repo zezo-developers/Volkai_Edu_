@@ -41,11 +41,11 @@ export class ApiKeyUsage {
   id: string;
 
   @ApiProperty({ description: 'API Key ID' })
-  @Column({ name: 'api_key_id' })
+  @Column({ name: 'apiKeyId' })
   apiKeyId: string;
 
   @ApiProperty({ description: 'Organization ID (nullable)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ enum: RequestMethod, description: 'HTTP method used' })
@@ -67,27 +67,27 @@ export class ApiKeyUsage {
   status: UsageStatus;
 
   @ApiProperty({ description: 'HTTP status code' })
-  @Column({ name: 'status_code' })
+  @Column({ name: 'statusCode' })
   statusCode: number;
 
   @ApiProperty({ description: 'Response time in milliseconds' })
-  @Column({ name: 'response_time' })
+  @Column({ name: 'responseTime' })
   responseTime: number;
 
   @ApiProperty({ description: 'Request size in bytes' })
-  @Column({ name: 'request_size', nullable: true })
+  @Column({ name: 'requestSize', nullable: true })
   requestSize?: number;
 
   @ApiProperty({ description: 'Response size in bytes' })
-  @Column({ name: 'response_size', nullable: true })
+  @Column({ name: 'responseSize', nullable: true })
   responseSize?: number;
 
   @ApiProperty({ description: 'Client IP address' })
-  @Column({ name: 'ip_address', nullable: true })
+  @Column({ name: 'ipAddress', nullable: true })
   ipAddress?: string;
 
   @ApiProperty({ description: 'User agent string' })
-  @Column({ name: 'user_agent', type: 'text', nullable: true })
+  @Column({ name: 'userAgent', type: 'text', nullable: true })
   userAgent?: string;
 
   @ApiProperty({ description: 'Referer header' })
@@ -97,50 +97,31 @@ export class ApiKeyUsage {
   @ApiProperty({ description: 'Request metadata and details' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Request details
     requestId?: string;
     correlationId?: string;
-    
-    // Query parameters
     queryParams?: Record<string, any>;
-    
-    // Request headers (selected)
     headers?: Record<string, string>;
-    
-    // Authentication details
     authMethod?: string;
     userId?: string;
-    
-    // Rate limiting info
     rateLimitRemaining?: number;
     rateLimitReset?: Date;
-    
-    // Error details
     errorCode?: string;
     errorMessage?: string;
-    
-    // Performance metrics
     dbQueryTime?: number;
     cacheHitRate?: number;
-    
-    // Feature usage
     featuresUsed?: string[];
-    
-    // Geographic info
     country?: string;
     region?: string;
     city?: string;
-    
-    // Custom fields
     customFields?: Record<string, any>;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations
   @ManyToOne(() => ApiKey, apiKey => apiKey.usageRecords)
-  @JoinColumn({ name: 'api_key_id' })
+  @JoinColumn({ name: 'apiKeyId' })
   apiKey: ApiKey;
 
   // Virtual properties
@@ -162,11 +143,11 @@ export class ApiKeyUsage {
   }
 
   get isFastResponse(): boolean {
-    return this.responseTime < 200; // Less than 200ms
+    return this.responseTime < 200;
   }
 
   get isSlowResponse(): boolean {
-    return this.responseTime > 2000; // More than 2 seconds
+    return this.responseTime > 2000;
   }
 
   // Methods
@@ -225,7 +206,6 @@ export class ApiKeyUsage {
     organizationId?: string
   ): Partial<ApiKeyUsage> {
     const status = ApiKeyUsage.getStatusFromCode(statusCode);
-    
     return {
       apiKeyId,
       organizationId,
@@ -273,14 +253,12 @@ export class ApiKeyUsage {
       responseTime,
       organizationId
     );
-
     if (errorCode || errorMessage) {
       record.metadata = {
         errorCode,
         errorMessage,
       };
     }
-
     return record;
   }
 
@@ -300,13 +278,11 @@ export class ApiKeyUsage {
       0,
       organizationId
     );
-
     record.status = UsageStatus.RATE_LIMITED;
     record.metadata = {
       rateLimitRemaining: remaining,
       rateLimitReset: resetTime,
     };
-
     return record;
   }
 
@@ -337,7 +313,7 @@ export class ApiKeyUsage {
     statusCodeDistribution: Record<number, number>;
   } {
     const totalRequests = records.length;
-    
+
     if (totalRequests === 0) {
       return {
         totalRequests: 0,
@@ -353,11 +329,9 @@ export class ApiKeyUsage {
     const successCount = records.filter(r => r.isSuccess).length;
     const errorCount = records.filter(r => r.isError).length;
     const rateLimitCount = records.filter(r => r.isRateLimited).length;
-    
     const totalResponseTime = records.reduce((sum, r) => sum + r.responseTime, 0);
     const averageResponseTime = totalResponseTime / totalRequests;
 
-    // Top endpoints
     const endpointCounts = records.reduce((acc, record) => {
       acc[record.endpoint] = (acc[record.endpoint] || 0) + 1;
       return acc;
@@ -368,7 +342,6 @@ export class ApiKeyUsage {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Status code distribution
     const statusCodeDistribution = records.reduce((acc, record) => {
       acc[record.statusCode] = (acc[record.statusCode] || 0) + 1;
       return acc;
@@ -415,9 +388,7 @@ export class ApiKeyUsage {
           break;
       }
 
-      if (!acc[period]) {
-        acc[period] = [];
-      }
+      if (!acc[period]) acc[period] = [];
       acc[period].push(record);
       return acc;
     }, {} as Record<string, ApiKeyUsage[]>);

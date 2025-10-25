@@ -1,2 +1,8 @@
 node_modules
 dist
+
+# Ignore all env files everywhere
+**/.env
+**/.env.*
+
+backend/.env.development

@@ -55,14 +55,14 @@ export class Job {
   id: string;
 
   @ApiProperty({ description: 'Organization ID' })
-  @Column({ name: 'org_id' })
+  @Column({ name: 'organizationId' })
   organizationId: string;
 
   @ApiProperty({ description: 'Job title' })
   @Column({ length: 255 })
   title: string;
 
-  @ApiProperty({ description: 'Applicaitons' })
+  @ApiProperty({ description: 'Applications' })
   @Column({ length: 255 })
   applications: string;
 
@@ -111,11 +111,11 @@ export class Job {
   experienceLevel?: ExperienceLevel;
 
   @ApiProperty({ description: 'Minimum salary' })
-  @Column({ name: 'salary_min', type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ name: 'salaryMin', type: 'decimal', precision: 12, scale: 2, nullable: true })
   salaryMin?: number;
 
   @ApiProperty({ description: 'Maximum salary' })
-  @Column({ name: 'salary_max', type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ name: 'salaryMax', type: 'decimal', precision: 12, scale: 2, nullable: true })
   salaryMax?: number;
 
   @ApiProperty({ description: 'Salary currency' })
@@ -131,7 +131,7 @@ export class Job {
   tags: string[];
 
   @ApiProperty({ description: 'Required skills' })
-  @Column({ name: 'skills_required', type: 'simple-array', default: [] })
+  @Column({ name: 'skillsRequired', type: 'simple-array', default: [] })
   skillsRequired: string[];
 
   @ApiProperty({ enum: JobStatus, description: 'Job status' })
@@ -143,30 +143,30 @@ export class Job {
   status: JobStatus;
 
   @ApiProperty({ description: 'Job published date' })
-  @Column({ name: 'published_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'publishedAt', type: 'timestamp', nullable: true })
   publishedAt?: Date;
 
   @ApiProperty({ description: 'Job expiry date' })
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
   @ApiProperty({ description: 'Job creator user ID' })
-  @Column({ name: 'created_by' })
+  @Column({ name: 'createdBy' })
   createdBy: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Organization)
-  @JoinColumn({ name: 'org_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization: Organization;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'createdBy' })
   creator: User;
 
   @OneToMany(() => InterviewSession, session => session.job)
@@ -174,7 +174,7 @@ export class Job {
 
   // Virtual properties
   get isActive(): boolean {
-    return this.status === JobStatus.PUBLISHED && 
+    return this.status === JobStatus.PUBLISHED &&
            (!this.expiresAt || this.expiresAt > new Date());
   }
 

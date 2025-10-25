@@ -4,6 +4,8 @@ import {
   UnauthorizedException,
   BadRequestException,
   Logger,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -83,18 +85,18 @@ export class AuthService {
     const emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // // Create user
-    // const user = this.userRepository.create({
-    //   email,
-    //   passwordHash,
-    //   firstName,
-    //   lastName,
-    //   emailVerificationToken,
-    //   emailVerificationExpiresAt,
-    //   status: UserStatus.ACTIVE,
-    //   roles: [Role.USER],
-    // }) ;
+    const user = this.userRepository.create({
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      emailVerificationToken,
+      emailVerificationExpiresAt,
+      status: UserStatus.ACTIVE,
+      roles: [Role.USER] as any,
+    }) ;
 
-    // const savedUser = await this.userRepository.save(user);
+    const savedUser:any = await this.userRepository.save(user);
     // console.log('Saved User:', savedUser);
 
     let organization: Organization | undefined;
@@ -103,34 +105,35 @@ export class AuthService {
     // // // Handle organization creation or invitation
     if (inviteToken) {
       // Join existing organization via invitation
-      membership = await this.handleInvitationAcceptance('ebb63201-5ae6-48b0-a592-e4750d5d265e', 'inv_1234567890abcdef');
-      // organization = membership.organization;
+      membership = await this.handleInvitationAcceptance(savedUser.id, savedUser.invitationToken);
+      organization = membership.organization;
     } else if (orgName) {
       // Create new organization
-      // organization = await this.createOrganization(orgName, savedUser.id);
-      // membership = await this.createMembership(savedUser.id, organization.id, MembershipRole.OWNER);
+      organization = await this.createOrganization(orgName, savedUser.id);
+      membership = await this.createMembership(savedUser.id, organization.id, MembershipRole.OWNER);
     }
 
     // // // Generate tokens
-    // const tokens = await this.generateTokens(savedUser);
+    const tokens = await this.generateTokens(savedUser);
+    console.log('Tokens:', tokens);
 
     // // // Update user with refresh token hash
-    // await this.updateRefreshTokenHash(savedUser.id, tokens.refresh);
+    await this.updateRefreshTokenHash(savedUser.id, tokens.refresh);
 
     // Emit user registration event
-    // this.eventEmitter.emit('user.registered', {
-    //   userId: savedUser.id,
-    //   email: savedUser.email,
-    //   organizationId: organization?.id,
-    // });
+    this.eventEmitter.emit('user.registered', {
+      userId: savedUser.id,
+      email: savedUser.email,
+      organizationId: organization?.id,
+    });
 
     this.logger.log(`User registered successfully: ${email}`);
 
     return {
       mes:'Registration endpoint is under maintenance.',
       user: this.sanitizeUser(savedUser),
-      // tokens,
-      // organization,
+      tokens,
+      organization,
     };
   }
 
@@ -212,12 +215,14 @@ export class AuthService {
    */
   async refreshToken(refreshTokenDto: RefreshTokenDto): Promise<{ access: string; refresh: string }> {
     const { refreshToken } = refreshTokenDto;
-
+    console.log("secret: ", this.configService.get<string>('jwt.refreshSecret'))
     try {
       // Verify refresh token
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('jwt.refreshSecret'),
       });
+
+      console.log("Payload: ", payload)
 
       // Find user and verify refresh token hash
       const user = await this.userRepository.findOne({
@@ -244,6 +249,7 @@ export class AuthService {
 
       return tokens;
     } catch (error) {
+      console.error('Error refreshing token:', error);
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
@@ -306,6 +312,8 @@ export class AuthService {
         deletedAt: null,
       },
     });
+
+    console.log('User found : ', user)
 
     if (!user || !user.hasValidPasswordResetToken(token)) {
       throw new BadRequestException('Invalid or expired reset token');
@@ -483,7 +491,7 @@ export class AuthService {
    * Hash password using bcrypt
    */
   private async hashPassword(password: string): Promise<string> {
-    const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS', 12);
+    const saltRounds = Number(this.configService.get('BCRYPT_ROUNDS')) || 12;
     return bcrypt.hash(password, saltRounds);
   }
 
@@ -494,8 +502,8 @@ export class AuthService {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
+      // iat: Math.floor(Date.now() / 1000),
+      // exp: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
     };
 
     const [access, refresh] = await Promise.all([
@@ -562,13 +570,16 @@ export class AuthService {
     userId: string,
     inviteToken: string,
   ): Promise<OrganizationMembership> {
+    console.log({ inviteToken , userId})
     const membership = await this.membershipRepository.findOne({
       where: { invitationToken: inviteToken, status: MembershipStatus.INVITED },
       relations: ['organization'],
     });
 
+    console.log("Membership: ", membership )
+
     if (!membership || !membership.hasValidInvitationToken(inviteToken)) {
-      throw new BadRequestException('Invalid or expired invitation token');
+      throw new HttpException('Invalid or expired invitation token', HttpStatus.BAD_REQUEST);
     }
 
     // Update membership

@@ -33,11 +33,11 @@ export class SkillCategory {
   color?: string;
 
   @ApiProperty({ description: 'Category order for display' })
-  @Column({ name: 'display_order', default: 0 })
+  @Column({ name: 'displayOrder', default: 0 })
   displayOrder: number;
 
   @ApiProperty({ description: 'Whether category is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Category metadata' })
@@ -49,7 +49,7 @@ export class SkillCategory {
     relatedCategories?: string[];
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations

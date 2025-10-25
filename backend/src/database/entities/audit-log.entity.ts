@@ -56,7 +56,7 @@ export class AuditLog {
   @Column({ type: 'text', nullable: true })
   userAgent?: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
   // Relations
@@ -111,7 +111,7 @@ export class AuditLog {
     for (const key of allKeys) {
       const oldValue = this.oldValues[key];
       const newValue = this.newValues[key];
-      
+
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         changedFields.push(key);
       }
@@ -125,7 +125,7 @@ export class AuditLog {
    */
   getChangesSummary(): string {
     const changedFields = this.getChangedFields();
-    
+
     if (changedFields.length === 0) {
       return 'No changes detected';
     }

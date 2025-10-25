@@ -51,45 +51,46 @@ export class Lesson {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'moduleId' })
   moduleId: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, name: 'title' })
   title: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'slug' })
   slug?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'description' })
   description?: string;
 
   @Column({
     type: 'enum',
     enum: LessonType,
     default: LessonType.TEXT,
+    name: 'type',
   })
   @Index()
   type: LessonType;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'content' })
   content?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'videoUrl' })
   videoUrl?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'audioUrl' })
   audioUrl?: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', nullable: true, name: 'videoFileId' })
   videoFileId?: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', nullable: true, name: 'audioFileId' })
   audioFileId?: string;
 
-  @Column({ type: 'uuid', array: true, default: '{}' })
+  @Column({ type: 'uuid', array: true, default: '{}', name: 'attachmentFileIds' })
   attachmentFileIds: string[];
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'sortOrder' })
   @Index()
   sortOrder: number;
 
@@ -97,78 +98,79 @@ export class Lesson {
     type: 'enum',
     enum: LessonStatus,
     default: LessonStatus.DRAFT,
+    name: 'status',
   })
   @Index()
   status: LessonStatus;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isPublished' })
   @Index()
   isPublished: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isRequired' })
   isRequired: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'allowSkip' })
   allowSkip: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isFree' })
   isFree: boolean;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'estimatedDurationMinutes' })
   estimatedDurationMinutes: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'videoDurationSeconds' })
   videoDurationSeconds: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'audioDurationSeconds' })
   audioDurationSeconds: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'viewCount' })
   viewCount: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'completionCount' })
   completionCount: number;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0, name: 'averageRating' })
   averageRating: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalRatings' })
   totalRatings: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ type: 'integer', nullable: true, name: 'passingScore' })
   passingScore?: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ type: 'integer', nullable: true, name: 'maxAttempts' })
   maxAttempts?: number;
 
-  @Column({ type: 'integer', nullable: true })
-  timeLimit?: number; // in minutes
+  @Column({ type: 'integer', nullable: true, name: 'timeLimit' }) // in minutes
+  timeLimit?: number;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'interactiveContent' })
   interactiveContent?: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'quizData' })
   quizData?: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'metadata' })
   metadata: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'settings' })
   settings: Record<string, unknown>;
 
-  @Column({ type: 'integer', default: 1 })
+  @Column({ type: 'integer', default: 1, name: 'version' })
   version: number;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isArchived' })
   isArchived: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'publishedAt' })
   publishedAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -211,7 +213,7 @@ export class Lesson {
   get estimatedDurationFormatted(): string {
     const hours = Math.floor(this.estimatedDurationMinutes / 60);
     const minutes = this.estimatedDurationMinutes % 60;
-    
+
     if (hours === 0) return `${minutes}m`;
     if (minutes === 0) return `${hours}h`;
     return `${hours}h ${minutes}m`;
@@ -221,14 +223,14 @@ export class Lesson {
     const hours = Math.floor(this.videoDurationSeconds / 3600);
     const minutes = Math.floor((this.videoDurationSeconds % 3600) / 60);
     const seconds = this.videoDurationSeconds % 60;
-    
+
     if (hours === 0) return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
   get completionRate(): number {
-    return this.viewCount > 0 
-      ? Math.round((this.completionCount / this.viewCount) * 100) 
+    return this.viewCount > 0
+      ? Math.round((this.completionCount / this.viewCount) * 100)
       : 0;
   }
 

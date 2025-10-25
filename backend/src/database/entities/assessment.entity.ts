@@ -50,10 +50,6 @@ export enum QuestionType {
   CODE = 'code',
 }
 
-/**
- * Assessment entity for Learning Management System
- * Represents quizzes, exams, assignments, and other assessments
- */
 @Entity('assessments')
 @Index(['courseId'])
 @Index(['moduleId'])
@@ -120,7 +116,7 @@ export class Assessment {
   passingScore: number;
 
   @Column({ type: 'integer', nullable: true })
-  timeLimit?: number; // in minutes
+  timeLimit?: number;
 
   @Column({ type: 'integer', default: 1 })
   maxAttempts: number;
@@ -206,10 +202,10 @@ export class Assessment {
   @Column({ type: 'timestamp', nullable: true })
   publishedAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -228,43 +224,35 @@ export class Assessment {
   @OneToMany(() => AssessmentAttempt, attempt => attempt.assessment)
   attempts?: AssessmentAttempt[];
 
-  // Virtual properties
+  // --- Virtuals and Methods remain unchanged below ---
+
   get isActive(): boolean {
     return this.status === AssessmentStatus.PUBLISHED && this.isPublished;
   }
 
   get isAvailable(): boolean {
     const now = new Date();
-    
-    if (this.availableFrom && now < this.availableFrom) {
-      return false;
-    }
-    
-    if (this.availableUntil && now > this.availableUntil) {
-      return false;
-    }
-    
+    if (this.availableFrom && now < this.availableFrom) return false;
+    if (this.availableUntil && now > this.availableUntil) return false;
     return this.isActive;
   }
 
   get passRate(): number {
-    return this.totalAttempts > 0 
-      ? Math.round((this.passCount / this.totalAttempts) * 100) 
+    return this.totalAttempts > 0
+      ? Math.round((this.passCount / this.totalAttempts) * 100)
       : 0;
   }
 
   get failRate(): number {
-    return this.totalAttempts > 0 
-      ? Math.round((this.failCount / this.totalAttempts) * 100) 
+    return this.totalAttempts > 0
+      ? Math.round((this.failCount / this.totalAttempts) * 100)
       : 0;
   }
 
   get timeLimitFormatted(): string {
     if (!this.timeLimit) return 'No time limit';
-    
     const hours = Math.floor(this.timeLimit / 60);
     const minutes = this.timeLimit % 60;
-    
     if (hours === 0) return `${minutes} minutes`;
     if (minutes === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
     return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minutes`;
@@ -276,22 +264,12 @@ export class Assessment {
     return 'hard';
   }
 
-  /**
-   * Check if user can take this assessment
-   */
   canTake(userAttempts = 0): boolean {
     if (!this.isAvailable) return false;
-    
-    if (this.maxAttempts > 0 && userAttempts >= this.maxAttempts) {
-      return false;
-    }
-    
+    if (this.maxAttempts > 0 && userAttempts >= this.maxAttempts) return false;
     return true;
   }
 
-  /**
-   * Add question to assessment
-   */
   addQuestion(question: {
     type: QuestionType;
     question: string;
@@ -302,21 +280,10 @@ export class Assessment {
     metadata?: Record<string, unknown>;
   }): void {
     const questionId = `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    this.questions = [
-      ...this.questions,
-      {
-        id: questionId,
-        ...question,
-      },
-    ];
-    
+    this.questions = [...this.questions, { id: questionId, ...question }];
     this.updateStatistics();
   }
 
-  /**
-   * Update question in assessment
-   */
   updateQuestion(questionId: string, updates: Partial<{
     type: QuestionType;
     question: string;
@@ -326,98 +293,65 @@ export class Assessment {
     explanation?: string;
     metadata?: Record<string, unknown>;
   }>): void {
-    this.questions = this.questions.map(q => 
-      q.id === questionId ? { ...q, ...updates } : q
-    );
-    
+    this.questions = this.questions.map(q => (q.id === questionId ? { ...q, ...updates } : q));
     this.updateStatistics();
   }
 
-  /**
-   * Remove question from assessment
-   */
   removeQuestion(questionId: string): void {
     this.questions = this.questions.filter(q => q.id !== questionId);
     this.updateStatistics();
   }
 
-  /**
-   * Get question by ID
-   */
   getQuestion(questionId: string) {
     return this.questions.find(q => q.id === questionId);
   }
 
-  /**
-   * Get randomized questions
-   */
   getRandomizedQuestions() {
-    if (!this.randomizeQuestions) {
-      return this.questions;
-    }
-    
+    if (!this.randomizeQuestions) return this.questions;
     return [...this.questions].sort(() => Math.random() - 0.5);
   }
 
-  /**
-   * Update assessment statistics
-   */
   updateStatistics(): void {
     this.totalQuestions = this.questions.length;
     this.totalPoints = this.questions.reduce((sum, q) => sum + q.points, 0);
   }
 
-  /**
-   * Record attempt statistics
-   */
   recordAttempt(score: number, passed: boolean): void {
     this.totalAttempts += 1;
-    
-    if (passed) {
-      this.passCount += 1;
-    } else {
-      this.failCount += 1;
-    }
-    
-    // Update score statistics
+    if (passed) this.passCount += 1;
+    else this.failCount += 1;
+
     if (this.totalAttempts === 1) {
       this.averageScore = score;
       this.highestScore = score;
       this.lowestScore = score;
     } else {
-      this.averageScore = Math.round(
-        ((this.averageScore * (this.totalAttempts - 1)) + score) / this.totalAttempts * 100
-      ) / 100;
+      this.averageScore =
+        Math.round(
+          ((this.averageScore * (this.totalAttempts - 1)) + score) /
+            this.totalAttempts *
+            100
+        ) / 100;
       this.highestScore = Math.max(this.highestScore, score);
       this.lowestScore = Math.min(this.lowestScore, score);
     }
   }
 
-  /**
-   * Calculate score for responses
-   */
-  calculateScore(responses: Record<string, string | string[]>): {
-    score: number;
-    totalPoints: number;
-    correctAnswers: number;
-    totalQuestions: number;
-    passed: boolean;
-  } {
+  calculateScore(responses: Record<string, string | string[]>) {
     let earnedPoints = 0;
     let correctAnswers = 0;
-    
+
     for (const question of this.questions) {
       const userAnswer = responses[question.id];
-      
       if (this.isAnswerCorrect(question, userAnswer)) {
         earnedPoints += question.points;
         correctAnswers += 1;
       }
     }
-    
+
     const score = this.totalPoints > 0 ? (earnedPoints / this.totalPoints) * 100 : 0;
     const passed = score >= this.passingScore;
-    
+
     return {
       score: Math.round(score * 100) / 100,
       totalPoints: this.totalPoints,
@@ -427,78 +361,59 @@ export class Assessment {
     };
   }
 
-  /**
-   * Check if answer is correct
-   */
   private isAnswerCorrect(
     question: { type: QuestionType; correctAnswer?: string | string[] },
     userAnswer: string | string[]
   ): boolean {
     if (!question.correctAnswer || !userAnswer) return false;
-    
     switch (question.type) {
       case QuestionType.MULTIPLE_CHOICE:
       case QuestionType.TRUE_FALSE:
       case QuestionType.SHORT_ANSWER:
-        return String(question.correctAnswer).toLowerCase() === String(userAnswer).toLowerCase();
-      
+        return (
+          String(question.correctAnswer).toLowerCase() ===
+          String(userAnswer).toLowerCase()
+        );
       case QuestionType.MATCHING:
       case QuestionType.ORDERING:
         if (Array.isArray(question.correctAnswer) && Array.isArray(userAnswer)) {
-          return JSON.stringify(question.correctAnswer.sort()) === JSON.stringify(userAnswer.sort());
-        }
-        return false;
-      
-      case QuestionType.FILL_IN_BLANK:
-        if (Array.isArray(question.correctAnswer)) {
-          return question.correctAnswer.some(answer => 
-            String(answer).toLowerCase() === String(userAnswer).toLowerCase()
+          return (
+            JSON.stringify(question.correctAnswer.sort()) ===
+            JSON.stringify(userAnswer.sort())
           );
         }
-        return String(question.correctAnswer).toLowerCase() === String(userAnswer).toLowerCase();
-      
+        return false;
+      case QuestionType.FILL_IN_BLANK:
+        if (Array.isArray(question.correctAnswer)) {
+          return question.correctAnswer.some(
+            answer => String(answer).toLowerCase() === String(userAnswer).toLowerCase()
+          );
+        }
+        return (
+          String(question.correctAnswer).toLowerCase() ===
+          String(userAnswer).toLowerCase()
+        );
       default:
         return false;
     }
   }
 
-  /**
-   * Get metadata value by key
-   */
   getMetadata<T = unknown>(key: string, defaultValue?: T): T {
     return (this.metadata[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set metadata value
-   */
   setMetadata(key: string, value: unknown): void {
-    this.metadata = {
-      ...this.metadata,
-      [key]: value,
-    };
+    this.metadata = { ...this.metadata, [key]: value };
   }
 
-  /**
-   * Get setting value by key
-   */
   getSetting<T = unknown>(key: string, defaultValue?: T): T {
     return (this.settings[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set setting value
-   */
   setSetting(key: string, value: unknown): void {
-    this.settings = {
-      ...this.settings,
-      [key]: value,
-    };
+    this.settings = { ...this.settings, [key]: value };
   }
 
-  /**
-   * Clone assessment
-   */
   clone(): Partial<Assessment> {
     return {
       title: `${this.title} (Copy)`,
@@ -519,7 +434,7 @@ export class Assessment {
       requireProctoring: this.requireProctoring,
       preventBacktracking: this.preventBacktracking,
       oneQuestionAtTime: this.oneQuestionAtTime,
-      questions: JSON.parse(JSON.stringify(this.questions)), // Deep clone
+      questions: JSON.parse(JSON.stringify(this.questions)),
       settings: JSON.parse(JSON.stringify(this.settings)),
       metadata: JSON.parse(JSON.stringify(this.metadata)),
     };

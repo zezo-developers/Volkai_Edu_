@@ -48,11 +48,11 @@ export class ResumeTemplate {
   category?: TemplateCategory;
 
   @ApiProperty({ description: 'Preview image URL' })
-  @Column({ name: 'preview_image_url', nullable: true })
+  @Column({ name: 'previewImageUrl', nullable: true })
   previewImageUrl?: string;
 
   @ApiProperty({ description: 'Template data structure' })
-  @Column({ name: 'template_data', type: 'jsonb' })
+  @Column({ name: 'templateData', type: 'jsonb' })
   templateData: {
     layout: {
       type: 'single-column' | 'two-column' | 'three-column';
@@ -94,15 +94,15 @@ export class ResumeTemplate {
   };
 
   @ApiProperty({ description: 'Whether template is premium' })
-  @Column({ name: 'is_premium', default: false })
+  @Column({ name: 'isPremium', default: false })
   isPremium: boolean;
 
   @ApiProperty({ description: 'Whether template is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Number of downloads' })
-  @Column({ name: 'download_count', default: 0 })
+  @Column({ name: 'downloadCount', default: 0 })
   downloadCount: number;
 
   @ApiProperty({ description: 'Template rating (0-5)' })
@@ -110,7 +110,7 @@ export class ResumeTemplate {
   rating: number;
 
   @ApiProperty({ description: 'Number of ratings' })
-  @Column({ name: 'rating_count', default: 0 })
+  @Column({ name: 'ratingCount', default: 0 })
   ratingCount: number;
 
   @ApiProperty({ description: 'Template tags' })
@@ -122,15 +122,15 @@ export class ResumeTemplate {
   features: string[];
 
   @ApiProperty({ description: 'Template difficulty level' })
-  @Column({ name: 'difficulty_level', default: 'beginner' })
+  @Column({ name: 'difficultyLevel', default: 'beginner' })
   difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
 
   @ApiProperty({ description: 'Estimated completion time in minutes' })
-  @Column({ name: 'completion_time', nullable: true })
+  @Column({ name: 'completionTime', nullable: true })
   completionTime?: number;
 
   @ApiProperty({ description: 'Template customization options' })
-  @Column({ name: 'customization_options', type: 'jsonb', default: {} })
+  @Column({ name: 'customizationOptions', type: 'jsonb', default: {} })
   customizationOptions: {
     colors: boolean;
     fonts: boolean;
@@ -140,22 +140,22 @@ export class ResumeTemplate {
   };
 
   @ApiProperty({ description: 'ATS compatibility score' })
-  @Column({ name: 'ats_score', nullable: true })
+  @Column({ name: 'atsScore', nullable: true })
   atsScore?: number;
 
   @ApiProperty({ description: 'Template creator user ID' })
-  @Column({ name: 'created_by' })
+  @Column({ name: 'createdBy' })
   createdBy: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'createdBy' })
   creator: User;
 
   @OneToMany(() => UserResume, resume => resume.template)
@@ -211,39 +211,24 @@ export class ResumeTemplate {
   validateTemplateData(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Validate layout
     if (!this.templateData.layout) {
       errors.push('Template layout is required');
     } else {
-      if (!this.templateData.layout.type) {
-        errors.push('Layout type is required');
-      }
-      if (!this.templateData.layout.sections || this.templateData.layout.sections.length === 0) {
+      if (!this.templateData.layout.type) errors.push('Layout type is required');
+      if (!this.templateData.layout.sections || this.templateData.layout.sections.length === 0)
         errors.push('At least one section is required');
-      }
     }
 
-    // Validate styles
     if (!this.templateData.styles) {
       errors.push('Template styles are required');
     } else {
-      if (!this.templateData.styles.fonts?.primary) {
-        errors.push('Primary font is required');
-      }
-      if (!this.templateData.styles.colors?.primary) {
-        errors.push('Primary color is required');
-      }
+      if (!this.templateData.styles.fonts?.primary) errors.push('Primary font is required');
+      if (!this.templateData.styles.colors?.primary) errors.push('Primary color is required');
     }
 
-    // Validate components
-    if (!this.templateData.components) {
-      errors.push('Template components are required');
-    }
+    if (!this.templateData.components) errors.push('Template components are required');
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
+    return { isValid: errors.length === 0, errors };
   }
 
   clone(newName: string, createdBy: string): Partial<ResumeTemplate> {
@@ -291,19 +276,11 @@ export class ResumeTemplate {
   calculateAtsScore(): number {
     let score = 100;
 
-    // Deduct points for complex layouts
-    if (this.templateData.layout.type === 'three-column') {
-      score -= 20;
-    } else if (this.templateData.layout.type === 'two-column') {
-      score -= 10;
-    }
+    if (this.templateData.layout.type === 'three-column') score -= 20;
+    else if (this.templateData.layout.type === 'two-column') score -= 10;
 
-    // Deduct points for creative elements
-    if (this.category === TemplateCategory.CREATIVE) {
-      score -= 15;
-    }
+    if (this.category === TemplateCategory.CREATIVE) score -= 15;
 
-    // Add points for standard sections
     const standardSections = ['personal_info', 'summary', 'experience', 'education', 'skills'];
     const templateSections = this.templateData.layout.sections.map(s => s.type);
     const hasStandardSections = standardSections.filter(s => templateSections.includes(s)).length;

@@ -166,48 +166,184 @@ export class InitialMigration1698000000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-  CREATE TYPE "ai_interview_status_enum" AS ENUM ('pending', 'in_progress', 'completed', 'failed', 'cancelled');
-  CREATE TYPE "interview_format_enum" AS ENUM ('voice_only', 'video', 'text_only', 'mixed');
-  CREATE TYPE "interview_difficulty_enum" AS ENUM ('easy', 'medium', 'hard');
+      CREATE TYPE "ai_interview_status_enum" AS ENUM ('pending', 'in_progress', 'completed', 'failed', 'cancelled');
+      CREATE TYPE "interview_format_enum" AS ENUM ('voice_only', 'video', 'text_only', 'mixed');
+      CREATE TYPE "interview_difficulty_enum" AS ENUM ('easy', 'medium', 'hard');
 
-  CREATE TABLE "ai_mock_interviews" (
-    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    "user_id" uuid NOT NULL,
-    "job_role" character varying(255) NOT NULL,
-    "job_description" text,
-    "cancellationReason" text,
-    "failureReason" text,
-    "company_name" character varying(255),
-    "difficulty" "interview_difficulty_enum" NOT NULL DEFAULT 'medium',
-    "duration_minutes" integer NOT NULL DEFAULT 30,
-    "format" "interview_format_enum" NOT NULL DEFAULT 'voice_only',
-    "status" "ai_interview_status_enum" NOT NULL DEFAULT 'pending',
-    "started_at" TIMESTAMP,
-    "completed_at" TIMESTAMP,
-    "config" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "transcript" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "ai_feedback" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "overall_score" integer,
-    "performance_metrics" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "improvement_areas" text[] NOT NULL DEFAULT '{}',
-    "strengths" text[] NOT NULL DEFAULT '{}',
-    "skills_assessed" text[] NOT NULL DEFAULT '{}',
-    "skill_scores" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "ai_model_version" character varying(255),
-    "recording_urls" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "analytics" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "follow_up_recommendations" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-    CONSTRAINT "PK_ai_mock_interviews_id" PRIMARY KEY ("id"),
-    CONSTRAINT "FK_ai_mock_interviews_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
-  );
+      CREATE TABLE "ai_mock_interviews" (
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "user_id" uuid NOT NULL,
+        "job_role" character varying(255) NOT NULL,
+        "job_description" text,
+        "cancellationReason" text,
+        "failureReason" text,
+        "company_name" character varying(255),
+        "difficulty" "interview_difficulty_enum" NOT NULL DEFAULT 'medium',
+        "duration_minutes" integer NOT NULL DEFAULT 30,
+        "format" "interview_format_enum" NOT NULL DEFAULT 'voice_only',
+        "status" "ai_interview_status_enum" NOT NULL DEFAULT 'pending',
+        "started_at" TIMESTAMP,
+        "completed_at" TIMESTAMP,
+        "config" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "transcript" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "ai_feedback" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "overall_score" integer,
+        "performance_metrics" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "improvement_areas" text[] NOT NULL DEFAULT '{}',
+        "strengths" text[] NOT NULL DEFAULT '{}',
+        "skills_assessed" text[] NOT NULL DEFAULT '{}',
+        "skill_scores" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "ai_model_version" character varying(255),
+        "recording_urls" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "analytics" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "follow_up_recommendations" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_ai_mock_interviews_id" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_ai_mock_interviews_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
+      );
 
-  CREATE INDEX "IDX_ai_mock_interviews_userId_status" ON "ai_mock_interviews" ("user_id", "status");
-  CREATE INDEX "IDX_ai_mock_interviews_jobRole_difficulty" ON "ai_mock_interviews" ("job_role", "difficulty");
-  CREATE INDEX "IDX_ai_mock_interviews_createdAt" ON "ai_mock_interviews" ("created_at");
-`);
+      CREATE INDEX "IDX_ai_mock_interviews_userId_status" ON "ai_mock_interviews" ("user_id", "status");
+      CREATE INDEX "IDX_ai_mock_interviews_jobRole_difficulty" ON "ai_mock_interviews" ("job_role", "difficulty");
+      CREATE INDEX "IDX_ai_mock_interviews_createdAt" ON "ai_mock_interviews" ("created_at");
+    `);
+
+    // Create files table
+    await queryRunner.query(`
+       -- Create enums
+      CREATE TYPE "fileOwnerTypeEnum" AS ENUM ('user', 'organization', 'system');
+      CREATE TYPE "fileAccessLevelEnum" AS ENUM ('private', 'organization', 'public', 'link_only');
+      CREATE TYPE "virusScanStatusEnum" AS ENUM ('pending', 'scanning', 'clean', 'infected', 'error');
+      CREATE TYPE "fileProcessingStatusEnum" AS ENUM ('pending', 'processing', 'completed', 'failed');
+
+      -- Create table with camelCase column names
+      CREATE TABLE "files" (
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "ownerId" uuid,
+        "organizationId" uuid,
+        "ownerType" "fileOwnerTypeEnum" NOT NULL,
+        "filename" character varying(255) NOT NULL,
+        "originalFilename" character varying(255) NOT NULL,
+        "mimeType" character varying(100) NOT NULL,
+        "sizeBytes" bigint NOT NULL,
+        "storagePath" text NOT NULL,
+        "publicUrl" text,
+        "cdnUrl" text,
+        "thumbnailUrl" text,
+        "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "virusScanStatus" "virusScanStatusEnum" NOT NULL DEFAULT 'pending',
+        "virusScanResult" text,
+        "virusScanAt" TIMESTAMP,
+        "processingStatus" "fileProcessingStatusEnum" NOT NULL DEFAULT 'pending',
+        "processingError" text,
+        "accessLevel" "fileAccessLevelEnum" NOT NULL DEFAULT 'private',
+        "downloadCount" integer NOT NULL DEFAULT 0,
+        "viewCount" integer NOT NULL DEFAULT 0,
+        "lastAccessedAt" TIMESTAMP,
+        "expiresAt" TIMESTAMP,
+        "tags" text[] NOT NULL DEFAULT '{}',
+        "description" character varying(255),
+        "checksum" character varying(64),
+        "isProcessed" boolean NOT NULL DEFAULT false,
+        "isArchived" boolean NOT NULL DEFAULT false,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_files_id" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_files_ownerId" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE SET NULL,
+        CONSTRAINT "FK_files_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL
+      );
+
+      -- Indexes
+      CREATE INDEX "IDX_files_ownerId_ownerType" ON "files" ("ownerId", "ownerType");
+      CREATE INDEX "IDX_files_organizationId" ON "files" ("organizationId");
+      CREATE INDEX "IDX_files_mimeType" ON "files" ("mimeType");
+      CREATE INDEX "IDX_files_accessLevel" ON "files" ("accessLevel");
+      CREATE INDEX "IDX_files_virusScanStatus" ON "files" ("virusScanStatus");
+      CREATE INDEX "IDX_files_createdAt" ON "files" ("createdAt");
+      CREATE INDEX "IDX_files_expiresAt" ON "files" ("expiresAt");
+    `);
+
+    //Create Course table
+    await queryRunner.query(`
+      -- ==========================================================
+      -- ENUMS
+      -- ==========================================================
+      CREATE TYPE "courseStatusEnum" AS ENUM ('draft', 'published', 'archived', 'suspended');
+      CREATE TYPE "courseDifficultyEnum" AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
+      CREATE TYPE "courseAccessTypeEnum" AS ENUM ('free', 'paid', 'premium', 'organization_only');
+
+      -- ==========================================================
+      -- TABLE: courses
+      -- ==========================================================
+      CREATE TABLE "courses" (
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "organizationId" uuid NOT NULL,
+        "instructorId" uuid NOT NULL,
+        "title" character varying(255) NOT NULL,
+        "slug" character varying(255) NOT NULL UNIQUE,
+        "description" text,
+        "shortDescription" text,
+        "learningObjectives" text,
+        "prerequisites" text,
+        "category" character varying(100),
+        "tags" text[] NOT NULL DEFAULT '{}',
+        "status" "courseStatusEnum" NOT NULL DEFAULT 'draft',
+        "difficulty" "courseDifficultyEnum" NOT NULL DEFAULT 'beginner',
+        "accessType" "courseAccessTypeEnum" NOT NULL DEFAULT 'free',
+        "price" numeric(10,2),
+        "currency" character varying(3) NOT NULL DEFAULT 'USD',
+        "thumbnailFileId" uuid,
+        "previewVideoFileId" uuid,
+        "thumbnailUrl" text,
+        "previewVideoUrl" text,
+        "estimatedDurationMinutes" integer NOT NULL DEFAULT 0,
+        "totalLessons" integer NOT NULL DEFAULT 0,
+        "totalModules" integer NOT NULL DEFAULT 0,
+        "totalAssessments" integer NOT NULL DEFAULT 0,
+        "averageRating" numeric(3,2) NOT NULL DEFAULT 0,
+        "totalRatings" integer NOT NULL DEFAULT 0,
+        "totalEnrollments" integer NOT NULL DEFAULT 0,
+        "totalCompletions" integer NOT NULL DEFAULT 0,
+        "viewCount" integer NOT NULL DEFAULT 0,
+        "isPublished" boolean NOT NULL DEFAULT false,
+        "allowEnrollment" boolean NOT NULL DEFAULT true,
+        "requiresApproval" boolean NOT NULL DEFAULT false,
+        "generateCertificate" boolean NOT NULL DEFAULT true,
+        "passingScore" integer,
+        "maxAttempts" integer,
+        "timeLimit" integer,
+        "publishedAt" TIMESTAMP,
+        "enrollmentStartDate" TIMESTAMP,
+        "enrollmentEndDate" TIMESTAMP,
+        "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "settings" jsonb NOT NULL DEFAULT '{}'::jsonb,
+        "version" integer NOT NULL DEFAULT 0,
+        "isArchived" boolean NOT NULL DEFAULT false,
+        "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_courses_id" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_courses_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_courses_instructorId" FOREIGN KEY ("instructorId") REFERENCES "users"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_courses_thumbnailFileId" FOREIGN KEY ("thumbnailFileId") REFERENCES "files"("id") ON DELETE SET NULL,
+        CONSTRAINT "FK_courses_previewVideoFileId" FOREIGN KEY ("previewVideoFileId") REFERENCES "files"("id") ON DELETE SET NULL
+      );
+
+      -- ==========================================================
+      -- INDEXES
+      -- ==========================================================
+      CREATE INDEX "IDX_courses_organizationId" ON "courses" ("organizationId");
+      CREATE INDEX "IDX_courses_instructorId" ON "courses" ("instructorId");
+      CREATE INDEX "IDX_courses_status" ON "courses" ("status");
+      CREATE INDEX "IDX_courses_category" ON "courses" ("category");
+      CREATE INDEX "IDX_courses_difficulty" ON "courses" ("difficulty");
+      CREATE INDEX "IDX_courses_accessType" ON "courses" ("accessType");
+      CREATE INDEX "IDX_courses_isPublished" ON "courses" ("isPublished");
+      CREATE INDEX "IDX_courses_created_at" ON "courses" ("created_at");
+      CREATE INDEX "IDX_courses_slug" ON "courses" ("slug");
+    `);
+
+
 
 
     // Create indexes for better performance

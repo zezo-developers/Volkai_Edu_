@@ -147,9 +147,9 @@ export class UserSkill {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, user => user.skills)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  // @ManyToOne(() => User, user => user.skills)
+  // @JoinColumn({ name: 'user_id' })
+  // user: User;
 
   @ManyToOne(() => Skill, skill => skill.userSkills)
   @JoinColumn({ name: 'skill_id' })

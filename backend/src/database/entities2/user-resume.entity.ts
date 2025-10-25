@@ -231,9 +231,9 @@ export class UserResume {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, user => user.resumes)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  // @ManyToOne(() => User, user => user.resumes)
+  // @JoinColumn({ name: 'user_id' })
+  // user: User;
 
   @ManyToOne(() => ResumeTemplate, template => template.userResumes, { nullable: true })
   @JoinColumn({ name: 'template_id' })

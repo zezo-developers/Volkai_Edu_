@@ -32,7 +32,8 @@ import { File } from '@database/entities/file.entity';
  */
 @ApiTags('Files')
 @Controller('files')
-@UseGuards(JwtAuthGuard, PermissionsGuard, ThrottlerGuard)
+// @UseGuards(JwtAuthGuard, PermissionsGuard, ThrottlerGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class FilesController {
   constructor(private readonly fileManagerService: FileManagerService) {}

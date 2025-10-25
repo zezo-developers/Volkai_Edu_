@@ -39,92 +39,93 @@ export class LessonProgress {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'userId' })
   userId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'lessonId' })
   lessonId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'enrollmentId' })
   enrollmentId: string;
 
   @Column({
     type: 'enum',
     enum: LessonProgressStatus,
     default: LessonProgressStatus.NOT_STARTED,
+    name: 'status'
   })
   @Index()
   status: LessonProgressStatus;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0, name: 'progressPercentage' })
   @Index()
   progressPercentage: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'timeSpentSeconds' })
   timeSpentSeconds: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'videoWatchedSeconds' })
   videoWatchedSeconds: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'audioListenedSeconds' })
   audioListenedSeconds: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalDurationSeconds' })
   totalDurationSeconds: number;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true, name: 'score' })
   score?: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'attemptCount' })
   attemptCount: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ type: 'integer', nullable: true, name: 'maxAttempts' })
   maxAttempts?: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'startedAt' })
   startedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'completedAt' })
   @Index()
   completedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'lastAccessedAt' })
   lastAccessedAt?: Date;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'bookmarkPosition' })
   bookmarkPosition: number; // For video/audio position
 
-  @Column({ type: 'text', array: true, default: '{}' })
+  @Column({ type: 'text', array: true, default: '{}', name: 'completedSections' })
   completedSections: string[]; // For tracking completed sections within a lesson
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'interactionData' })
   interactionData: Record<string, unknown>; // For interactive content responses
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'quizResponses' })
   quizResponses: Record<string, unknown>; // For quiz responses
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'metadata' })
   metadata: Record<string, unknown>;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'notes' })
   notes?: string;
 
-  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({ type: 'decimal', precision: 3, scale: 2, nullable: true, name: 'rating' })
   rating?: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'feedback' })
   feedback?: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isBookmarked' })
   isBookmarked: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'needsReview' })
   needsReview: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations

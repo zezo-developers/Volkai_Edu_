@@ -31,7 +31,7 @@ export class InterviewQuestionBank {
   id: string;
 
   @ApiProperty({ description: 'Organization ID' })
-  @Column({ name: 'org_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'Question bank name' })
@@ -47,11 +47,7 @@ export class InterviewQuestionBank {
   category?: string;
 
   @ApiProperty({ enum: InterviewDifficulty, description: 'Default difficulty level' })
-  @Column({
-    type: 'enum',
-    enum: InterviewDifficulty,
-    nullable: true,
-  })
+  @Column({ type: 'enum', enum: InterviewDifficulty, nullable: true })
   difficulty?: InterviewDifficulty;
 
   @ApiProperty({ description: 'Question bank tags' })
@@ -59,15 +55,15 @@ export class InterviewQuestionBank {
   tags: string[];
 
   @ApiProperty({ description: 'Whether bank is publicly available' })
-  @Column({ name: 'is_public', default: false })
+  @Column({ name: 'isPublic', default: false })
   isPublic: boolean;
 
   @ApiProperty({ description: 'Whether bank is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Question bank icon/image URL' })
-  @Column({ name: 'icon_url', nullable: true })
+  @Column({ name: 'iconUrl', nullable: true })
   iconUrl?: string;
 
   @ApiProperty({ description: 'Question bank color theme' })
@@ -97,22 +93,22 @@ export class InterviewQuestionBank {
   metadata: Record<string, any>;
 
   @ApiProperty({ description: 'Creator user ID' })
-  @Column({ name: 'created_by' })
+  @Column({ name: 'createdBy' })
   createdBy: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'org_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'createdBy' })
   creator: User;
 
   @OneToMany(() => InterviewQuestion, question => question.questionBank)
@@ -146,7 +142,6 @@ export class InterviewQuestionBank {
   }
 
   get isOwner(): boolean {
-    // This would be set by the service based on current user
     return false;
   }
 
@@ -180,11 +175,11 @@ export class InterviewQuestionBank {
   updateRating(newRating: number): void {
     const currentRating = this.statistics.averageRating || 0;
     const currentCount = this.statistics.totalUsage || 0;
-    
+
     if (currentCount === 0) {
       this.statistics.averageRating = newRating;
     } else {
-      this.statistics.averageRating = 
+      this.statistics.averageRating =
         ((currentRating * currentCount) + newRating) / (currentCount + 1);
     }
   }
@@ -194,7 +189,7 @@ export class InterviewQuestionBank {
   }
 
   getQuestionsByCategory(category: string): InterviewQuestion[] {
-    return this.questions?.filter(q => 
+    return this.questions?.filter(q =>
       q.tags?.includes(category.toLowerCase()) ||
       q.questionText.toLowerCase().includes(category.toLowerCase())
     ) || [];
@@ -202,7 +197,7 @@ export class InterviewQuestionBank {
 
   getRandomQuestions(count: number, difficulty?: InterviewDifficulty): InterviewQuestion[] {
     let availableQuestions = this.questions || [];
-    
+
     if (difficulty) {
       availableQuestions = this.getQuestionsByDifficulty(difficulty);
     }
@@ -217,13 +212,11 @@ export class InterviewQuestionBank {
 
   validateConfig(): boolean {
     const config = this.config;
-    
-    // Validate time limits
+
     if (config.defaultTimeLimit && config.defaultTimeLimit < 30) {
       return false;
     }
 
-    // Validate question requirements
     if (config.requireAllQuestions && this.questionCount === 0) {
       return false;
     }
@@ -240,10 +233,10 @@ export class InterviewQuestionBank {
       tags: [...this.tags],
       isPublic: false,
       config: { ...this.config },
-      metadata: { 
-        ...this.metadata, 
+      metadata: {
+        ...this.metadata,
         clonedFrom: this.id,
-        clonedAt: new Date() 
+        clonedAt: new Date()
       },
       createdBy,
     };

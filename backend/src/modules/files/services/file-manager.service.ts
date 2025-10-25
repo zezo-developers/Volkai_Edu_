@@ -117,10 +117,10 @@ export class FileManagerService {
       // Validate upload request
       await this.validateUploadRequest(request, currentUser);
 
-      // Check storage quota
+      // // Check storage quota
       await this.checkStorageQuota(currentUser.currentOrganizationId, sizeBytes);
 
-      // Create file record
+      // // Create file record
       const file = this.fileRepository.create({
         ownerId: currentUser.id,
         organizationId: currentUser.currentOrganizationId,
@@ -145,7 +145,7 @@ export class FileManagerService {
 
       const savedFile = await this.fileRepository.save(file);
 
-      // Generate S3 presigned URL
+      // // Generate S3 presigned URL
       const s3Options = {
         filename,
         mimeType,
@@ -158,13 +158,13 @@ export class FileManagerService {
 
       const presignedResponse = await this.s3Service.generatePresignedUploadUrl(s3Options);
 
-      // Update file with storage path
+      // // Update file with storage path
       await this.fileRepository.update(savedFile.id, {
         storagePath: presignedResponse.storagePath,
         publicUrl: presignedResponse.downloadUrl.startsWith('http') ? presignedResponse.downloadUrl : undefined,
       });
 
-      // Emit file upload initiated event
+      // // Emit file upload initiated event
       this.eventEmitter.emit('file.uploadInitiated', {
         fileId: savedFile.id,
         filename,
@@ -174,7 +174,7 @@ export class FileManagerService {
         organizationId: currentUser.currentOrganizationId,
       });
 
-      this.logger.log(`Upload URL generated for file: ${savedFile.id}`);
+      // this.logger.log(`Upload URL generated for file: ${savedFile.id}`);
 
       return {
         ...presignedResponse,
@@ -193,7 +193,7 @@ export class FileManagerService {
   /**
    * Process uploaded file (virus scan, image processing, etc.)
    */
-  async processUploadedFile(fileId: string): Promise<File> {
+  async processUploadedFile(fileId: string): Promise<any> {
     this.logger.log(`Processing uploaded file: ${fileId}`);
 
     const file = await this.fileRepository.findOne({
@@ -218,52 +218,52 @@ export class FileManagerService {
       }
 
       // Get file metadata from S3
-      const s3Metadata = await this.s3Service.getFileMetadata(file.storagePath);
+      // const s3Metadata = await this.s3Service.getFileMetadata(file.storagePath);
       
-      // Update file with actual metadata
-      await this.fileRepository.update(fileId, {
-        sizeBytes: s3Metadata.contentLength,
-        checksum: await this.calculateChecksum(file.storagePath),
-      });
+      // // Update file with actual metadata
+      // await this.fileRepository.update(fileId, {
+      //   sizeBytes: s3Metadata.contentLength,
+      //   checksum: await this.calculateChecksum(file.storagePath),
+      // });
 
-      // Start virus scanning if enabled
-      if (this.virusScannerService.shouldScanFileType(file.mimeType, file.filename)) {
-        await this.initiateVirusScan(file);
-      } else {
-        // Mark as clean if scanning is skipped
-        await this.fileRepository.update(fileId, {
-          virusScanStatus: VirusScanStatus.CLEAN,
-          virusScanAt: new Date(),
-        });
-      }
+      // // Start virus scanning if enabled
+      // if (this.virusScannerService.shouldScanFileType(file.mimeType, file.filename)) {
+      //   await this.initiateVirusScan(file);
+      // } else {
+      //   // Mark as clean if scanning is skipped
+      //   await this.fileRepository.update(fileId, {
+      //     virusScanStatus: VirusScanStatus.CLEAN,
+      //     virusScanAt: new Date(),
+      //   });
+      // }
 
-      // Start image processing if applicable
-      if (this.imageProcessorService.canProcessImage(file.mimeType)) {
-        await this.initiateImageProcessing(file);
-      }
+      // // Start image processing if applicable
+      // if (this.imageProcessorService.canProcessImage(file.mimeType)) {
+      //   await this.initiateImageProcessing(file);
+      // }
 
-      // Update processing status
-      await this.fileRepository.update(fileId, {
-        processingStatus: FileProcessingStatus.COMPLETED,
-        isProcessed: true,
-      });
+      // // Update processing status
+      // await this.fileRepository.update(fileId, {
+      //   processingStatus: FileProcessingStatus.COMPLETED,
+      //   isProcessed: true,
+      // });
 
-      // Emit file processed event
-      this.eventEmitter.emit('file.processed', {
-        fileId,
-        filename: file.filename,
-        mimeType: file.mimeType,
-        sizeBytes: file.sizeBytes,
-        userId: file.ownerId,
-        organizationId: file.organizationId,
-      });
+      // // Emit file processed event
+      // this.eventEmitter.emit('file.processed', {
+      //   fileId,
+      //   filename: file.filename,
+      //   mimeType: file.mimeType,
+      //   sizeBytes: file.sizeBytes,
+      //   userId: file.ownerId,
+      //   organizationId: file.organizationId,
+      // });
 
-      this.logger.log(`File processing completed: ${fileId}`);
+      // this.logger.log(`File processing completed: ${fileId}`);
 
-      return await this.fileRepository.findOne({
-        where: { id: fileId },
-        relations: ['owner', 'organization'],
-      });
+      // return await this.fileRepository.findOne({
+      //   where: { id: fileId },
+      //   relations: ['owner', 'organization'],
+      // });
     } catch (error) {
       this.logger.error(`File processing failed for ${fileId}:`, error);
 
@@ -289,7 +289,7 @@ export class FileManagerService {
   /**
    * Get file by ID with access control
    */
-  async getFileById(fileId: string, currentUser: AuthenticatedUser): Promise<File> {
+  async getFileById(fileId: string, currentUser: AuthenticatedUser): Promise<any> {
     const file = await this.fileRepository.findOne({
       where: { id: fileId },
       relations: ['owner', 'organization'],
@@ -484,7 +484,7 @@ export class FileManagerService {
       accessLevel?: FileAccessLevel;
     },
     currentUser: AuthenticatedUser,
-  ): Promise<File> {
+  ): Promise<any> {
     const file = await this.getFileById(fileId, currentUser);
 
     // Check if user can modify this file

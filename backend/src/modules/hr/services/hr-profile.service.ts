@@ -612,7 +612,7 @@ export class HRProfileService {
   }
 
   // Private helper methods
-  private async validateProfileAccess(profile: HRProfile, user: User): Promise<void> {
+  private async validateProfileAccess(profile: any, user: User): Promise<void> {
     const isOwner = profile.userId === user.id;
     const isAdmin = user.roles=== UserRole.ADMIN;
     const isHR = user.roles=== UserRole.HR && user.organizationId === profile.user?.organizationId;
@@ -623,7 +623,7 @@ export class HRProfileService {
     }
   }
 
-  private async validateProfileUpdateAccess(profile: HRProfile, user: User): Promise<void> {
+  private async validateProfileUpdateAccess(profile: any, user: User): Promise<void> {
     const isAdmin = user.roles=== UserRole.ADMIN;
     const isHR = user.roles=== UserRole.HR && user.organizationId === profile.user?.organizationId;
     const isManager = profile.managerId === user.id;

@@ -39,15 +39,15 @@ export class AiMockInterview {
   id: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id' })
+  @Column({ name: 'userId' })
   userId: string;
 
   @ApiProperty({ description: 'Job role for interview preparation' })
-  @Column({ name: 'job_role' })
+  @Column({ name: 'jobRole' })
   jobRole: string;
 
   @ApiProperty({ description: 'Job description or requirements' })
-  @Column({ name: 'job_description', type: 'text', nullable: true })
+  @Column({ name: 'jobDescription', type: 'text', nullable: true })
   jobDescription?: string;
 
   @ApiProperty({ description: 'Job cancellation Reason' })
@@ -59,11 +59,12 @@ export class AiMockInterview {
   failureReason?: string;
 
   @ApiProperty({ description: 'Company name for context' })
-  @Column({ name: 'company_name', nullable: true })
+  @Column({ name: 'companyName', nullable: true })
   companyName?: string;
 
   @ApiProperty({ enum: InterviewDifficulty, description: 'Interview difficulty level' })
   @Column({
+    name: 'difficulty',
     type: 'enum',
     enum: InterviewDifficulty,
     default: InterviewDifficulty.MEDIUM,
@@ -71,11 +72,12 @@ export class AiMockInterview {
   difficulty: InterviewDifficulty;
 
   @ApiProperty({ description: 'Interview duration in minutes' })
-  @Column({ name: 'duration_minutes', default: 30 })
+  @Column({ name: 'durationMinutes', default: 30 })
   durationMinutes: number;
 
   @ApiProperty({ enum: InterviewFormat, description: 'Interview format' })
   @Column({
+    name: 'format',
     type: 'enum',
     enum: InterviewFormat,
     default: InterviewFormat.VOICE_ONLY,
@@ -84,6 +86,7 @@ export class AiMockInterview {
 
   @ApiProperty({ enum: AiInterviewStatus, description: 'Interview status' })
   @Column({
+    name: 'status',
     type: 'enum',
     enum: AiInterviewStatus,
     default: AiInterviewStatus.PENDING,
@@ -91,15 +94,15 @@ export class AiMockInterview {
   status: AiInterviewStatus;
 
   @ApiProperty({ description: 'Interview start time' })
-  @Column({ name: 'started_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'startedAt', type: 'timestamp', nullable: true })
   startedAt?: Date;
 
   @ApiProperty({ description: 'Interview completion time' })
-  @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'completedAt', type: 'timestamp', nullable: true })
   completedAt?: Date;
 
   @ApiProperty({ description: 'Interview configuration' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'config', type: 'jsonb', default: {} })
   config: {
     questionTypes?: string[];
     focusAreas?: string[];
@@ -111,7 +114,7 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'Interview transcript' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'transcript', type: 'jsonb', default: {} })
   transcript: {
     conversations?: Array<{
       speaker: 'ai' | 'user';
@@ -124,7 +127,7 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'AI-generated feedback' })
-  @Column({ name: 'ai_feedback', type: 'jsonb', default: {} })
+  @Column({ name: 'aiFeedback', type: 'jsonb', default: {} })
   aiFeedback: {
     overallScore?: number;
     strengths?: string[];
@@ -141,11 +144,11 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'Overall interview score (0-100)' })
-  @Column({ name: 'overall_score', nullable: true })
+  @Column({ name: 'overallScore', nullable: true })
   overallScore?: number;
 
   @ApiProperty({ description: 'Performance metrics' })
-  @Column({ name: 'performance_metrics', type: 'jsonb', default: {} })
+  @Column({ name: 'performanceMetrics', type: 'jsonb', default: {} })
   performanceMetrics: {
     averageResponseTime?: number;
     totalSpeakingTime?: number;
@@ -156,27 +159,27 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'Improvement areas identified' })
-  @Column({ name: 'improvement_areas', type: 'simple-array', default: [] })
+  @Column({ name: 'improvementAreas', type: 'simple-array', default: [] })
   improvementAreas: string[];
 
   @ApiProperty({ description: 'Strengths identified' })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ name: 'strengths', type: 'simple-array', default: [] })
   strengths: string[];
 
   @ApiProperty({ description: 'Skills assessed during interview' })
-  @Column({ name: 'skills_assessed', type: 'simple-array', default: [] })
+  @Column({ name: 'skillsAssessed', type: 'simple-array', default: [] })
   skillsAssessed: string[];
 
   @ApiProperty({ description: 'Skill scores breakdown' })
-  @Column({ name: 'skill_scores', type: 'jsonb', default: {} })
+  @Column({ name: 'skillScores', type: 'jsonb', default: {} })
   skillScores: Record<string, number>;
 
   @ApiProperty({ description: 'AI model version used' })
-  @Column({ name: 'ai_model_version', nullable: true })
+  @Column({ name: 'aiModelVersion', nullable: true })
   aiModelVersion?: string;
 
   @ApiProperty({ description: 'Session recording URLs' })
-  @Column({ name: 'recording_urls', type: 'jsonb', default: {} })
+  @Column({ name: 'recordingUrls', type: 'jsonb', default: {} })
   recordingUrls: {
     audio?: string;
     video?: string;
@@ -184,21 +187,21 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'Interview analytics data' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'analytics', type: 'jsonb', default: {} })
   analytics: {
     questionsAsked?: number;
     questionsAnswered?: number;
     averageQuestionScore?: number;
     timeDistribution?: Record<string, number>;
     emotionalAnalysis?: {
-      dominant_emotion?: string;
-      confidence_trend?: number[];
-      stress_indicators?: string[];
+      dominantEmotion?: string;
+      confidenceTrend?: number[];
+      stressIndicators?: string[];
     };
   };
 
   @ApiProperty({ description: 'Follow-up recommendations' })
-  @Column({ name: 'follow_up_recommendations', type: 'jsonb', default: {} })
+  @Column({ name: 'followUpRecommendations', type: 'jsonb', default: {} })
   followUpRecommendations: {
     courses?: Array<{
       title: string;
@@ -206,7 +209,7 @@ export class AiMockInterview {
       url?: string;
       priority: 'high' | 'medium' | 'low';
     }>;
-    practice_areas?: string[];
+    practiceAreas?: string[];
     resources?: Array<{
       title: string;
       type: 'article' | 'video' | 'book' | 'course';
@@ -215,7 +218,7 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'Interview metadata' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata: {
     userAgent?: string;
     deviceType?: string;
@@ -227,21 +230,21 @@ export class AiMockInterview {
     cancellationReason?: string;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @OneToMany(() => InterviewResponse, response => response.interviewSession)
   responses: InterviewResponse[];
 
-  // Virtual properties
+  // Virtual properties and methods remain same ↓
   get duration(): number {
     if (this.startedAt && this.completedAt) {
       return Math.round((this.completedAt.getTime() - this.startedAt.getTime()) / (1000 * 60));
@@ -267,7 +270,6 @@ export class AiMockInterview {
     return this.analytics.averageQuestionScore || this.overallScore || 0;
   }
 
-  // Methods
   start(): void {
     if (this.status !== AiInterviewStatus.PENDING) {
       throw new Error('Interview must be pending to start');
@@ -304,7 +306,6 @@ export class AiMockInterview {
     if (!this.transcript.conversations) {
       this.transcript.conversations = [];
     }
-    
     this.transcript.conversations.push({
       speaker,
       message,
@@ -328,19 +329,15 @@ export class AiMockInterview {
     const skillScores = Object.values(this.skillScores);
     if (skillScores.length > 0) {
       this.overallScore = Math.round(
-        skillScores.reduce((sum, score) => sum + score, 0) / skillScores.length
+        skillScores.reduce((sum, score) => sum + score, 0) / skillScores.length,
       );
     }
-
-    // Update AI feedback
     this.aiFeedback.overallScore = this.overallScore;
     this.generateFeedback();
   }
 
   private generateFeedback(): void {
     const score = this.overallScore || 0;
-    
-    // Generate strengths and improvement areas based on score
     if (score >= 80) {
       this.strengths.push('Excellent communication skills', 'Strong technical knowledge');
     } else if (score >= 60) {
@@ -349,15 +346,12 @@ export class AiMockInterview {
     } else {
       this.improvementAreas.push('Improve communication clarity', 'Strengthen technical foundation');
     }
-
-    // Generate recommendations
     this.aiFeedback.recommendations = this.generateRecommendations();
   }
 
   private generateRecommendations(): string[] {
     const recommendations: string[] = [];
     const score = this.overallScore || 0;
-
     if (score < 60) {
       recommendations.push('Practice more technical questions');
       recommendations.push('Work on communication skills');
@@ -368,7 +362,6 @@ export class AiMockInterview {
       recommendations.push('Maintain current performance level');
       recommendations.push('Explore advanced topics');
     }
-
     return recommendations;
   }
 
@@ -392,10 +385,7 @@ export class AiMockInterview {
   }
 
   exportTranscript(): string {
-    if (!this.transcript.conversations) {
-      return 'No transcript available';
-    }
-
+    if (!this.transcript.conversations) return 'No transcript available';
     return this.transcript.conversations
       .map(conv => `[${conv.timestamp.toISOString()}] ${conv.speaker.toUpperCase()}: ${conv.message}`)
       .join('\n');

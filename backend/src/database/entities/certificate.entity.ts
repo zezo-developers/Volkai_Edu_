@@ -51,33 +51,34 @@ export class Certificate {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'userId', type: 'uuid' })
   userId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'courseId', type: 'uuid' })
   courseId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'enrollmentId', type: 'uuid' })
   enrollmentId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'organizationId', type: 'uuid' })
   organizationId: string;
 
-  @Column({ type: 'varchar', length: 50, unique: true })
+  @Column({ name: 'certificateNumber', type: 'varchar', length: 50, unique: true })
   @Index()
   certificateNumber: string;
 
-  @Column({ type: 'varchar', length: 32, unique: true })
+  @Column({ name: 'verificationCode', type: 'varchar', length: 32, unique: true })
   @Index()
   verificationCode: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ name: 'title', type: 'varchar', length: 255 })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'description', type: 'text', nullable: true })
   description?: string;
 
   @Column({
+    name: 'type',
     type: 'enum',
     enum: CertificateType,
     default: CertificateType.COMPLETION,
@@ -86,6 +87,7 @@ export class Certificate {
   type: CertificateType;
 
   @Column({
+    name: 'status',
     type: 'enum',
     enum: CertificateStatus,
     default: CertificateStatus.PENDING,
@@ -93,80 +95,80 @@ export class Certificate {
   @Index()
   status: CertificateStatus;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({ name: 'finalScore', type: 'decimal', precision: 5, scale: 2, nullable: true })
   finalScore?: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({ name: 'passingScore', type: 'decimal', precision: 5, scale: 2, nullable: true })
   passingScore?: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ name: 'grade', type: 'varchar', length: 50, nullable: true })
   grade?: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ name: 'issuedAt', type: 'timestamp' })
   @Index()
   issuedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'revokedAt', type: 'timestamp', nullable: true })
   revokedAt?: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'revokedReason', type: 'text', nullable: true })
   revokedReason?: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ name: 'revokedBy', type: 'uuid', nullable: true })
   revokedBy?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'certificateUrl', type: 'text', nullable: true })
   certificateUrl?: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ name: 'certificateFileId', type: 'uuid', nullable: true })
   certificateFileId?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'publicUrl', type: 'text', nullable: true })
   publicUrl?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'templateId', type: 'varchar', length: 255, nullable: true })
   templateId?: string;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'templateData', type: 'jsonb', default: '{}' })
   templateData: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'metadata', type: 'jsonb', default: '{}' })
   metadata: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'verificationData', type: 'jsonb', default: '{}' })
   verificationData: Record<string, unknown>;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ name: 'viewCount', type: 'integer', default: 0 })
   viewCount: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ name: 'downloadCount', type: 'integer', default: 0 })
   downloadCount: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ name: 'verificationCount', type: 'integer', default: 0 })
   verificationCount: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'lastViewedAt', type: 'timestamp', nullable: true })
   lastViewedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'lastDownloadedAt', type: 'timestamp', nullable: true })
   lastDownloadedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'lastVerifiedAt', type: 'timestamp', nullable: true })
   lastVerifiedAt?: Date;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ name: 'isPublic', type: 'boolean', default: true })
   isPublic: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'isArchived', type: 'boolean', default: false })
   isArchived: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -215,7 +217,7 @@ export class Certificate {
   }
 
   get daysUntilExpiry(): number {
-    if (!this.expiresAt) return -1; // Never expires
+    if (!this.expiresAt) return -1;
     
     const now = new Date();
     const diffTime = this.expiresAt.getTime() - now.getTime();
@@ -246,9 +248,6 @@ export class Certificate {
     return 'satisfactory';
   }
 
-  /**
-   * Generate certificate number
-   */
   static generateCertificateNumber(organizationId: string, courseId: string): string {
     const timestamp = Date.now().toString(36).toUpperCase();
     const orgPrefix = organizationId.substring(0, 4).toUpperCase();
@@ -258,16 +257,10 @@ export class Certificate {
     return `CERT-${orgPrefix}-${coursePrefix}-${timestamp}-${random}`;
   }
 
-  /**
-   * Generate verification code
-   */
   static generateVerificationCode(): string {
     return Math.random().toString(36).substring(2, 34).toUpperCase();
   }
 
-  /**
-   * Issue the certificate
-   */
   issue(): void {
     if (this.status === CertificateStatus.PENDING) {
       this.status = CertificateStatus.ISSUED;
@@ -275,9 +268,6 @@ export class Certificate {
     }
   }
 
-  /**
-   * Revoke the certificate
-   */
   revoke(reason: string, revokedBy: string): void {
     if (this.status === CertificateStatus.ISSUED) {
       this.status = CertificateStatus.REVOKED;
@@ -287,42 +277,27 @@ export class Certificate {
     }
   }
 
-  /**
-   * Mark as expired
-   */
   expire(): void {
     if (this.status === CertificateStatus.ISSUED) {
       this.status = CertificateStatus.EXPIRED;
     }
   }
 
-  /**
-   * Increment view count
-   */
   incrementViewCount(): void {
     this.viewCount += 1;
     this.lastViewedAt = new Date();
   }
 
-  /**
-   * Increment download count
-   */
   incrementDownloadCount(): void {
     this.downloadCount += 1;
     this.lastDownloadedAt = new Date();
   }
 
-  /**
-   * Increment verification count
-   */
   incrementVerificationCount(): void {
     this.verificationCount += 1;
     this.lastVerifiedAt = new Date();
   }
 
-  /**
-   * Set certificate file
-   */
   setCertificateFile(fileId: string, publicUrl?: string): void {
     this.certificateFileId = fileId;
     if (publicUrl) {
@@ -330,9 +305,6 @@ export class Certificate {
     }
   }
 
-  /**
-   * Set template data
-   */
   setTemplateData(data: Record<string, unknown>): void {
     this.templateData = {
       ...this.templateData,
@@ -340,9 +312,6 @@ export class Certificate {
     };
   }
 
-  /**
-   * Get template data for certificate generation
-   */
   getTemplateData(): Record<string, unknown> {
     return {
       certificateNumber: this.certificateNumber,
@@ -358,9 +327,6 @@ export class Certificate {
     };
   }
 
-  /**
-   * Set verification data
-   */
   setVerificationData(data: Record<string, unknown>): void {
     this.verificationData = {
       ...this.verificationData,
@@ -368,31 +334,19 @@ export class Certificate {
     };
   }
 
-  /**
-   * Get verification URL
-   */
   getVerificationUrl(baseUrl: string): string {
     return `${baseUrl}/certificates/verify/${this.verificationCode}`;
   }
 
-  /**
-   * Get public certificate URL
-   */
   getPublicUrl(baseUrl: string): string {
     if (this.publicUrl) return this.publicUrl;
     return `${baseUrl}/certificates/public/${this.certificateNumber}`;
   }
 
-  /**
-   * Get metadata value by key
-   */
   getMetadata<T = unknown>(key: string, defaultValue?: T): T {
     return (this.metadata[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set metadata value
-   */
   setMetadata(key: string, value: unknown): void {
     this.metadata = {
       ...this.metadata,
@@ -400,19 +354,13 @@ export class Certificate {
     };
   }
 
-  /**
-   * Check if certificate needs renewal
-   */
   needsRenewal(): boolean {
     if (!this.expiresAt) return false;
     
     const daysUntilExpiry = this.daysUntilExpiry;
-    return daysUntilExpiry > 0 && daysUntilExpiry <= 30; // 30 days before expiry
+    return daysUntilExpiry > 0 && daysUntilExpiry <= 30;
   }
 
-  /**
-   * Get certificate summary for display
-   */
   getSummary(): {
     certificateNumber: string;
     title: string;
@@ -435,9 +383,6 @@ export class Certificate {
     };
   }
 
-  /**
-   * Validate certificate integrity
-   */
   validateIntegrity(): {
     isValid: boolean;
     errors: string[];
@@ -470,9 +415,6 @@ export class Certificate {
     };
   }
 
-  /**
-   * Generate certificate data for blockchain/digital signature
-   */
   generateDigitalSignatureData(): Record<string, unknown> {
     return {
       certificateNumber: this.certificateNumber,

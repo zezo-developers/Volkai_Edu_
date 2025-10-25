@@ -84,54 +84,35 @@ export class Report {
   format: ReportFormat;
 
   @ApiProperty({ description: 'Organization ID (nullable for system reports)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'User who created the report' })
-  @Column({ name: 'created_by' })
+  @Column({ name: 'createdBy' })
   createdBy: string;
 
   @ApiProperty({ description: 'Report parameters and filters' })
   @Column({ type: 'jsonb', default: {} })
   parameters: {
-    // Date range
     dateFrom?: Date;
     dateTo?: Date;
-    
-    // Filters
     userIds?: string[];
     organizationIds?: string[];
     courseIds?: string[];
     jobIds?: string[];
-    
-    // Grouping
     groupBy?: string[];
-    
-    // Metrics to include
     metrics?: string[];
-    
-    // Comparison settings
     compareWith?: {
       dateFrom: Date;
       dateTo: Date;
     };
-    
-    // Aggregation settings
     aggregation?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
-    
-    // Custom filters
     customFilters?: Record<string, any>;
-    
-    // Export settings
     includeCharts?: boolean;
     includeRawData?: boolean;
     includeSummary?: boolean;
-    
-    // Visualization settings
     chartTypes?: string[];
     colorScheme?: string;
-    
-    // Privacy settings
     anonymizeData?: boolean;
     excludePersonalInfo?: boolean;
   };
@@ -139,43 +120,30 @@ export class Report {
   @ApiProperty({ description: 'Report configuration and settings' })
   @Column({ type: 'jsonb', default: {} })
   config: {
-    // Scheduling
     isScheduled?: boolean;
     schedule?: {
       frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly';
       dayOfWeek?: number;
       dayOfMonth?: number;
-      time?: string; // HH:mm format
+      time?: string;
       timezone?: string;
     };
-    
-    // Distribution
     recipients?: string[];
     emailSubject?: string;
     emailBody?: string;
-    
-    // Retention
     retentionDays?: number;
     autoDelete?: boolean;
-    
-    // Access control
     isPublic?: boolean;
     allowedRoles?: string[];
     allowedUsers?: string[];
-    
-    // Customization
     template?: string;
     branding?: {
       logo?: string;
       colors?: Record<string, string>;
       fonts?: Record<string, string>;
     };
-    
-    // Performance
     cacheResults?: boolean;
-    cacheDuration?: number; // minutes
-    
-    // Alerts
+    cacheDuration?: number;
     alertThresholds?: Record<string, number>;
     alertRecipients?: string[];
   };
@@ -183,45 +151,28 @@ export class Report {
   @ApiProperty({ description: 'Report generation metadata' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Generation info
     generationStarted?: Date;
     generationCompleted?: Date;
-    generationDuration?: number; // milliseconds
-    
-    // Data info
+    generationDuration?: number;
     recordCount?: number;
-    dataSize?: number; // bytes
-    
-    // File info
+    dataSize?: number;
     fileName?: string;
-    fileSize?: number; // bytes
+    fileSize?: number;
     filePath?: string;
     downloadUrl?: string;
-    
-    // Error info
     errorMessage?: string;
     errorCode?: string;
     stackTrace?: string;
-    
-    // Performance metrics
     queryTime?: number;
     renderTime?: number;
-    
-    // Version info
     reportVersion?: string;
     templateVersion?: string;
-    
-    // Usage tracking
     downloadCount?: number;
     lastDownloaded?: Date;
     viewCount?: number;
     lastViewed?: Date;
-    
-    // Sharing info
     shareCount?: number;
     sharedWith?: string[];
-    
-    // Custom metadata
     tags?: string[];
     customFields?: Record<string, any>;
   };
@@ -229,25 +180,18 @@ export class Report {
   @ApiProperty({ description: 'Report data and results' })
   @Column({ type: 'jsonb', nullable: true })
   data?: {
-    // Summary statistics
     summary?: Record<string, any>;
-    
-    // Main data sets
     datasets?: Array<{
       name: string;
       data: any[];
       metadata?: Record<string, any>;
     }>;
-    
-    // Charts and visualizations
     charts?: Array<{
       type: string;
       title: string;
       data: any;
       config?: Record<string, any>;
     }>;
-    
-    // Key insights
     insights?: Array<{
       type: 'positive' | 'negative' | 'neutral' | 'warning';
       title: string;
@@ -256,47 +200,39 @@ export class Report {
       change?: number;
       changeType?: 'increase' | 'decrease';
     }>;
-    
-    // Recommendations
     recommendations?: Array<{
       priority: 'high' | 'medium' | 'low';
       title: string;
       description: string;
       actionItems?: string[];
     }>;
-    
-    // Comparisons
     comparisons?: Record<string, {
       current: any;
       previous: any;
       change: number;
       changePercent: number;
     }>;
-    
-    // Raw data (if requested)
     rawData?: any[];
   };
 
   @ApiProperty({ description: 'Report expiration date' })
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'createdBy' })
   creator: User;
 
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
-  // Virtual properties
   get isCompleted(): boolean {
     return this.status === ReportStatus.COMPLETED;
   }
@@ -333,7 +269,6 @@ export class Report {
     return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 
-  // Methods
   startGeneration(): void {
     this.status = ReportStatus.GENERATING;
     this.metadata.generationStarted = new Date();
@@ -344,9 +279,8 @@ export class Report {
     this.metadata.generationCompleted = new Date();
     this.metadata.filePath = filePath;
     this.metadata.fileSize = fileSize;
-    
     if (this.metadata.generationStarted) {
-      this.metadata.generationDuration = 
+      this.metadata.generationDuration =
         this.metadata.generationCompleted.getTime() - this.metadata.generationStarted.getTime();
     }
   }
@@ -414,38 +348,21 @@ export class Report {
     if (!this.data) this.data = {};
     if (!this.data.datasets) this.data.datasets = [];
 
-    this.data.datasets.push({
-      name,
-      data,
-      metadata,
-    });
+    this.data.datasets.push({ name, data, metadata });
   }
 
   addChart(type: string, title: string, data: any, config?: Record<string, any>): void {
     if (!this.data) this.data = {};
     if (!this.data.charts) this.data.charts = [];
 
-    this.data.charts.push({
-      type,
-      title,
-      data,
-      config,
-    });
+    this.data.charts.push({ type, title, data, config });
   }
 
   canBeAccessedBy(userId: string, userRoles: string[]): boolean {
-    // Creator can always access
     if (this.createdBy === userId) return true;
-
-    // Public reports can be accessed by anyone
     if (this.config.isPublic) return true;
-
-    // Check allowed users
     if (this.config.allowedUsers?.includes(userId)) return true;
-
-    // Check allowed roles
     if (this.config.allowedRoles?.some(role => userRoles.includes(role))) return true;
-
     return false;
   }
 
@@ -464,24 +381,20 @@ export class Report {
       case 'daily':
         nextRun.setDate(now.getDate() + 1);
         break;
-      
       case 'weekly':
         const daysUntilNext = (schedule.dayOfWeek || 0) - now.getDay();
         nextRun.setDate(now.getDate() + (daysUntilNext <= 0 ? daysUntilNext + 7 : daysUntilNext));
         break;
-      
       case 'monthly':
         nextRun.setMonth(now.getMonth() + 1);
         nextRun.setDate(schedule.dayOfMonth || 1);
         break;
-      
       case 'quarterly':
         nextRun.setMonth(now.getMonth() + 3);
         nextRun.setDate(schedule.dayOfMonth || 1);
         break;
     }
 
-    // Set time if specified
     if (schedule.time) {
       const [hours, minutes] = schedule.time.split(':').map(Number);
       nextRun.setHours(hours, minutes, 0, 0);
@@ -490,7 +403,6 @@ export class Report {
     return nextRun;
   }
 
-  // Static factory methods
   static createUserAnalyticsReport(
     name: string,
     createdBy: string,
@@ -543,10 +455,7 @@ export class Report {
       parameters: {},
       config: {
         isScheduled: true,
-        schedule: {
-          frequency,
-          time: '09:00',
-        },
+        schedule: { frequency, time: '09:00' },
         recipients,
         retentionDays: 30,
         autoDelete: true,

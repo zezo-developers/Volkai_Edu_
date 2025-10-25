@@ -66,15 +66,15 @@ export class Payment {
   id: string;
 
   @ApiProperty({ description: 'Organization ID' })
-  @Column({ name: 'organization_id' })
+  @Column({ name: 'organizationId' })
   organizationId: string;
 
   @ApiProperty({ description: 'Invoice ID' })
-  @Column({ name: 'invoice_id', nullable: true })
+  @Column({ name: 'invoiceId', nullable: true })
   invoiceId?: string;
 
   @ApiProperty({ description: 'Subscription ID' })
-  @Column({ name: 'subscription_id', nullable: true })
+  @Column({ name: 'subscriptionId', nullable: true })
   subscriptionId?: string;
 
   @ApiProperty({ enum: PaymentStatus, description: 'Payment status' })
@@ -101,7 +101,7 @@ export class Payment {
   paymentProvider: PaymentProvider;
 
   @ApiProperty({ description: 'Provider payment ID' })
-  @Column({ name: 'provider_payment_id', nullable: true })
+  @Column({ name: 'providerPaymentId', nullable: true })
   providerPaymentId?: string;
 
   @ApiProperty({ enum: PaymentMethod, description: 'Payment method' })
@@ -112,23 +112,23 @@ export class Payment {
   paymentMethod: PaymentMethod;
 
   @ApiProperty({ description: 'Payment amount in cents' })
-  @Column({ name: 'amount_cents', type: 'bigint' })
+  @Column({ name: 'amountCents', type: 'bigint' })
   amountCents: number;
 
   @ApiProperty({ description: 'Currency code' })
-  @Column({ length: 3 })
+  @Column({ name: 'currency', length: 3 })
   currency: string;
 
   @ApiProperty({ description: 'Processing fee in cents' })
-  @Column({ name: 'fee_cents', type: 'bigint', default: 0 })
+  @Column({ name: 'feeCents', type: 'bigint', default: 0 })
   feeCents: number;
 
   @ApiProperty({ description: 'Net amount after fees in cents' })
-  @Column({ name: 'net_amount_cents', type: 'bigint' })
+  @Column({ name: 'netAmountCents', type: 'bigint' })
   netAmountCents: number;
 
   @ApiProperty({ description: 'Refunded amount in cents' })
-  @Column({ name: 'refunded_amount_cents', type: 'bigint', default: 0 })
+  @Column({ name: 'refundedAmountCents', type: 'bigint', default: 0 })
   refundedAmountCents: number;
 
   @ApiProperty({ description: 'Payment description' })
@@ -136,9 +136,8 @@ export class Payment {
   description?: string;
 
   @ApiProperty({ description: 'Payment method details' })
-  @Column({ name: 'payment_method_details', type: 'jsonb', default: {} })
+  @Column({ name: 'paymentMethodDetails', type: 'jsonb', default: {} })
   paymentMethodDetails: {
-    // Card details
     card?: {
       brand: string;
       last4: string;
@@ -148,8 +147,6 @@ export class Payment {
       funding?: 'credit' | 'debit' | 'prepaid';
       fingerprint?: string;
     };
-    
-    // Bank transfer details
     bankTransfer?: {
       accountType?: string;
       bankName?: string;
@@ -157,38 +154,14 @@ export class Payment {
       accountNumberLast4?: string;
       country?: string;
     };
-    
-    // UPI details
-    upi?: {
-      vpa?: string;
-      provider?: string;
-    };
-    
-    // Wallet details
-    wallet?: {
-      provider: string;
-      accountId?: string;
-    };
-    
-    // EMI details
-    emi?: {
-      tenure: number;
-      interestRate: number;
-      monthlyAmount: number;
-      provider: string;
-    };
-    
-    // Cryptocurrency details
-    crypto?: {
-      currency: string;
-      address?: string;
-      transactionHash?: string;
-      network?: string;
-    };
+    upi?: { vpa?: string; provider?: string };
+    wallet?: { provider: string; accountId?: string };
+    emi?: { tenure: number; interestRate: number; monthlyAmount: number; provider: string };
+    crypto?: { currency: string; address?: string; transactionHash?: string; network?: string };
   };
 
   @ApiProperty({ description: 'Billing address' })
-  @Column({ name: 'billing_address', type: 'jsonb', nullable: true })
+  @Column({ name: 'billingAddress', type: 'jsonb', nullable: true })
   billingAddress?: {
     name: string;
     email?: string;
@@ -202,211 +175,45 @@ export class Payment {
   };
 
   @ApiProperty({ description: 'Payment processing information' })
-  @Column({ name: 'processing_info', type: 'jsonb', default: {} })
-  processingInfo: {
-    // Processing timestamps
-    initiatedAt?: Date;
-    authorizedAt?: Date;
-    capturedAt?: Date;
-    settledAt?: Date;
-    
-    // Processing details
-    authorizationCode?: string;
-    processorResponseCode?: string;
-    processorResponseMessage?: string;
-    
-    // Risk assessment
-    riskScore?: number;
-    riskLevel?: 'low' | 'medium' | 'high';
-    fraudDetected?: boolean;
-    
-    // 3D Secure
-    threeDSecure?: {
-      authenticated: boolean;
-      version?: string;
-      cavv?: string;
-      eci?: string;
-    };
-    
-    // Network transaction details
-    networkTransactionId?: string;
-    acquirerReferenceNumber?: string;
-    
-    // Failure details
-    failureCode?: string;
-    failureMessage?: string;
-    failureReason?: string;
-    
-    // Retry information
-    retryAttempt?: number;
-    maxRetries?: number;
-    nextRetryAt?: Date;
-  };
+  @Column({ name: 'processingInfo', type: 'jsonb', default: {} })
+  processingInfo: any;
 
   @ApiProperty({ description: 'Provider-specific data' })
-  @Column({ name: 'provider_data', type: 'jsonb', default: {} })
-  providerData: {
-    // Stripe specific
-    stripe?: {
-      paymentIntentId: string;
-      chargeId?: string;
-      paymentMethodId?: string;
-      customerId?: string;
-      setupIntentId?: string;
-      balanceTransactionId?: string;
-      receiptUrl?: string;
-      metadata?: Record<string, string>;
-    };
-    
-    // Razorpay specific
-    razorpay?: {
-      paymentId: string;
-      orderId?: string;
-      customerId?: string;
-      invoiceId?: string;
-      refundId?: string;
-      metadata?: Record<string, string>;
-    };
-    
-    // Other providers
-    [key: string]: any;
-  };
+  @Column({ name: 'providerData', type: 'jsonb', default: {} })
+  providerData: any;
 
   @ApiProperty({ description: 'Refund information' })
-  @Column({ name: 'refund_info', type: 'jsonb', default: {} })
-  refundInfo: {
-    refunds?: Array<{
-      id: string;
-      amount: number; // in cents
-      reason?: string;
-      status: 'pending' | 'succeeded' | 'failed' | 'canceled';
-      createdAt: Date;
-      processedAt?: Date;
-      providerRefundId?: string;
-      metadata?: Record<string, any>;
-    }>;
-    
-    totalRefunded?: number; // in cents
-    refundableAmount?: number; // in cents
-    refundPolicy?: string;
-    refundDeadline?: Date;
-  };
+  @Column({ name: 'refundInfo', type: 'jsonb', default: {} })
+  refundInfo: any;
 
   @ApiProperty({ description: 'Dispute and chargeback information' })
-  @Column({ name: 'dispute_info', type: 'jsonb', default: {} })
-  disputeInfo: {
-    disputes?: Array<{
-      id: string;
-      amount: number; // in cents
-      reason: string;
-      status: 'warning_needs_response' | 'warning_under_review' | 'warning_closed' | 'needs_response' | 'under_review' | 'charge_refunded' | 'won' | 'lost';
-      createdAt: Date;
-      evidenceDueBy?: Date;
-      evidence?: {
-        accessActivityLog?: string;
-        billingAddress?: string;
-        cancellationPolicy?: string;
-        cancellationPolicyDisclosure?: string;
-        cancellationRebuttal?: string;
-        customerCommunication?: string;
-        customerEmailAddress?: string;
-        customerName?: string;
-        customerPurchaseIp?: string;
-        customerSignature?: string;
-        duplicateChargeDocumentation?: string;
-        duplicateChargeExplanation?: string;
-        duplicateChargeId?: string;
-        productDescription?: string;
-        receipt?: string;
-        refundPolicy?: string;
-        refundPolicyDisclosure?: string;
-        refundRefusalExplanation?: string;
-        serviceDate?: string;
-        serviceDocumentation?: string;
-        shippingAddress?: string;
-        shippingCarrier?: string;
-        shippingDate?: string;
-        shippingDocumentation?: string;
-        shippingTrackingNumber?: string;
-        uncategorizedFile?: string;
-        uncategorizedText?: string;
-      };
-      providerDisputeId?: string;
-    }>;
-    
-    totalDisputed?: number; // in cents
-    hasActiveDisputes?: boolean;
-  };
+  @Column({ name: 'disputeInfo', type: 'jsonb', default: {} })
+  disputeInfo: any;
 
   @ApiProperty({ description: 'Payment metadata and audit trail' })
-  @Column({ type: 'jsonb', default: {} })
-  metadata: {
-    // Source information
-    source?: 'web' | 'mobile' | 'api' | 'admin' | 'webhook';
-    userAgent?: string;
-    ipAddress?: string;
-    
-    // Customer information
-    customerEmail?: string;
-    customerPhone?: string;
-    customerId?: string;
-    
-    // Order information
-    orderId?: string;
-    orderItems?: Array<{
-      name: string;
-      quantity: number;
-      price: number;
-    }>;
-    
-    // Campaign tracking
-    campaignId?: string;
-    affiliateId?: string;
-    referrer?: string;
-    
-    // Audit trail
-    auditTrail?: Array<{
-      timestamp: Date;
-      action: string;
-      performedBy: string;
-      oldValue?: any;
-      newValue?: any;
-      reason?: string;
-    }>;
-    
-    // Notifications
-    notifications?: Array<{
-      type: 'email' | 'sms' | 'webhook';
-      status: 'sent' | 'delivered' | 'failed';
-      timestamp: Date;
-      recipient?: string;
-      template?: string;
-    }>;
-    
-    // Custom fields
-    customFields?: Record<string, any>;
-  };
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
+  metadata: any;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Organization, organization => organization.payments)
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization: Organization;
 
   @ManyToOne(() => Invoice, invoice => invoice.payments, { nullable: true })
-  @JoinColumn({ name: 'invoice_id' })
+  @JoinColumn({ name: 'invoiceId' })
   invoice?: Invoice;
 
   @ManyToOne(() => Subscription, subscription => subscription.payments, { nullable: true })
-  @JoinColumn({ name: 'subscription_id' })
+  @JoinColumn({ name: 'subscriptionId' })
   subscription?: Subscription;
 
-  // Virtual properties
+  // Virtual properties and methods remain unchanged
   get isSuccessful(): boolean {
     return this.status === PaymentStatus.SUCCEEDED;
   }
@@ -429,18 +236,12 @@ export class Payment {
 
   get displayAmount(): string {
     const amount = this.amountCents / 100;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: this.currency,
-    }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currency }).format(amount);
   }
 
   get displayNetAmount(): string {
     const amount = this.netAmountCents / 100;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: this.currency,
-    }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currency }).format(amount);
   }
 
   get refundableAmount(): number {
@@ -453,7 +254,6 @@ export class Payment {
 
   get paymentMethodDisplay(): string {
     const details = this.paymentMethodDetails;
-    
     switch (this.paymentMethod) {
       case PaymentMethod.CARD:
         return details.card ? `**** **** **** ${details.card.last4}` : 'Card';

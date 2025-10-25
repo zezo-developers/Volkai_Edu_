@@ -40,19 +40,20 @@ export class AssessmentAttempt {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'userId', type: 'uuid' })
   userId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'assessmentId', type: 'uuid' })
   assessmentId: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'enrollmentId', type: 'uuid' })
   enrollmentId: string;
 
-  @Column({ type: 'integer' })
+  @Column({ name: 'attemptNumber', type: 'integer' })
   attemptNumber: number;
 
   @Column({
+    name: 'status',
     type: 'enum',
     enum: AssessmentAttemptStatus,
     default: AssessmentAttemptStatus.STARTED,
@@ -60,85 +61,85 @@ export class AssessmentAttempt {
   @Index()
   status: AssessmentAttemptStatus;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  @Column({ name: 'score', type: 'decimal', precision: 5, scale: 2, nullable: true })
   @Index()
   score?: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ name: 'earnedPoints', type: 'integer', nullable: true })
   earnedPoints?: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ name: 'totalPoints', type: 'integer', nullable: true })
   totalPoints?: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ name: 'correctAnswers', type: 'integer', nullable: true })
   correctAnswers?: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ name: 'totalQuestions', type: 'integer', nullable: true })
   totalQuestions?: number;
 
-  @Column({ type: 'boolean', nullable: true })
+  @Column({ name: 'passed', type: 'boolean', nullable: true })
   passed?: boolean;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ name: 'timeSpentSeconds', type: 'integer', default: 0 })
   timeSpentSeconds: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ name: 'timeLimitSeconds', type: 'integer', nullable: true })
   timeLimitSeconds?: number;
 
-  @Column({ type: 'timestamp' })
+  @Column({ name: 'startedAt', type: 'timestamp' })
   @Index()
   startedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'submittedAt', type: 'timestamp', nullable: true })
   @Index()
   submittedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'gradedAt', type: 'timestamp', nullable: true })
   gradedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'responses', type: 'jsonb', default: '{}' })
   responses: Record<string, string | string[]>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'questionOrder', type: 'jsonb', default: '{}' })
   questionOrder: Record<string, number>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'gradingDetails', type: 'jsonb', default: '{}' })
   gradingDetails: Record<string, unknown>;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'feedback', type: 'text', nullable: true })
   feedback?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'instructorNotes', type: 'text', nullable: true })
   instructorNotes?: string;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'metadata', type: 'jsonb', default: '{}' })
   metadata: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'proctoring', type: 'jsonb', default: '{}' })
   proctoring: Record<string, unknown>;
 
-  @Column({ type: 'varchar', length: 45, nullable: true })
+  @Column({ name: 'ipAddress', type: 'varchar', length: 45, nullable: true })
   ipAddress?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'userAgent', type: 'text', nullable: true })
   userAgent?: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'flaggedForReview', type: 'boolean', default: false })
   flaggedForReview: boolean;
 
-  @Column({ type: 'text', array: true, default: '{}' })
+  @Column({ name: 'flags', type: 'text', array: true, default: '{}' })
   flags: string[];
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'isArchived', type: 'boolean', default: false })
   isArchived: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -229,9 +230,6 @@ export class AssessmentAttempt {
     return Math.round((this.correctAnswers / this.totalQuestions) * 100);
   }
 
-  /**
-   * Start the attempt
-   */
   start(timeLimitMinutes?: number): void {
     this.status = AssessmentAttemptStatus.IN_PROGRESS;
     this.startedAt = new Date();
@@ -242,9 +240,6 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Submit the attempt
-   */
   submit(): void {
     if (this.isActive) {
       this.status = AssessmentAttemptStatus.SUBMITTED;
@@ -253,9 +248,6 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Grade the attempt
-   */
   grade(
     score: number,
     earnedPoints: number,
@@ -279,9 +271,6 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Abandon the attempt
-   */
   abandon(): void {
     if (this.isActive) {
       this.status = AssessmentAttemptStatus.ABANDONED;
@@ -289,9 +278,6 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Mark as expired
-   */
   expire(): void {
     if (this.isActive) {
       this.status = AssessmentAttemptStatus.EXPIRED;
@@ -299,9 +285,6 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Save response for a question
-   */
   saveResponse(questionId: string, response: string | string[]): void {
     this.responses = {
       ...this.responses,
@@ -309,30 +292,18 @@ export class AssessmentAttempt {
     };
   }
 
-  /**
-   * Get response for a question
-   */
   getResponse(questionId: string): string | string[] | undefined {
     return this.responses[questionId];
   }
 
-  /**
-   * Set question order
-   */
   setQuestionOrder(order: Record<string, number>): void {
     this.questionOrder = order;
   }
 
-  /**
-   * Add time spent
-   */
   addTimeSpent(seconds: number): void {
     this.timeSpentSeconds += seconds;
   }
 
-  /**
-   * Calculate time spent based on start and end times
-   */
   private calculateTimeSpent(): void {
     if (this.startedAt) {
       const endTime = this.submittedAt || new Date();
@@ -340,26 +311,17 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Flag for review
-   */
   flagForReview(reason: string): void {
     this.flaggedForReview = true;
     this.addFlag(reason);
   }
 
-  /**
-   * Add flag
-   */
   addFlag(flag: string): void {
     if (!this.flags.includes(flag)) {
       this.flags = [...this.flags, flag];
     }
   }
 
-  /**
-   * Remove flag
-   */
   removeFlag(flag: string): void {
     this.flags = this.flags.filter(f => f !== flag);
     
@@ -368,37 +330,22 @@ export class AssessmentAttempt {
     }
   }
 
-  /**
-   * Set instructor notes
-   */
   setInstructorNotes(notes: string): void {
     this.instructorNotes = notes;
   }
 
-  /**
-   * Set grading details
-   */
   setGradingDetails(details: Record<string, unknown>): void {
     this.gradingDetails = details;
   }
 
-  /**
-   * Set proctoring data
-   */
   setProctoringData(data: Record<string, unknown>): void {
     this.proctoring = data;
   }
 
-  /**
-   * Get metadata value by key
-   */
   getMetadata<T = unknown>(key: string, defaultValue?: T): T {
     return (this.metadata[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set metadata value
-   */
   setMetadata(key: string, value: unknown): void {
     this.metadata = {
       ...this.metadata,
@@ -406,18 +353,12 @@ export class AssessmentAttempt {
     };
   }
 
-  /**
-   * Check if attempt needs attention
-   */
   needsAttention(): boolean {
     return this.flaggedForReview || 
            this.flags.length > 0 || 
-           (this.isActive && this.timeRemainingSeconds < 300); // Less than 5 minutes remaining
+           (this.isActive && this.timeRemainingSeconds < 300);
   }
 
-  /**
-   * Get attempt summary
-   */
   getSummary(): {
     status: string;
     score?: number;
@@ -436,9 +377,6 @@ export class AssessmentAttempt {
     };
   }
 
-  /**
-   * Check if attempt is suspicious
-   */
   isSuspicious(): boolean {
     const suspiciousFlags = [
       'multiple_tabs',
@@ -451,11 +389,8 @@ export class AssessmentAttempt {
     return this.flags.some(flag => suspiciousFlags.includes(flag));
   }
 
-  /**
-   * Get performance metrics
-   */
   getPerformanceMetrics(): {
-    timeEfficiency: number; // Score per minute
+    timeEfficiency: number;
     accuracyRate: number;
     completionRate: number;
     engagementScore: number;
@@ -463,19 +398,18 @@ export class AssessmentAttempt {
     const timeInMinutes = this.timeSpentSeconds / 60;
     const timeEfficiency = timeInMinutes > 0 && this.score ? this.score / timeInMinutes : 0;
     
-    // Engagement score based on time spent vs expected time
-    let engagementScore = 50; // Base score
+    let engagementScore = 50;
     
     if (this.timeLimitSeconds) {
-      const expectedTime = this.timeLimitSeconds * 0.7; // 70% of time limit is optimal
+      const expectedTime = this.timeLimitSeconds * 0.7;
       const actualTime = this.timeSpentSeconds;
       
       if (actualTime >= expectedTime * 0.5 && actualTime <= expectedTime * 1.5) {
-        engagementScore += 30; // Good time management
+        engagementScore += 30;
       }
     }
     
-    if (this.completionRate >= 90) engagementScore += 20; // High completion
+    if (this.completionRate >= 90) engagementScore += 20;
     
     return {
       timeEfficiency: Math.round(timeEfficiency * 100) / 100,

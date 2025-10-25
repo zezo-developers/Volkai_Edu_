@@ -47,36 +47,38 @@ export class Organization {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ name: 'name', type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Column({ name: 'slug', type: 'varchar', length: 100, unique: true })
   @Index()
   slug: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
+  @Column({ name: 'domain', type: 'varchar', length: 255, nullable: true, unique: true })
   domain?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'logoUrl', type: 'text', nullable: true })
   logoUrl?: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'website', type: 'varchar', length: 255, nullable: true })
   website?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'industry', type: 'varchar', length: 100, nullable: true })
   industry?: string;
 
   @Column({
+    name: 'size',
     type: 'enum',
     enum: OrganizationSize,
     nullable: true,
   })
   size?: OrganizationSize;
 
-  @Column({ type: 'varchar', length: 50, default: 'UTC' })
+  @Column({ name: 'timezone', type: 'varchar', length: 50, default: 'UTC' })
   timezone: string;
 
   @Column({
+    name: 'status',
     type: 'enum',
     enum: OrganizationStatus,
     default: OrganizationStatus.TRIAL,
@@ -84,16 +86,16 @@ export class Organization {
   @Index()
   status: OrganizationStatus;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ name: 'settings', type: 'jsonb', default: '{}' })
   settings: Record<string, unknown>;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'createdBy', type: 'uuid' })
   createdBy: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations

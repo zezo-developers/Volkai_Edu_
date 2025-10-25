@@ -35,22 +35,22 @@ export class Module {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'courseId' })
   courseId: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, name: 'title' })
   title: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'slug' })
   slug?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'description' })
   description?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'learningObjectives' })
   learningObjectives?: string;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'sortOrder' })
   @Index()
   sortOrder: number;
 
@@ -58,51 +58,52 @@ export class Module {
     type: 'enum',
     enum: ModuleStatus,
     default: ModuleStatus.DRAFT,
+    name: 'status',
   })
   @Index()
   status: ModuleStatus;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isPublished' })
   @Index()
   isPublished: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isRequired' })
   isRequired: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'allowSkip' })
   allowSkip: boolean;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'estimatedDurationMinutes' })
   estimatedDurationMinutes: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalLessons' })
   totalLessons: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'totalAssessments' })
   totalAssessments: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'completionCount' })
   completionCount: number;
 
-  @Column({ type: 'integer', nullable: true })
+  @Column({ type: 'integer', nullable: true, name: 'passingScore' })
   passingScore?: number;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'metadata' })
   metadata: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'settings' })
   settings: Record<string, unknown>;
 
-  @Column({ type: 'integer', default: 1 })
+  @Column({ type: 'integer', default: 1, name: 'version' })
   version: number;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isArchived' })
   isArchived: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -121,15 +122,15 @@ export class Module {
   get estimatedDurationFormatted(): string {
     const hours = Math.floor(this.estimatedDurationMinutes / 60);
     const minutes = this.estimatedDurationMinutes % 60;
-    
+
     if (hours === 0) return `${minutes}m`;
     if (minutes === 0) return `${hours}h`;
     return `${hours}h ${minutes}m`;
   }
 
   get completionRate(): number {
-    return this.totalLessons > 0 
-      ? Math.round((this.completionCount / this.totalLessons) * 100) 
+    return this.totalLessons > 0
+      ? Math.round((this.completionCount / this.totalLessons) * 100)
       : 0;
   }
 

@@ -63,7 +63,7 @@ export class Plan {
   interval: PlanInterval;
 
   @ApiProperty({ description: 'Price amount in cents' })
-  @Column({ name: 'price_amount', type: 'bigint', default: 0 })
+  @Column({ name: 'priceAmount', type: 'bigint', default: 0 })
   priceAmount: number;
 
   @ApiProperty({ description: 'Currency code (ISO 4217)' })
@@ -71,11 +71,11 @@ export class Plan {
   currency: string;
 
   @ApiProperty({ description: 'Setup fee in cents' })
-  @Column({ name: 'setup_fee', type: 'bigint', default: 0 })
+  @Column({ name: 'setupFee', type: 'bigint', default: 0 })
   setupFee: number;
 
   @ApiProperty({ description: 'Trial period in days' })
-  @Column({ name: 'trial_days', default: 0 })
+  @Column({ name: 'trialDays', default: 0 })
   trialDays: number;
 
   @ApiProperty({ enum: PlanStatus, description: 'Plan status' })
@@ -87,21 +87,18 @@ export class Plan {
   status: PlanStatus;
 
   @ApiProperty({ description: 'Whether plan is currently active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Plan features and limits' })
   @Column({ type: 'jsonb', default: {} })
   features: {
-    // Core limits
     maxUsers?: number;
     maxOrganizations?: number;
     maxCourses?: number;
     maxStudentsPerCourse?: number;
     maxStorageGB?: number;
     maxBandwidthGB?: number;
-    
-    // Feature flags
     customBranding?: boolean;
     advancedAnalytics?: boolean;
     prioritySupport?: boolean;
@@ -109,138 +106,91 @@ export class Plan {
     apiAccess?: boolean;
     whiteLabeling?: boolean;
     customDomain?: boolean;
-    
-    // LMS features
-    assessmentTypes?: string[]; // ['mcq', 'essay', 'file_upload', 'coding']
+    assessmentTypes?: string[];
     certificateTemplates?: number;
     videoConferencing?: boolean;
     liveStreaming?: boolean;
-    
-    // HR features
     jobPostings?: number;
     candidateDatabase?: boolean;
     atsIntegration?: boolean;
     backgroundChecks?: boolean;
-    
-    // Interview features
     aiMockInterviews?: number;
     videoInterviews?: boolean;
     interviewRecording?: boolean;
-    
-    // Resume features
     resumeTemplates?: number;
     resumeAnalytics?: boolean;
-    
-    // Notification features
     emailNotifications?: number;
     smsNotifications?: number;
     pushNotifications?: boolean;
-    
-    // Integration limits
     webhooks?: number;
     apiCallsPerMonth?: number;
-    
-    // Support features
-    supportChannels?: string[]; // ['email', 'chat', 'phone']
-    supportResponseTime?: string; // '24h', '4h', '1h'
+    supportChannels?: string[];
+    supportResponseTime?: string;
     dedicatedManager?: boolean;
-    
-    // Compliance features
     gdprCompliance?: boolean;
     soc2Compliance?: boolean;
     dataRetentionYears?: number;
     auditLogs?: boolean;
-    
-    // Custom features for enterprise
     customFeatures?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'Plan metadata and configuration' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Display configuration
     displayOrder?: number;
     isPopular?: boolean;
     isFeatured?: boolean;
     color?: string;
     icon?: string;
-
     clonedFrom?: string;
     clonedAt?: Date;
-
     updatedBy?: string;
     updatedAt?: Date;
-    
-    // Pricing display
     originalPrice?: number;
     discountPercentage?: number;
     promotionalText?: string;
-    
-    // Availability
     availableRegions?: string[];
-    targetAudience?: string[]; // ['individual', 'small_business', 'enterprise']
-    
-    // Upgrade/downgrade rules
-    upgradeOptions?: string[]; // Plan IDs that can be upgraded to
-    downgradeOptions?: string[]; // Plan IDs that can be downgraded to
-
+    targetAudience?: string[];
+    upgradeOptions?: string[];
+    downgradeOptions?: string[];
     createdBy?: string;
-    
-    // Billing configuration
     prorateUpgrades?: boolean;
     prorateDowngrades?: boolean;
     allowMidCycleCancellation?: boolean;
-    
-    // External provider IDs
     stripeProductId?: string;
     stripePriceId?: string;
     razorpayPlanId?: string;
-    
-    // Usage tracking
     trackUsage?: boolean;
-    usageMetrics?: string[]; // ['users', 'storage', 'api_calls']
+    usageMetrics?: string[];
     overage?: {
       enabled: boolean;
       pricePerUnit: number;
       freeUnits: number;
     };
-    
-    // Notifications
-    usageWarningThresholds?: number[]; // [80, 90, 95, 100]
-    
-    // Custom fields
+    usageWarningThresholds?: number[];
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'Plan terms and conditions' })
   @Column({ type: 'jsonb', default: {} })
   terms: {
-    // Contract terms
     minimumCommitmentMonths?: number;
     cancellationPolicy?: string;
     refundPolicy?: string;
-    
-    // Usage terms
     fairUsagePolicy?: string;
     dataRetentionPolicy?: string;
-    
-    // Legal
     termsOfServiceUrl?: string;
     privacyPolicyUrl?: string;
     slaUrl?: string;
-    
-    // Billing terms
-    paymentTerms?: string; // 'immediate', 'net_30'
+    paymentTerms?: string;
     lateFeePercentage?: number;
-    
-    // Custom terms
     customTerms?: Record<string, string>;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -279,7 +229,7 @@ export class Plan {
   }
 
   get displayPrice(): string {
-    const amount = this.priceAmount / 100; // Convert from cents
+    const amount = this.priceAmount / 100;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: this.currency,
@@ -325,11 +275,9 @@ export class Plan {
     changeDate: Date = new Date(),
   ): number {
     if (!this.metadata.prorateUpgrades) return 0;
-
     const totalPeriodMs = currentPeriodEnd.getTime() - currentPeriodStart.getTime();
     const remainingPeriodMs = currentPeriodEnd.getTime() - changeDate.getTime();
     const remainingRatio = remainingPeriodMs / totalPeriodMs;
-
     return Math.round(this.priceAmount * remainingRatio);
   }
 
@@ -346,18 +294,10 @@ export class Plan {
   } {
     const limit = this.getFeatureLimit(featureName);
     const isUnlimited = this.isFeatureUnlimited(featureName);
-    
-    if (isUnlimited) {
-      return { allowed: true, limit: null, overageAllowed: false };
-    }
-
-    if (limit === null) {
-      return { allowed: false, limit: null, overageAllowed: false };
-    }
-
+    if (isUnlimited) return { allowed: true, limit: null, overageAllowed: false };
+    if (limit === null) return { allowed: false, limit: null, overageAllowed: false };
     const overage = this.metadata.overage;
     const overageAllowed = overage?.enabled && currentUsage > limit;
-    
     return {
       allowed: currentUsage <= limit || overageAllowed,
       limit,
@@ -379,7 +319,7 @@ export class Plan {
       features: { ...this.features },
       metadata: { ...this.metadata },
       terms: { ...this.terms },
-      status: PlanStatus.INACTIVE, // New plans start inactive
+      status: PlanStatus.INACTIVE,
       isActive: false,
     };
   }
@@ -419,7 +359,7 @@ export class Plan {
         isPopular: false,
         isFeatured: false,
         targetAudience: ['individual'],
-        upgradeOptions: [], // Will be populated with other plan IDs
+        upgradeOptions: [],
         prorateUpgrades: true,
         allowMidCycleCancellation: true,
         trackUsage: true,

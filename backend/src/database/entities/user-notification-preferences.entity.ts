@@ -227,9 +227,9 @@ export class UserNotificationPreferences {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, user => user.notificationPreferences)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  // @ManyToOne(() => User, user => user.notificationPreferences)
+  // @JoinColumn({ name: 'user_id' })
+  // user: User;
 
   // Virtual properties
   get isGlobalPreference(): boolean {

@@ -156,8 +156,8 @@ export class User {
   deletedAt?: Date;
 
   // Relations
-  // @OneToMany(() => OrganizationMembership, membership => membership.user)
-  // organizationMemberships: OrganizationMembership[];
+  @OneToMany(() => OrganizationMembership, membership => membership.user)
+  organizationMemberships: OrganizationMembership[];
 
   // @OneToMany(() => AuditLog, auditLog => auditLog.actor)
   // auditLogs: AuditLog[];

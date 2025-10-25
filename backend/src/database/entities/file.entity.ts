@@ -67,111 +67,115 @@ export class File {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', nullable: true, name: 'ownerId' })
   ownerId?: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'uuid', nullable: true, name: 'organizationId' })
   organizationId?: string;
 
   @Column({
     type: 'enum',
     enum: FileOwnerType,
+    name: 'ownerType',
   })
   @Index()
   ownerType: FileOwnerType;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, name: 'filename' })
   filename: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, name: 'originalFilename' })
   originalFilename: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100, name: 'mimeType' })
   @Index()
   mimeType: string;
 
-  @Column({ type: 'bigint' })
+  @Column({ type: 'bigint', name: 'sizeBytes' })
   sizeBytes: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', name: 'storagePath' })
   storagePath: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'publicUrl' })
   publicUrl?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'cdnUrl' })
   cdnUrl?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'thumbnailUrl' })
   thumbnailUrl?: string;
 
-  @Column({ type: 'jsonb', default: '{}' })
+  @Column({ type: 'jsonb', default: '{}', name: 'metadata' })
   metadata: Record<string, unknown>;
 
   @Column({
     type: 'enum',
     enum: VirusScanStatus,
     default: VirusScanStatus.PENDING,
+    name: 'virusScanStatus',
   })
   @Index()
   virusScanStatus: VirusScanStatus;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'virusScanResult' })
   virusScanResult?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'virusScanAt' })
   virusScanAt?: Date;
 
   @Column({
     type: 'enum',
     enum: FileProcessingStatus,
     default: FileProcessingStatus.PENDING,
+    name: 'processingStatus',
   })
   @Index()
   processingStatus: FileProcessingStatus;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'processingError' })
   processingError?: string;
 
   @Column({
     type: 'enum',
     enum: FileAccessLevel,
     default: FileAccessLevel.PRIVATE,
+    name: 'accessLevel',
   })
   @Index()
   accessLevel: FileAccessLevel;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'downloadCount' })
   downloadCount: number;
 
-  @Column({ type: 'integer', default: 0 })
+  @Column({ type: 'integer', default: 0, name: 'viewCount' })
   viewCount: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'lastAccessedAt' })
   lastAccessedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'expiresAt' })
   expiresAt?: Date;
 
-  @Column({ type: 'text', array: true, default: '{}' })
+  @Column({ type: 'text', array: true, default: '{}', name: 'tags' })
   tags: string[];
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'description' })
   description?: string;
 
-  @Column({ type: 'varchar', length: 64, nullable: true })
+  @Column({ type: 'varchar', length: 64, nullable: true, name: 'checksum' })
   checksum?: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isProcessed' })
   isProcessed: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, name: 'isArchived' })
   isArchived: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
@@ -251,20 +255,14 @@ export class File {
   }
 
   get isPubliclyAccessible(): boolean {
-    return this.accessLevel === FileAccessLevel.PUBLIC || 
+    return this.accessLevel === FileAccessLevel.PUBLIC ||
            this.accessLevel === FileAccessLevel.LINK_ONLY;
   }
 
-  /**
-   * Get metadata value by key
-   */
   getMetadata<T = unknown>(key: string, defaultValue?: T): T {
     return (this.metadata[key] as T) ?? defaultValue;
   }
 
-  /**
-   * Set metadata value
-   */
   setMetadata(key: string, value: unknown): void {
     this.metadata = {
       ...this.metadata,
@@ -272,16 +270,10 @@ export class File {
     };
   }
 
-  /**
-   * Check if file has specific tag
-   */
   hasTag(tag: string): boolean {
     return this.tags.includes(tag.toLowerCase());
   }
 
-  /**
-   * Add tag to file
-   */
   addTag(tag: string): void {
     const normalizedTag = tag.toLowerCase();
     if (!this.hasTag(normalizedTag)) {
@@ -289,51 +281,23 @@ export class File {
     }
   }
 
-  /**
-   * Remove tag from file
-   */
   removeTag(tag: string): void {
     this.tags = this.tags.filter(t => t !== tag.toLowerCase());
   }
 
-  /**
-   * Check if user can access this file
-   */
   canAccess(userId?: string, organizationId?: string): boolean {
-    // Public files are accessible to everyone
-    if (this.accessLevel === FileAccessLevel.PUBLIC) {
-      return true;
-    }
-
-    // Link-only files are accessible with direct link
-    if (this.accessLevel === FileAccessLevel.LINK_ONLY) {
-      return true;
-    }
-
-    // Private files are only accessible to owner
-    if (this.accessLevel === FileAccessLevel.PRIVATE) {
-      return this.ownerId === userId;
-    }
-
-    // Organization files are accessible to organization members
-    if (this.accessLevel === FileAccessLevel.ORGANIZATION) {
-      return this.organizationId === organizationId;
-    }
-
+    if (this.accessLevel === FileAccessLevel.PUBLIC) return true;
+    if (this.accessLevel === FileAccessLevel.LINK_ONLY) return true;
+    if (this.accessLevel === FileAccessLevel.PRIVATE) return this.ownerId === userId;
+    if (this.accessLevel === FileAccessLevel.ORGANIZATION) return this.organizationId === organizationId;
     return false;
   }
 
-  /**
-   * Increment download count
-   */
   incrementDownloadCount(): void {
     this.downloadCount += 1;
     this.lastAccessedAt = new Date();
   }
 
-  /**
-   * Increment view count
-   */
   incrementViewCount(): void {
     this.viewCount += 1;
     this.lastAccessedAt = new Date();

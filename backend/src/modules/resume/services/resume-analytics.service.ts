@@ -387,7 +387,7 @@ export class ResumeAnalyticsService {
   }
 
   private async getRecentActivity(limit: number): Promise<any[]> {
-    const recentResumes = await this.resumeRepository.find({
+    const recentResumes:any = await this.resumeRepository.find({
       order: { createdAt: 'DESC' },
       take: limit,
       relations: ['user'],

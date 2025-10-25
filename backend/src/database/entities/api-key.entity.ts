@@ -32,55 +32,34 @@ export enum ApiKeyType {
 }
 
 export enum ApiScope {
-  // User scopes
   USER_READ = 'user:read',
   USER_WRITE = 'user:write',
   USER_DELETE = 'user:delete',
-  
-  // Organization scopes
   ORG_READ = 'org:read',
   ORG_WRITE = 'org:write',
   ORG_ADMIN = 'org:admin',
-  
-  // Course scopes
   COURSE_READ = 'course:read',
   COURSE_WRITE = 'course:write',
   COURSE_PUBLISH = 'course:publish',
-  
-  // Assessment scopes
   ASSESSMENT_READ = 'assessment:read',
   ASSESSMENT_WRITE = 'assessment:write',
   ASSESSMENT_GRADE = 'assessment:grade',
-  
-  // Interview scopes
   INTERVIEW_READ = 'interview:read',
   INTERVIEW_WRITE = 'interview:write',
   INTERVIEW_SCHEDULE = 'interview:schedule',
-  
-  // Job scopes
   JOB_READ = 'job:read',
   JOB_WRITE = 'job:write',
   JOB_APPLY = 'job:apply',
-  
-  // Billing scopes
   BILLING_READ = 'billing:read',
   BILLING_WRITE = 'billing:write',
-  
-  // Analytics scopes
   ANALYTICS_READ = 'analytics:read',
   ANALYTICS_WRITE = 'analytics:write',
-  
-  // Webhook scopes
   WEBHOOK_READ = 'webhook:read',
   WEBHOOK_WRITE = 'webhook:write',
   WEBHOOK_MANAGE = 'webhook:manage',
-  
-  // Admin scopes
   ADMIN_READ = 'admin:read',
   ADMIN_WRITE = 'admin:write',
   ADMIN_SYSTEM = 'admin:system',
-  
-  // Special scopes
   ALL = '*',
   READ_ONLY = 'read:*',
 }
@@ -105,11 +84,11 @@ export class ApiKey {
   description?: string;
 
   @ApiProperty({ description: 'Hashed API key (for security)' })
-  @Column({ name: 'key_hash', unique: true })
+  @Column({ name: 'keyHash', unique: true })
   keyHash: string;
 
   @ApiProperty({ description: 'API key prefix (visible part)' })
-  @Column({ name: 'key_prefix', length: 20 })
+  @Column({ name: 'keyPrefix', length: 20 })
   keyPrefix: string;
 
   @ApiProperty({ enum: ApiKeyType, description: 'Type of API key' })
@@ -129,11 +108,11 @@ export class ApiKey {
   status: ApiKeyStatus;
 
   @ApiProperty({ description: 'Organization ID (nullable for system keys)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'User who created the API key' })
-  @Column({ name: 'created_by' })
+  @Column({ name: 'createdBy' })
   createdBy: string;
 
   @ApiProperty({ description: 'API key scopes and permissions', type: [String] })
@@ -143,117 +122,83 @@ export class ApiKey {
   @ApiProperty({ description: 'API key configuration and limits' })
   @Column({ type: 'jsonb', default: {} })
   config: {
-    // Rate limiting
     rateLimit?: {
       requests: number;
-      window: number; // seconds
-      burst?: number; // burst capacity
+      window: number;
+      burst?: number;
     };
-    
-    // IP restrictions
     allowedIps?: string[];
     blockedIps?: string[];
-    
-    // Referrer restrictions
     allowedReferrers?: string[];
-    
-    // Time restrictions
-    allowedHours?: [number, number]; // [start, end] in 24h format
+    allowedHours?: [number, number];
     timezone?: string;
-    
-    // Usage limits
     dailyLimit?: number;
     monthlyLimit?: number;
     totalLimit?: number;
-    
-    // Feature flags
     features?: Record<string, boolean>;
-    
-    // Webhook settings (for webhook keys)
     webhookUrl?: string;
     webhookSecret?: string;
-    
-    // Integration settings
     integrationId?: string;
     integrationVersion?: string;
-    
-    // Custom settings
     customSettings?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'API key metadata and statistics' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Usage statistics
     totalRequests?: number;
     successfulRequests?: number;
     failedRequests?: number;
     lastUsedAt?: Date;
-    
-    // Performance metrics
     averageResponseTime?: number;
-    
-    // Error tracking
     errorCount?: number;
     lastError?: string;
     lastErrorAt?: Date;
-    
-    // Rate limiting stats
     rateLimitHits?: number;
     lastRateLimitAt?: Date;
-    
-    // Security events
     suspiciousActivity?: number;
     lastSuspiciousAt?: Date;
-    
-    // Usage patterns
-    dailyUsage?: Record<string, number>; // date -> request count
-    monthlyUsage?: Record<string, number>; // month -> request count
-    
-    // Client information
+    dailyUsage?: Record<string, number>;
+    monthlyUsage?: Record<string, number>;
     userAgents?: string[];
     ipAddresses?: string[];
-    
-    // Custom metadata
     tags?: string[];
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'API key expiration date' })
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
   @ApiProperty({ description: 'Last time the key was used' })
-  @Column({ name: 'last_used_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'lastUsedAt', type: 'timestamp', nullable: true })
   lastUsedAt?: Date;
 
   @ApiProperty({ description: 'Last IP address that used this key' })
-  @Column({ name: 'last_used_ip', nullable: true })
+  @Column({ name: 'lastUsedIp', nullable: true })
   lastUsedIp?: string;
 
   @ApiProperty({ description: 'Last user agent that used this key' })
-  @Column({ name: 'last_user_agent', type: 'text', nullable: true })
+  @Column({ name: 'lastUserAgent', type: 'text', nullable: true })
   lastUserAgent?: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'createdBy' })
   creator: User;
 
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
   @OneToMany(() => ApiKeyUsage, usage => usage.apiKey)
   usageRecords: ApiKeyUsage[];
 
-  // Virtual properties
   get isActive(): boolean {
     return this.status === ApiKeyStatus.ACTIVE && !this.isExpired;
   }
@@ -276,7 +221,7 @@ export class ApiKey {
   }
 
   get monthlyUsage(): number {
-    const thisMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+    const thisMonth = new Date().toISOString().substring(0, 7);
     return this.metadata.monthlyUsage?.[thisMonth] || 0;
   }
 
@@ -296,15 +241,13 @@ export class ApiKey {
     return total > 0 ? (successful / total) * 100 : 0;
   }
 
-  // Methods
   recordUsage(
     success: boolean,
     responseTime?: number,
     ipAddress?: string,
     userAgent?: string,
-    error?: string
+    error?: string,
   ): void {
-    // Update basic stats
     this.metadata.totalRequests = (this.metadata.totalRequests || 0) + 1;
     this.lastUsedAt = new Date();
 
@@ -319,15 +262,13 @@ export class ApiKey {
       }
     }
 
-    // Update response time
     if (responseTime) {
       const avgResponseTime = this.metadata.averageResponseTime || 0;
       const totalRequests = this.metadata.totalRequests;
-      this.metadata.averageResponseTime = 
+      this.metadata.averageResponseTime =
         (avgResponseTime * (totalRequests - 1) + responseTime) / totalRequests;
     }
 
-    // Update client info
     if (ipAddress) {
       this.lastUsedIp = ipAddress;
       if (!this.metadata.ipAddresses) this.metadata.ipAddresses = [];
@@ -344,12 +285,10 @@ export class ApiKey {
       }
     }
 
-    // Update daily usage
     const today = new Date().toISOString().split('T')[0];
     if (!this.metadata.dailyUsage) this.metadata.dailyUsage = {};
     this.metadata.dailyUsage[today] = (this.metadata.dailyUsage[today] || 0) + 1;
 
-    // Update monthly usage
     const thisMonth = new Date().toISOString().substring(0, 7);
     if (!this.metadata.monthlyUsage) this.metadata.monthlyUsage = {};
     this.metadata.monthlyUsage[thisMonth] = (this.metadata.monthlyUsage[thisMonth] || 0) + 1;
@@ -363,7 +302,7 @@ export class ApiKey {
   recordSuspiciousActivity(reason: string): void {
     this.metadata.suspiciousActivity = (this.metadata.suspiciousActivity || 0) + 1;
     this.metadata.lastSuspiciousAt = new Date();
-    
+
     if (!this.metadata.customFields) this.metadata.customFields = {};
     if (!this.metadata.customFields.suspiciousReasons) {
       this.metadata.customFields.suspiciousReasons = [];
@@ -375,27 +314,22 @@ export class ApiKey {
   }
 
   canMakeRequest(): { allowed: boolean; reason?: string } {
-    // Check if key is active
     if (!this.isActive) {
       return { allowed: false, reason: 'API key is not active' };
     }
 
-    // Check expiration
     if (this.isExpired) {
       return { allowed: false, reason: 'API key has expired' };
     }
 
-    // Check daily limit
     if (this.config.dailyLimit && this.dailyUsage >= this.config.dailyLimit) {
       return { allowed: false, reason: 'Daily limit exceeded' };
     }
 
-    // Check monthly limit
     if (this.config.monthlyLimit && this.monthlyUsage >= this.config.monthlyLimit) {
       return { allowed: false, reason: 'Monthly limit exceeded' };
     }
 
-    // Check total limit
     if (this.config.totalLimit && (this.metadata.totalRequests || 0) >= this.config.totalLimit) {
       return { allowed: false, reason: 'Total usage limit exceeded' };
     }
@@ -404,17 +338,14 @@ export class ApiKey {
   }
 
   isIpAllowed(ipAddress: string): boolean {
-    // If no IP restrictions, allow all
     if (!this.config.allowedIps && !this.config.blockedIps) {
       return true;
     }
 
-    // Check blocked IPs first
     if (this.config.blockedIps?.includes(ipAddress)) {
       return false;
     }
 
-    // If allowed IPs are specified, check if IP is in the list
     if (this.config.allowedIps && this.config.allowedIps.length > 0) {
       return this.config.allowedIps.includes(ipAddress);
     }
@@ -428,7 +359,6 @@ export class ApiKey {
     }
 
     return this.config.allowedReferrers.some(allowed => {
-      // Support wildcard matching
       if (allowed.includes('*')) {
         const pattern = allowed.replace(/\*/g, '.*');
         return new RegExp(pattern).test(referrer);
@@ -449,14 +379,13 @@ export class ApiKey {
     if (startHour <= endHour) {
       return currentHour >= startHour && currentHour <= endHour;
     } else {
-      // Handles cases like 22:00 to 06:00 (overnight)
       return currentHour >= startHour || currentHour <= endHour;
     }
   }
 
   suspend(reason?: string): void {
     this.status = ApiKeyStatus.SUSPENDED;
-    
+
     if (reason) {
       if (!this.metadata.customFields) this.metadata.customFields = {};
       this.metadata.customFields.suspensionReason = reason;
@@ -466,7 +395,7 @@ export class ApiKey {
 
   revoke(reason?: string): void {
     this.status = ApiKeyStatus.REVOKED;
-    
+
     if (reason) {
       if (!this.metadata.customFields) this.metadata.customFields = {};
       this.metadata.customFields.revocationReason = reason;
@@ -492,19 +421,11 @@ export class ApiKey {
     this.scopes = this.scopes.filter(s => s !== scope);
   }
 
-  // Static methods
   static generateKey(): { key: string; hash: string; prefix: string } {
     const crypto = require('crypto');
-    
-    // Generate a random key
     const key = 'vk_' + crypto.randomBytes(32).toString('hex');
-    
-    // Create hash for storage
     const hash = crypto.createHash('sha256').update(key).digest('hex');
-    
-    // Create prefix for display
     const prefix = key.substring(0, 12) + '...';
-    
     return { key, hash, prefix };
   }
 
@@ -518,7 +439,7 @@ export class ApiKey {
     scopes: ApiScope[],
     createdBy: string,
     organizationId?: string,
-    type: ApiKeyType = ApiKeyType.SECRET
+    type: ApiKeyType = ApiKeyType.SECRET,
   ): { apiKey: Partial<ApiKey>; plainKey: string } {
     const { key, hash, prefix } = this.generateKey();
 
@@ -532,10 +453,7 @@ export class ApiKey {
       createdBy,
       organizationId,
       config: {
-        rateLimit: {
-          requests: 1000,
-          window: 3600, // 1 hour
-        },
+        rateLimit: { requests: 1000, window: 3600 },
         dailyLimit: 10000,
         monthlyLimit: 300000,
       },
@@ -553,21 +471,15 @@ export class ApiKey {
     name: string,
     scopes: ApiScope[],
     createdBy: string,
-    organizationId: string
+    organizationId: string,
   ): { apiKey: Partial<ApiKey>; plainKey: string } {
     const result = this.createApiKey(name, scopes, createdBy, organizationId, ApiKeyType.PARTNER);
-    
-    // Partner keys have higher limits
     result.apiKey.config = {
       ...result.apiKey.config,
-      rateLimit: {
-        requests: 5000,
-        window: 3600,
-      },
+      rateLimit: { requests: 5000, window: 3600 },
       dailyLimit: 50000,
       monthlyLimit: 1500000,
     };
-
     return result;
   }
 
@@ -575,14 +487,14 @@ export class ApiKey {
     name: string,
     webhookUrl: string,
     createdBy: string,
-    organizationId?: string
+    organizationId?: string,
   ): { apiKey: Partial<ApiKey>; plainKey: string } {
     const result = this.createApiKey(
       name,
       [ApiScope.WEBHOOK_READ, ApiScope.WEBHOOK_WRITE],
       createdBy,
       organizationId,
-      ApiKeyType.WEBHOOK
+      ApiKeyType.WEBHOOK,
     );
 
     result.apiKey.config = {

@@ -25,15 +25,15 @@ export class NotificationTemplate {
   id: string;
 
   @ApiProperty({ description: 'Unique template key' })
-  @Column({ length: 100, unique: true })
+  @Column({ length: 100, unique: true, name: 'key' })
   key: string;
 
   @ApiProperty({ description: 'Template name' })
-  @Column({ length: 255 })
+  @Column({ length: 255, name: 'name' })
   name: string;
 
   @ApiProperty({ description: 'Template description' })
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'description' })
   description?: string;
 
   @ApiProperty({ 
@@ -41,19 +41,19 @@ export class NotificationTemplate {
     isArray: true, 
     description: 'Supported notification channels' 
   })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'simple-array', default: [], name: 'channels' })
   channels: NotificationChannel[];
 
   @ApiProperty({ description: 'Subject template with variables' })
-  @Column({ name: 'subject_template', type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, name: 'subjectTemplate' })
   subjectTemplate?: string;
 
   @ApiProperty({ description: 'Body template with variables' })
-  @Column({ name: 'body_template', type: 'text' })
+  @Column({ type: 'text', name: 'bodyTemplate' })
   bodyTemplate: string;
 
   @ApiProperty({ description: 'Template variables schema' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'variables' })
   variables: {
     [key: string]: {
       type: 'string' | 'number' | 'boolean' | 'date' | 'object';
@@ -64,7 +64,7 @@ export class NotificationTemplate {
   };
 
   @ApiProperty({ description: 'Template metadata and settings' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'metadata' })
   metadata: {
     category?: string;
     priority?: 'low' | 'medium' | 'high' | 'urgent';
@@ -79,7 +79,7 @@ export class NotificationTemplate {
   };
 
   @ApiProperty({ description: 'Template styling and formatting' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'styling' })
   styling: {
     email?: {
       htmlTemplate?: string;
@@ -110,7 +110,7 @@ export class NotificationTemplate {
   };
 
   @ApiProperty({ description: 'Delivery settings' })
-  @Column({ name: 'delivery_settings', type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'deliverySettings' })
   deliverySettings: {
     retryAttempts?: number;
     retryDelay?: number; // in minutes
@@ -129,7 +129,7 @@ export class NotificationTemplate {
   };
 
   @ApiProperty({ description: 'Localization support' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'localization' })
   localization: {
     defaultLanguage?: string;
     supportedLanguages?: string[];
@@ -143,7 +143,7 @@ export class NotificationTemplate {
   };
 
   @ApiProperty({ description: 'Template validation rules' })
-  @Column({ name: 'validation_rules', type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'validationRules' })
   validationRules: {
     requiredVariables?: string[];
     conditionalVariables?: {
@@ -157,11 +157,11 @@ export class NotificationTemplate {
   };
 
   @ApiProperty({ description: 'Whether template is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ default: true, name: 'isActive' })
   isActive: boolean;
 
   @ApiProperty({ description: 'Usage statistics' })
-  @Column({ name: 'usage_stats', type: 'jsonb', default: {} })
+  @Column({ type: 'jsonb', default: {}, name: 'usageStats' })
   usageStats: {
     totalSent?: number;
     successRate?: number;
@@ -171,10 +171,10 @@ export class NotificationTemplate {
     averageDeliveryTime?: number; // in seconds
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Virtual properties
@@ -220,7 +220,6 @@ export class NotificationTemplate {
   validateVariables(variables: Record<string, any>): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Check required variables
     if (this.validationRules.requiredVariables) {
       for (const required of this.validationRules.requiredVariables) {
         if (!(required in variables) || variables[required] === null || variables[required] === undefined) {
@@ -229,19 +228,16 @@ export class NotificationTemplate {
       }
     }
 
-    // Validate variable types
     for (const [key, value] of Object.entries(variables)) {
       if (this.variables[key]) {
         const expectedType = this.variables[key].type;
         const actualType = this.getVariableType(value);
-        
         if (expectedType !== actualType) {
           errors.push(`Variable '${key}' should be of type '${expectedType}', got '${actualType}'`);
         }
       }
     }
 
-    // Check conditional variables
     if (this.validationRules.conditionalVariables) {
       for (const [condition, requiredVars] of Object.entries(this.validationRules.conditionalVariables)) {
         if (this.evaluateCondition(condition, variables)) {
@@ -254,10 +250,7 @@ export class NotificationTemplate {
       }
     }
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
+    return { isValid: errors.length === 0, errors };
   }
 
   supportsChannel(channel: NotificationChannel): boolean {
@@ -270,19 +263,14 @@ export class NotificationTemplate {
 
     this.usageStats.totalSent++;
     this.usageStats.lastUsed = new Date();
-    
-    // Update channel usage
-    if (!this.usageStats.popularChannels[channel]) {
-      this.usageStats.popularChannels[channel] = 0;
-    }
+
+    if (!this.usageStats.popularChannels[channel]) this.usageStats.popularChannels[channel] = 0;
     this.usageStats.popularChannels[channel]++;
 
-    // Update success rate
     const currentSuccessCount = Math.floor((this.usageStats.successRate || 0) * (this.usageStats.totalSent - 1) / 100);
     const newSuccessCount = success ? currentSuccessCount + 1 : currentSuccessCount;
     this.usageStats.successRate = (newSuccessCount / this.usageStats.totalSent) * 100;
 
-    // Update delivery time
     if (deliveryTime && success) {
       const currentAvg = this.usageStats.averageDeliveryTime || 0;
       const currentCount = this.usageStats.totalSent - 1;
@@ -304,25 +292,14 @@ export class NotificationTemplate {
       deliverySettings: { ...this.deliverySettings },
       localization: { ...this.localization },
       validationRules: { ...this.validationRules },
-      isActive: false, // New templates start as inactive
+      isActive: false,
     };
   }
 
-  // Private helper methods
   private renderTemplate(template: string, variables: Record<string, any>): string {
     let rendered = template;
-
-    // Replace simple variables {{variable}}
-    rendered = rendered.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-      return variables[varName]?.toString() || match;
-    });
-
-    // Replace conditional blocks {{#if condition}}...{{/if}}
-    rendered = rendered.replace(/\{\{#if\s+(\w+)\}\}(.*?)\{\{\/if\}\}/gs, (match, condition, content) => {
-      return variables[condition] ? content : '';
-    });
-
-    // Replace loops {{#each array}}...{{/each}}
+    rendered = rendered.replace(/\{\{(\w+)\}\}/g, (match, varName) => variables[varName]?.toString() || match);
+    rendered = rendered.replace(/\{\{#if\s+(\w+)\}\}(.*?)\{\{\/if\}\}/gs, (match, condition, content) => variables[condition] ? content : '');
     rendered = rendered.replace(/\{\{#each\s+(\w+)\}\}(.*?)\{\{\/each\}\}/gs, (match, arrayName, content) => {
       const array = variables[arrayName];
       if (Array.isArray(array)) {
@@ -340,7 +317,6 @@ export class NotificationTemplate {
       }
       return '';
     });
-
     return rendered;
   }
 
@@ -360,29 +336,18 @@ export class NotificationTemplate {
   }
 
   private evaluateCondition(condition: string, variables: Record<string, any>): boolean {
-    // Simple condition evaluation - can be enhanced with a proper expression parser
     try {
-      // Replace variables in condition
       let evaluableCondition = condition;
       for (const [key, value] of Object.entries(variables)) {
-        evaluableCondition = evaluableCondition.replace(
-          new RegExp(`\\b${key}\\b`, 'g'),
-          JSON.stringify(value)
-        );
+        evaluableCondition = evaluableCondition.replace(new RegExp(`\\b${key}\\b`, 'g'), JSON.stringify(value));
       }
-      
-      // Basic safety check - only allow simple comparisons
-      if (!/^[a-zA-Z0-9\s"'._\-+*/()===!<>&&||]+$/.test(evaluableCondition)) {
-        return false;
-      }
-      
+      if (!/^[a-zA-Z0-9\s"'._\-+*/()===!<>&&||]+$/.test(evaluableCondition)) return false;
       return Function(`"use strict"; return (${evaluableCondition})`)();
     } catch {
       return false;
     }
   }
 
-  // Static helper methods
   static getDefaultChannels(): NotificationChannel[] {
     return [NotificationChannel.EMAIL, NotificationChannel.IN_APP];
   }
@@ -406,33 +371,12 @@ export class NotificationTemplate {
       subjectTemplate: `{{subject}}`,
       bodyTemplate: `Hello {{userName}},\n\n{{message}}\n\nBest regards,\nVolkai HR Edu Team`,
       variables: {
-        userName: {
-          type: 'string',
-          required: true,
-          description: 'Name of the user receiving the notification',
-        },
-        subject: {
-          type: 'string',
-          required: true,
-          description: 'Subject of the notification',
-        },
-        message: {
-          type: 'string',
-          required: true,
-          description: 'Main message content',
-        },
+        userName: { type: 'string', required: true, description: 'Name of the user receiving the notification' },
+        subject: { type: 'string', required: true, description: 'Subject of the notification' },
+        message: { type: 'string', required: true, description: 'Main message content' },
       },
-      metadata: {
-        category: 'general',
-        priority: 'medium',
-        version: '1.0',
-      },
-      deliverySettings: {
-        retryAttempts: 3,
-        retryDelay: 5,
-        batchSize: 100,
-        rateLimitPerMinute: 60,
-      },
+      metadata: { category: 'general', priority: 'medium', version: '1.0' },
+      deliverySettings: { retryAttempts: 3, retryDelay: 5, batchSize: 100, rateLimitPerMinute: 60 },
       isActive: true,
     };
   }

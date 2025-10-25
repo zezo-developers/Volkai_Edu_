@@ -12,62 +12,43 @@ import { User } from '../entities/user.entity';
 import { Organization } from './organization.entity';
 
 export enum EventType {
-  // User events
   USER_LOGIN = 'user_login',
   USER_LOGOUT = 'user_logout',
   USER_REGISTRATION = 'user_registration',
   USER_PROFILE_UPDATE = 'user_profile_update',
   USER_PASSWORD_CHANGE = 'user_password_change',
-  
-  // Course events
   COURSE_VIEW = 'course_view',
   COURSE_ENROLLMENT = 'course_enrollment',
   COURSE_COMPLETION = 'course_completion',
   LESSON_START = 'lesson_start',
   LESSON_COMPLETE = 'lesson_complete',
-  
-  // Assessment events
   ASSESSMENT_START = 'assessment_start',
   ASSESSMENT_SUBMIT = 'assessment_submit',
   ASSESSMENT_COMPLETE = 'assessment_complete',
-  
-  // Interview events
   INTERVIEW_SCHEDULE = 'interview_schedule',
   INTERVIEW_START = 'interview_start',
   INTERVIEW_COMPLETE = 'interview_complete',
   AI_INTERVIEW_START = 'ai_interview_start',
   AI_INTERVIEW_COMPLETE = 'ai_interview_complete',
-  
-  // Resume events
   RESUME_CREATE = 'resume_create',
   RESUME_UPDATE = 'resume_update',
   RESUME_DOWNLOAD = 'resume_download',
   RESUME_SHARE = 'resume_share',
-  
-  // Job events
   JOB_VIEW = 'job_view',
   JOB_APPLICATION = 'job_application',
   JOB_BOOKMARK = 'job_bookmark',
-  
-  // Billing events
   SUBSCRIPTION_CREATE = 'subscription_create',
   SUBSCRIPTION_UPGRADE = 'subscription_upgrade',
   SUBSCRIPTION_CANCEL = 'subscription_cancel',
   PAYMENT_SUCCESS = 'payment_success',
   PAYMENT_FAILED = 'payment_failed',
-  
-  // System events
   API_REQUEST = 'api_request',
   ERROR_OCCURRED = 'error_occurred',
   FEATURE_USAGE = 'feature_usage',
   EXPORT_DATA = 'export_data',
-  
-  // Security events
   LOGIN_FAILED = 'login_failed',
   SUSPICIOUS_ACTIVITY = 'suspicious_activity',
   PERMISSION_DENIED = 'permission_denied',
-  
-  // Content events
   CONTENT_CREATE = 'content_create',
   CONTENT_UPDATE = 'content_update',
   CONTENT_DELETE = 'content_delete',
@@ -114,23 +95,23 @@ export class AnalyticsEvent {
   category: EventCategory;
 
   @ApiProperty({ description: 'User ID (nullable for anonymous events)' })
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ name: 'userId', nullable: true })
   userId?: string;
 
   @ApiProperty({ description: 'Organization ID (nullable for system events)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'Session ID for tracking user sessions' })
-  @Column({ name: 'session_id', nullable: true })
+  @Column({ name: 'sessionId', nullable: true })
   sessionId?: string;
 
   @ApiProperty({ description: 'IP address of the user' })
-  @Column({ name: 'ip_address', nullable: true })
+  @Column({ name: 'ipAddress', nullable: true })
   ipAddress?: string;
 
   @ApiProperty({ description: 'User agent string' })
-  @Column({ name: 'user_agent', type: 'text', nullable: true })
+  @Column({ name: 'userAgent', type: 'text', nullable: true })
   userAgent?: string;
 
   @ApiProperty({ description: 'Referrer URL' })
@@ -140,59 +121,41 @@ export class AnalyticsEvent {
   @ApiProperty({ description: 'Event properties and metadata' })
   @Column({ type: 'jsonb', default: {} })
   properties: {
-    // Common properties
-    duration?: number; // Duration in milliseconds
+    duration?: number;
     success?: boolean;
     errorCode?: string;
     errorMessage?: string;
-    
-    // Resource identifiers
     resourceId?: string;
     resourceType?: string;
     resourceName?: string;
-    
-    // User context
     userRole?: string;
     userPlan?: string;
     userTier?: string;
-    
-    // Device and browser info
     device?: string;
     browser?: string;
     os?: string;
     screenResolution?: string;
-    
-    // Geographic info
     country?: string;
     region?: string;
     city?: string;
     timezone?: string;
-    
-    // Performance metrics
     responseTime?: number;
     loadTime?: number;
     renderTime?: number;
-    
-    // Business metrics
     revenue?: number;
     conversionValue?: number;
-    
-    // Custom properties
     [key: string]: any;
   };
 
   @ApiProperty({ description: 'Additional context data' })
   @Column({ type: 'jsonb', default: {} })
   context: {
-    // Page context
     page?: {
       url: string;
       title: string;
       path: string;
       search: string;
     };
-    
-    // Campaign tracking
     campaign?: {
       source: string;
       medium: string;
@@ -200,33 +163,25 @@ export class AnalyticsEvent {
       term?: string;
       content?: string;
     };
-    
-    // A/B testing
     experiments?: Array<{
       id: string;
       variant: string;
     }>;
-    
-    // Feature flags
     features?: Record<string, boolean>;
-    
-    // Custom context
     [key: string]: any;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  // Relations
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user?: User;
 
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
-  // Virtual properties
   get isUserEvent(): boolean {
     return this.category === EventCategory.USER;
   }
@@ -271,7 +226,6 @@ export class AnalyticsEvent {
     ].includes(this.eventType);
   }
 
-  // Methods
   addProperty(key: string, value: any): void {
     this.properties[key] = value;
   }
@@ -304,7 +258,6 @@ export class AnalyticsEvent {
   setUserContext(user: User): void {
     this.userId = user.id;
     this.properties.userRole = user.roles?.[0];
-    // Add more user context as needed
   }
 
   setPageContext(url: string, title?: string): void {
@@ -342,7 +295,6 @@ export class AnalyticsEvent {
     this.context.features[feature] = enabled;
   }
 
-  // Static factory methods
   static createUserEvent(
     eventType: EventType,
     userId: string,
@@ -421,7 +373,6 @@ export class AnalyticsEvent {
     };
   }
 
-  // Utility methods for common events
   static pageView(
     userId: string,
     url: string,

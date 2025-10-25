@@ -43,15 +43,15 @@ export class Invoice {
   id: string;
 
   @ApiProperty({ description: 'Invoice number (human-readable)' })
-  @Column({ name: 'invoice_number', unique: true })
+  @Column({ name: 'invoiceNumber', unique: true })
   invoiceNumber: string;
 
   @ApiProperty({ description: 'Organization ID' })
-  @Column({ name: 'organization_id' })
+  @Column({ name: 'organizationId' })
   organizationId: string;
 
   @ApiProperty({ description: 'Subscription ID' })
-  @Column({ name: 'subscription_id', nullable: true })
+  @Column({ name: 'subscriptionId', nullable: true })
   subscriptionId?: string;
 
   @ApiProperty({ enum: InvoiceStatus, description: 'Invoice status' })
@@ -71,43 +71,43 @@ export class Invoice {
   type: InvoiceType;
 
   @ApiProperty({ description: 'Invoice issue date' })
-  @Column({ name: 'issue_date', type: 'timestamp' })
+  @Column({ name: 'issueDate', type: 'timestamp' })
   issueDate: Date;
 
   @ApiProperty({ description: 'Invoice due date' })
-  @Column({ name: 'due_date', type: 'timestamp' })
+  @Column({ name: 'dueDate', type: 'timestamp' })
   dueDate: Date;
 
   @ApiProperty({ description: 'Billing period start' })
-  @Column({ name: 'period_start', type: 'timestamp', nullable: true })
+  @Column({ name: 'periodStart', type: 'timestamp', nullable: true })
   periodStart?: Date;
 
   @ApiProperty({ description: 'Billing period end' })
-  @Column({ name: 'period_end', type: 'timestamp', nullable: true })
+  @Column({ name: 'periodEnd', type: 'timestamp', nullable: true })
   periodEnd?: Date;
 
   @ApiProperty({ description: 'Subtotal amount in cents' })
-  @Column({ name: 'subtotal_cents', type: 'bigint' })
+  @Column({ name: 'subtotalCents', type: 'bigint' })
   subtotalCents: number;
 
   @ApiProperty({ description: 'Tax amount in cents' })
-  @Column({ name: 'tax_cents', type: 'bigint', default: 0 })
+  @Column({ name: 'taxCents', type: 'bigint', default: 0 })
   taxCents: number;
 
   @ApiProperty({ description: 'Discount amount in cents' })
-  @Column({ name: 'discount_cents', type: 'bigint', default: 0 })
+  @Column({ name: 'discountCents', type: 'bigint', default: 0 })
   discountCents: number;
 
   @ApiProperty({ description: 'Total amount in cents' })
-  @Column({ name: 'total_cents', type: 'bigint' })
+  @Column({ name: 'totalCents', type: 'bigint' })
   totalCents: number;
 
   @ApiProperty({ description: 'Amount paid in cents' })
-  @Column({ name: 'amount_paid_cents', type: 'bigint', default: 0 })
+  @Column({ name: 'amountPaidCents', type: 'bigint', default: 0 })
   amountPaidCents: number;
 
   @ApiProperty({ description: 'Amount due in cents' })
-  @Column({ name: 'amount_due_cents', type: 'bigint' })
+  @Column({ name: 'amountDueCents', type: 'bigint' })
   amountDueCents: number;
 
   @ApiProperty({ description: 'Currency code' })
@@ -115,48 +115,43 @@ export class Invoice {
   currency: string;
 
   @ApiProperty({ description: 'Invoice line items' })
-  @Column({ name: 'line_items', type: 'jsonb', default: [] })
+  @Column({ name: 'lineItems', type: 'jsonb', default: [] })
   lineItems: Array<{
     id: string;
     type: 'subscription' | 'usage' | 'one_time' | 'discount' | 'tax';
     description: string;
     quantity: number;
-    unitPrice: number; // in cents
-    totalPrice: number; // in cents
-    
-    // Subscription specific
+    unitPrice: number;
+    totalPrice: number;
+
     planId?: string;
     planName?: string;
     periodStart?: Date;
     periodEnd?: Date;
-    
-    // Usage specific
+
     usageMetric?: string;
     usageQuantity?: number;
     usageUnitPrice?: number;
-    
-    // Tax specific
+
     taxRate?: number;
     taxType?: string;
     taxJurisdiction?: string;
-    
-    // Discount specific
+
     discountType?: 'percentage' | 'fixed';
     discountValue?: number;
     couponCode?: string;
-    
-    // Metadata
+
     metadata?: Record<string, any>;
   }>;
 
   @ApiProperty({ description: 'Tax breakdown' })
-  @Column({ name: 'tax_breakdown', type: 'jsonb', default: [] })
+  @Column({ name: 'taxBreakdown', type: 'jsonb', default: [] })
   taxBreakdown: Array<{
     type: string;
     rate: number;
-    amount: number; // in cents
+    amount: number;
     jurisdiction: string;
-    taxableAmount: number; // in cents
+    taxableAmount: number;
   }>;
 
   @ApiProperty({ description: 'Applied discounts and coupons' })
@@ -167,12 +162,12 @@ export class Invoice {
     name: string;
     type: 'percentage' | 'fixed';
     value: number;
-    amount: number; // in cents
-    appliedTo: string[]; // line item IDs
+    amount: number;
+    appliedTo: string[];
   }>;
 
   @ApiProperty({ description: 'Billing address' })
-  @Column({ name: 'billing_address', type: 'jsonb', nullable: true })
+  @Column({ name: 'billingAddress', type: 'jsonb', nullable: true })
   billingAddress?: {
     name: string;
     company?: string;
@@ -186,23 +181,16 @@ export class Invoice {
   };
 
   @ApiProperty({ description: 'Invoice delivery information' })
-  @Column({ name: 'delivery_info', type: 'jsonb', default: {} })
+  @Column({ name: 'deliveryInfo', type: 'jsonb', default: {} })
   deliveryInfo: {
-    // Email delivery
     emailSent?: boolean;
     emailSentAt?: Date;
     emailRecipients?: string[];
-    
-    // PDF generation
     pdfGenerated?: boolean;
     pdfGeneratedAt?: Date;
     pdfUrl?: string;
-    
-    // Print delivery
     printRequested?: boolean;
     printAddress?: Record<string, any>;
-    
-    // Delivery status
     deliveryAttempts?: Array<{
       timestamp: Date;
       method: 'email' | 'pdf' | 'print';
@@ -212,39 +200,29 @@ export class Invoice {
   };
 
   @ApiProperty({ description: 'Payment terms and conditions' })
-  @Column({ name: 'payment_terms', type: 'jsonb', default: {} })
+  @Column({ name: 'paymentTerms', type: 'jsonb', default: {} })
   paymentTerms: {
-    // Payment terms
     paymentDueDays?: number;
     lateFeePercentage?: number;
-    lateFeeFixed?: number; // in cents
-    
-    // Payment methods
+    lateFeeFixed?: number;
     acceptedPaymentMethods?: string[];
     preferredPaymentMethod?: string;
-    
-    // Collection settings
     autoCollectionEnabled?: boolean;
     maxCollectionAttempts?: number;
-    collectionSchedule?: number[]; // Days after due date
-    
-    // Dunning settings
+    collectionSchedule?: number[];
     dunningEnabled?: boolean;
     dunningSchedule?: Array<{
       daysAfterDue: number;
       action: 'email' | 'sms' | 'call' | 'suspend';
       template?: string;
     }>;
-    
-    // Legal terms
     termsAndConditions?: string;
     notes?: string;
   };
 
   @ApiProperty({ description: 'External provider data' })
-  @Column({ name: 'provider_data', type: 'jsonb', default: {} })
+  @Column({ name: 'providerData', type: 'jsonb', default: {} })
   providerData: {
-    // Stripe integration
     stripe?: {
       invoiceId: string;
       paymentIntentId?: string;
@@ -253,8 +231,6 @@ export class Invoice {
       subscriptionId?: string;
       metadata?: Record<string, string>;
     };
-    
-    // Razorpay integration
     razorpay?: {
       invoiceId: string;
       orderId?: string;
@@ -262,24 +238,17 @@ export class Invoice {
       subscriptionId?: string;
       metadata?: Record<string, string>;
     };
-    
-    // Other providers
     [key: string]: any;
   };
 
   @ApiProperty({ description: 'Invoice metadata and audit trail' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata: {
-    // Source information
     source?: 'subscription' | 'manual' | 'api' | 'usage';
     createdBy?: string;
-    
-    // Processing information
     processingStarted?: Date;
     processingCompleted?: Date;
     processingErrors?: string[];
-    
-    // Payment tracking
     paymentAttempts?: Array<{
       timestamp: Date;
       amount: number;
@@ -288,8 +257,6 @@ export class Invoice {
       error?: string;
       transactionId?: string;
     }>;
-    
-    // Communication history
     communications?: Array<{
       timestamp: Date;
       type: 'email' | 'sms' | 'call' | 'letter';
@@ -298,8 +265,6 @@ export class Invoice {
       status: 'sent' | 'delivered' | 'failed';
       response?: string;
     }>;
-    
-    // Dispute information
     disputes?: Array<{
       timestamp: Date;
       reason: string;
@@ -307,8 +272,6 @@ export class Invoice {
       status: 'open' | 'resolved' | 'lost';
       resolution?: string;
     }>;
-    
-    // Audit trail
     auditTrail?: Array<{
       timestamp: Date;
       action: string;
@@ -317,36 +280,34 @@ export class Invoice {
       newValue?: any;
       reason?: string;
     }>;
-    
-    // Custom metadata
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'Invoice finalization date' })
-  @Column({ name: 'finalized_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'finalizedAt', type: 'timestamp', nullable: true })
   finalizedAt?: Date;
 
   @ApiProperty({ description: 'Invoice paid date' })
-  @Column({ name: 'paid_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'paidAt', type: 'timestamp', nullable: true })
   paidAt?: Date;
 
   @ApiProperty({ description: 'Invoice void date' })
-  @Column({ name: 'voided_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'voidedAt', type: 'timestamp', nullable: true })
   voidedAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Organization, organization => organization.invoices)
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization: Organization;
 
   @ManyToOne(() => Subscription, subscription => subscription.invoices, { nullable: true })
-  @JoinColumn({ name: 'subscription_id' })
+  @JoinColumn({ name: 'subscriptionId' })
   subscription?: Subscription;
 
   @OneToMany(() => Payment, payment => payment.invoice)

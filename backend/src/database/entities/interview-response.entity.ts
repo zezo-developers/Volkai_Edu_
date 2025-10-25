@@ -29,51 +29,51 @@ export class InterviewResponse {
   id: string;
 
   @ApiProperty({ description: 'Interview session ID' })
-  @Column({ name: 'interview_session_id' })
+  @Column({ name: 'interviewSessionId' })
   interviewSessionId: string;
 
   @ApiProperty({ description: 'Question ID' })
-  @Column({ name: 'question_id' })
+  @Column({ name: 'questionId' })
   questionId: string;
 
   @ApiProperty({ description: 'User ID who responded' })
-  @Column({ name: 'user_id' })
+  @Column({ name: 'userId' })
   userId: string;
 
   @ApiProperty({ description: 'Question text at time of response' })
-  @Column({ name: 'question_text', type: 'text' })
+  @Column({ name: 'questionText', type: 'text' })
   questionText: string;
 
   @ApiProperty({ description: 'User response text' })
-  @Column({ name: 'user_response', type: 'text', nullable: true })
+  @Column({ name: 'userResponse', type: 'text', nullable: true })
   userResponse?: string;
 
   @ApiProperty({ description: 'Audio recording URL' })
-  @Column({ name: 'audio_url', nullable: true })
+  @Column({ name: 'audioUrl', nullable: true })
   audioUrl?: string;
 
   @ApiProperty({ description: 'Video recording URL' })
-  @Column({ name: 'video_url', nullable: true })
+  @Column({ name: 'videoUrl', nullable: true })
   videoUrl?: string;
 
   @ApiProperty({ description: 'Screen recording URL for coding questions' })
-  @Column({ name: 'screen_recording_url', nullable: true })
+  @Column({ name: 'screenRecordingUrl', nullable: true })
   screenRecordingUrl?: string;
 
   @ApiProperty({ description: 'Code submission for technical questions' })
-  @Column({ name: 'code_submission', type: 'text', nullable: true })
+  @Column({ name: 'codeSubmission', type: 'text', nullable: true })
   codeSubmission?: string;
 
   @ApiProperty({ description: 'Programming language used' })
-  @Column({ name: 'programming_language', nullable: true })
+  @Column({ name: 'programmingLanguage', nullable: true })
   programmingLanguage?: string;
 
   @ApiProperty({ description: 'Response time in seconds' })
-  @Column({ name: 'response_time_seconds', nullable: true })
+  @Column({ name: 'responseTimeSeconds', nullable: true })
   responseTimeSeconds?: number;
 
   @ApiProperty({ description: 'Time spent thinking before answering' })
-  @Column({ name: 'thinking_time_seconds', nullable: true })
+  @Column({ name: 'thinkingTimeSeconds', nullable: true })
   thinkingTimeSeconds?: number;
 
   @ApiProperty({ enum: ResponseStatus, description: 'Response status' })
@@ -85,27 +85,27 @@ export class InterviewResponse {
   status: ResponseStatus;
 
   @ApiProperty({ description: 'AI-generated score (0-100)' })
-  @Column({ name: 'ai_score', nullable: true })
+  @Column({ name: 'aiScore', nullable: true })
   aiScore?: number;
 
   @ApiProperty({ description: 'Human interviewer score (0-100)' })
-  @Column({ name: 'human_score', nullable: true })
+  @Column({ name: 'humanScore', nullable: true })
   humanScore?: number;
 
   @ApiProperty({ description: 'Final score (0-100)' })
-  @Column({ name: 'final_score', nullable: true })
+  @Column({ name: 'finalScore', nullable: true })
   finalScore?: number;
 
   @ApiProperty({ description: 'AI-generated feedback' })
-  @Column({ name: 'ai_feedback', type: 'text', nullable: true })
+  @Column({ name: 'aiFeedback', type: 'text', nullable: true })
   aiFeedback?: string;
 
   @ApiProperty({ description: 'Human interviewer feedback' })
-  @Column({ name: 'human_feedback', type: 'text', nullable: true })
+  @Column({ name: 'humanFeedback', type: 'text', nullable: true })
   humanFeedback?: string;
 
   @ApiProperty({ description: 'Detailed evaluation breakdown' })
-  @Column({ name: 'evaluation_breakdown', type: 'jsonb', default: {} })
+  @Column({ name: 'evaluationBreakdown', type: 'jsonb', default: {} })
   evaluationBreakdown: {
     technical_accuracy?: number;
     communication?: number;
@@ -117,7 +117,7 @@ export class InterviewResponse {
   };
 
   @ApiProperty({ description: 'Speech analysis data' })
-  @Column({ name: 'speech_analysis', type: 'jsonb', default: {} })
+  @Column({ name: 'speechAnalysis', type: 'jsonb', default: {} })
   speechAnalysis: {
     confidence?: number;
     pace?: number;
@@ -128,7 +128,7 @@ export class InterviewResponse {
   };
 
   @ApiProperty({ description: 'Behavioral analysis data' })
-  @Column({ name: 'behavioral_analysis', type: 'jsonb', default: {} })
+  @Column({ name: 'behavioralAnalysis', type: 'jsonb', default: {} })
   behavioralAnalysis: {
     eye_contact?: number;
     posture?: number;
@@ -138,7 +138,7 @@ export class InterviewResponse {
   };
 
   @ApiProperty({ description: 'Code analysis for technical questions' })
-  @Column({ name: 'code_analysis', type: 'jsonb', default: {} })
+  @Column({ name: 'codeAnalysis', type: 'jsonb', default: {} })
   codeAnalysis: {
     syntax_correctness?: number;
     logic_correctness?: number;
@@ -162,42 +162,42 @@ export class InterviewResponse {
   };
 
   @ApiProperty({ description: 'Whether response needs review' })
-  @Column({ name: 'needs_review', default: false })
+  @Column({ name: 'needsReview', default: false })
   needsReview: boolean;
 
   @ApiProperty({ description: 'Review notes' })
-  @Column({ name: 'review_notes', type: 'text', nullable: true })
+  @Column({ name: 'reviewNotes', type: 'text', nullable: true })
   reviewNotes?: string;
 
   @ApiProperty({ description: 'Reviewed by user ID' })
-  @Column({ name: 'reviewed_by', nullable: true })
+  @Column({ name: 'reviewedBy', nullable: true })
   reviewedBy?: string;
 
   @ApiProperty({ description: 'Review date' })
-  @Column({ name: 'reviewed_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'reviewedAt', type: 'timestamp', nullable: true })
   reviewedAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
   // Relations
   @ManyToOne(() => InterviewSession, session => session.responses)
-  @JoinColumn({ name: 'interview_session_id' })
+  @JoinColumn({ name: 'interviewSessionId' })
   interviewSession: InterviewSession;
 
   @ManyToOne(() => InterviewQuestion, question => question.responses)
-  @JoinColumn({ name: 'question_id' })
+  @JoinColumn({ name: 'questionId' })
   question: InterviewQuestion;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'reviewed_by' })
+  @JoinColumn({ name: 'reviewedBy' })
   reviewer?: User;
 
   // Virtual properties
@@ -240,7 +240,6 @@ export class InterviewResponse {
   get communicationScore(): number {
     const speech = this.speechAnalysis;
     if (!speech.confidence) return 0;
-    
     return Math.round(
       (speech.confidence * 0.4) +
       (speech.pace * 0.3) +
@@ -282,16 +281,12 @@ export class InterviewResponse {
 
   setAIScore(score: number, feedback?: string): void {
     this.aiScore = Math.max(0, Math.min(100, score));
-    if (feedback) {
-      this.aiFeedback = feedback;
-    }
+    if (feedback) this.aiFeedback = feedback;
   }
 
   setHumanScore(score: number, feedback?: string, reviewerId?: string): void {
     this.humanScore = Math.max(0, Math.min(100, score));
-    if (feedback) {
-      this.humanFeedback = feedback;
-    }
+    if (feedback) this.humanFeedback = feedback;
     if (reviewerId) {
       this.reviewedBy = reviewerId;
       this.reviewedAt = new Date();
@@ -300,12 +295,10 @@ export class InterviewResponse {
 
   calculateFinalScore(): void {
     if (this.humanScore !== null && this.humanScore !== undefined) {
-      // Human score takes precedence
       this.finalScore = this.humanScore;
     } else if (this.aiScore !== null && this.aiScore !== undefined) {
       this.finalScore = this.aiScore;
     } else {
-      // Calculate from evaluation breakdown
       const breakdown = this.evaluationBreakdown;
       const scores = Object.values(breakdown).filter(score => typeof score === 'number');
       if (scores.length > 0) {
@@ -340,23 +333,13 @@ export class InterviewResponse {
     this.needsReview = false;
     this.reviewedBy = reviewerId;
     this.reviewedAt = new Date();
-    if (notes) {
-      this.reviewNotes = notes;
-    }
+    if (notes) this.reviewNotes = notes;
   }
 
   getDetailedFeedback(): string {
     const feedback: string[] = [];
-    
-    if (this.aiFeedback) {
-      feedback.push(`AI Analysis: ${this.aiFeedback}`);
-    }
-    
-    if (this.humanFeedback) {
-      feedback.push(`Interviewer Feedback: ${this.humanFeedback}`);
-    }
-
-    // Add breakdown feedback
+    if (this.aiFeedback) feedback.push(`AI Analysis: ${this.aiFeedback}`);
+    if (this.humanFeedback) feedback.push(`Interviewer Feedback: ${this.humanFeedback}`);
     const breakdown = this.evaluationBreakdown;
     if (Object.keys(breakdown).length > 0) {
       feedback.push('Evaluation Breakdown:');
@@ -364,7 +347,6 @@ export class InterviewResponse {
         feedback.push(`- ${criterion.replace(/_/g, ' ')}: ${score}/100`);
       });
     }
-
     return feedback.join('\n\n');
   }
 

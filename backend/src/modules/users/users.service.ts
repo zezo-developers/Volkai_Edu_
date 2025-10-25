@@ -81,7 +81,7 @@ export class UsersService {
 
     // Get paginated results
     const memberships = await queryBuilder
-      .orderBy('user.createdAt', 'DESC')
+      .orderBy('user.created_at', 'DESC')
       .skip(offset)
       .take(limit)
       .getMany();
