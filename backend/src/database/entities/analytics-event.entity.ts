@@ -87,7 +87,7 @@ export class AnalyticsEvent {
   })
   eventType: EventType;
 
-  @ApiProperty({ enum: EventCategory, description: 'Event category' })
+  @ApiProperty({ enum: EventCategory, description: 'Event category', nullable:true })
   @Column({
     type: 'enum',
     enum: EventCategory,

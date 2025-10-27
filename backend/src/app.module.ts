@@ -103,11 +103,11 @@ import { User } from './database/entities/user.entity';
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        console.log('Connecting to Redis at', '172.17.0.2' + ':' + configService.get<number>('redis.port'));
+        console.log('Connecting to Redis at', '172.17.0.2' + ':' + configService.get<number>('redis.host'));
         return {
           type: 'single',
           options: {
-            host: 'localhost',
+            host: configService.get<number>('redis.host').toString(),
             port: configService.get<number>('redis.port'),
             password: configService.get<string>('redis.password'),
             db: configService.get<number>('redis.db'),
@@ -138,11 +138,15 @@ import { User } from './database/entities/user.entity';
     // Rate limiting module to prevent abuse
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        ttl: configService.get<number>('RATE_LIMIT_TTL', 60),
-        limit: configService.get<number>('RATE_LIMIT_MAX', 100),
-      }) as any,
       inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: configService.get<number>('RATE_LIMIT_TTL', 60),
+            limit: configService.get<number>('RATE_LIMIT_MAX', 100),
+          },
+        ],
+      }),
     }),
 
     // Event emitter for decoupled communication between modules
@@ -191,24 +195,24 @@ import { User } from './database/entities/user.entity';
     FilesModule,
 
     // // Feature modules
-    // LMSModule,
+    LMSModule,
     InterviewsModule,
-    // ResumeModule,
+    ResumeModule,
     HRModule,
-    // SearchModule,
+    SearchModule,
     VersioningModule,
     AntiCheatModule,
-    // NotificationsModule,
+    NotificationsModule,
     // BillingModule,
-    // AdminModule,
-    // WebhooksModule,
+    AdminModule,
+    WebhooksModule,
     
     // // Performance & Security modules
-    // PerformanceModule,
+    PerformanceModule,
     SecurityModule,
     MyTestModule,
-    // AdvancedCacheModule,
-    // MonitoringModule,
+    AdvancedCacheModule,
+    MonitoringModule,
   ],
   controllers: [],
   providers: [],

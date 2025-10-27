@@ -31,11 +31,11 @@ export class UserResume {
   id: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id' })
+  @Column({ name: 'userId' })
   userId: string;
 
   @ApiProperty({ description: 'Template ID' })
-  @Column({ name: 'template_id', nullable: true })
+  @Column({ name: 'templateId', nullable: true })
   templateId?: string;
 
   @ApiProperty({ description: 'Resume title' })
@@ -43,7 +43,7 @@ export class UserResume {
   title: string;
 
   @ApiProperty({ description: 'Whether this is the primary resume' })
-  @Column({ name: 'is_primary', default: false })
+  @Column({ name: 'isPrimary', default: false })
   isPrimary: boolean;
 
   @ApiProperty({ enum: ResumeVisibility, description: 'Resume visibility' })
@@ -150,23 +150,23 @@ export class UserResume {
   };
 
   @ApiProperty({ description: 'Generated PDF URL' })
-  @Column({ name: 'pdf_url', nullable: true })
+  @Column({ name: 'pdfUrl', nullable: true })
   pdfUrl?: string;
 
   @ApiProperty({ description: 'Last PDF generation timestamp' })
-  @Column({ name: 'last_generated_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'lastGeneratedAt', type: 'timestamp', nullable: true })
   lastGeneratedAt?: Date;
 
   @ApiProperty({ description: 'Resume view count' })
-  @Column({ name: 'view_count', default: 0 })
+  @Column({ name: 'viewCount', default: 0 })
   viewCount: number;
 
   @ApiProperty({ description: 'Resume download count' })
-  @Column({ name: 'download_count', default: 0 })
+  @Column({ name: 'downloadCount', default: 0 })
   downloadCount: number;
 
   @ApiProperty({ description: 'Resume share count' })
-  @Column({ name: 'share_count', default: 0 })
+  @Column({ name: 'shareCount', default: 0 })
   shareCount: number;
 
   @ApiProperty({ description: 'Resume analytics data' })
@@ -217,35 +217,29 @@ export class UserResume {
   };
 
   @ApiProperty({ description: 'Public sharing token' })
-  @Column({ name: 'share_token', nullable: true })
+  @Column({ name: 'shareToken', nullable: true })
   shareToken?: string;
 
   @ApiProperty({ description: 'Share token expiry date' })
-  @Column({ name: 'share_expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'shareExpiresAt', type: 'timestamp', nullable: true })
   shareExpiresAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
-  // @ManyToOne(() => User, user => user.resumes)
-  // @JoinColumn({ name: 'user_id' })
-  // user: User;
-
   @ManyToOne(() => ResumeTemplate, template => template.userResumes, { nullable: true })
-  @JoinColumn({ name: 'template_id' })
+  @JoinColumn({ name: 'templateId' })
   template?: ResumeTemplate;
 
   @OneToMany(() => ResumeSection, section => section.resume)
   sections: ResumeSection[];
 
-  // Virtual properties
   get isPubliclyAccessible(): boolean | any {
-    return this.visibility === ResumeVisibility.PUBLIC || 
-           (this.visibility === ResumeVisibility.LINK_ONLY && this.shareToken);
+    return this.visibility === ResumeVisibility.PUBLIC ||
+      (this.visibility === ResumeVisibility.LINK_ONLY && this.shareToken);
   }
 
   get isShareLinkValid(): boolean {
@@ -266,7 +260,6 @@ export class UserResume {
     return this.calculateAtsScore();
   }
 
-  // Methods
   incrementView(): void {
     this.viewCount += 1;
     this.updateAnalytics('view');
@@ -285,22 +278,22 @@ export class UserResume {
   private updateAnalytics(type: 'view' | 'download' | 'share'): void {
     const today = new Date().toISOString().split('T')[0];
     const analyticsKey = `${type}sByDate`;
-    
+
     if (!this.analytics[analyticsKey]) {
       this.analytics[analyticsKey] = {};
     }
-    
+
     this.analytics[analyticsKey][today] = (this.analytics[analyticsKey][today] || 0) + 1;
   }
 
   generateShareToken(expiryDays?: number): string {
     this.shareToken = `resume_${this.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     if (expiryDays) {
       this.shareExpiresAt = new Date();
       this.shareExpiresAt.setDate(this.shareExpiresAt.getDate() + expiryDays);
     }
-    
+
     return this.shareToken;
   }
 
@@ -370,29 +363,22 @@ export class UserResume {
     let score = 0;
     const maxScore = 100;
 
-    // Personal info (20 points)
     if (this.data.personalInfo.firstName && this.data.personalInfo.lastName) score += 10;
     if (this.data.personalInfo.email) score += 5;
     if (this.data.personalInfo.phone) score += 5;
 
-    // Summary (10 points)
     if (this.data.summary && this.data.summary.length > 50) score += 10;
 
-    // Experience (25 points)
     if (this.data.experience.length > 0) score += 15;
     if (this.data.experience.length > 2) score += 10;
 
-    // Education (15 points)
     if (this.data.education.length > 0) score += 15;
 
-    // Skills (15 points)
     if (this.data.skills.length > 0) score += 10;
     if (this.data.skills.length > 5) score += 5;
 
-    // Projects (10 points)
     if (this.data.projects.length > 0) score += 10;
 
-    // Certifications (5 points)
     if (this.data.certifications.length > 0) score += 5;
 
     return Math.min(score, maxScore);
@@ -401,7 +387,6 @@ export class UserResume {
   private calculateAtsScore(): number {
     let score = 100;
 
-    // Deduct for missing essential sections
     if (!this.data.personalInfo.firstName || !this.data.personalInfo.lastName) score -= 20;
     if (!this.data.personalInfo.email) score -= 15;
     if (!this.data.summary || this.data.summary.length < 50) score -= 10;
@@ -409,7 +394,6 @@ export class UserResume {
     if (this.data.education.length === 0) score -= 15;
     if (this.data.skills.length === 0) score -= 15;
 
-    // Add points for good practices
     if (this.data.skills.length > 10) score += 5;
     if (this.data.experience.some(e => e.achievements && e.achievements.length > 0)) score += 5;
     if (this.data.projects.length > 0) score += 5;
@@ -473,7 +457,6 @@ export class UserResume {
   validate(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Validate personal info
     if (!this.data.personalInfo.firstName) {
       errors.push('First name is required');
     }
@@ -484,19 +467,16 @@ export class UserResume {
       errors.push('Email is required');
     }
 
-    // Validate email format
     if (this.data.personalInfo.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.data.personalInfo.email)) {
       errors.push('Invalid email format');
     }
 
-    // Validate experience dates
     this.data.experience.forEach((exp, index) => {
       if (exp.startDate && exp.endDate && new Date(exp.startDate) > new Date(exp.endDate)) {
         errors.push(`Experience ${index + 1}: Start date cannot be after end date`);
       }
     });
 
-    // Validate education dates
     this.data.education.forEach((edu, index) => {
       if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
         errors.push(`Education ${index + 1}: Start date cannot be after end date`);

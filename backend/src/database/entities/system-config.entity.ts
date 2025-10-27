@@ -81,7 +81,7 @@ export class SystemConfig {
   value: string;
 
   @ApiProperty({ description: 'Default value' })
-  @Column({ name: 'default_value', type: 'text', nullable: true })
+  @Column({ name: 'defaultValue', type: 'text', nullable: true })
   defaultValue?: string;
 
   @ApiProperty({ enum: ConfigEnvironment, description: 'Target environment' })
@@ -93,51 +93,36 @@ export class SystemConfig {
   environment: ConfigEnvironment;
 
   @ApiProperty({ description: 'Whether configuration is active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Whether configuration is read-only' })
-  @Column({ name: 'is_readonly', default: false })
+  @Column({ name: 'isReadonly', default: false })
   isReadonly: boolean;
 
   @ApiProperty({ description: 'Whether configuration is sensitive/encrypted' })
-  @Column({ name: 'is_sensitive', default: false })
+  @Column({ name: 'isSensitive', default: false })
   isSensitive: boolean;
 
   @ApiProperty({ description: 'Whether configuration requires restart' })
-  @Column({ name: 'requires_restart', default: false })
+  @Column({ name: 'requiresRestart', default: false })
   requiresRestart: boolean;
 
   @ApiProperty({ description: 'Validation rules and constraints' })
   @Column({ type: 'jsonb', default: {} })
   validation: {
-    // Type-specific validation
     minLength?: number;
     maxLength?: number;
     minValue?: number;
     maxValue?: number;
-    pattern?: string; // Regex pattern
-    
-    // Allowed values
+    pattern?: string;
     allowedValues?: any[];
-    
-    // Custom validation
-    customValidator?: string; // Function name or expression
-    
-    // Dependencies
-    dependsOn?: string[]; // Other config keys this depends on
-    conflicts?: string[]; // Config keys that conflict with this one
-    
-    // Environment restrictions
+    customValidator?: string;
+    dependsOn?: string[];
+    conflicts?: string[];
     allowedEnvironments?: ConfigEnvironment[];
-    
-    // Format validation
     format?: 'email' | 'url' | 'ip' | 'port' | 'json' | 'base64' | 'hex';
-    
-    // Required fields for JSON type
     requiredFields?: string[];
-    
-    // Array validation
     arrayItemType?: ConfigType;
     minItems?: number;
     maxItems?: number;
@@ -147,29 +132,20 @@ export class SystemConfig {
   @ApiProperty({ description: 'Configuration metadata' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Display information
     displayOrder?: number;
     group?: string;
     icon?: string;
     color?: string;
-    
-    // Help and documentation
     helpText?: string;
     documentationUrl?: string;
     examples?: any[];
-    
-    // Feature flags
     featureFlag?: string;
     betaFeature?: boolean;
     experimentalFeature?: boolean;
-    
-    // Versioning
     version?: string;
     deprecatedSince?: string;
     removedIn?: string;
     replacedBy?: string;
-    
-    // Change tracking
     changeHistory?: Array<{
       timestamp: Date;
       oldValue: any;
@@ -177,41 +153,31 @@ export class SystemConfig {
       changedBy: string;
       reason?: string;
     }>;
-    
-    // Usage tracking
     lastAccessed?: Date;
     accessCount?: number;
-    
-    // Security
     encryptionMethod?: string;
     lastRotated?: Date;
-    rotationInterval?: number; // days
-    
-    // Performance impact
+    rotationInterval?: number;
     performanceImpact?: 'low' | 'medium' | 'high';
-    cacheTimeout?: number; // seconds
-    
-    // Custom metadata
+    cacheTimeout?: number;
     tags?: string[];
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'User who last updated this configuration' })
-  @Column({ name: 'updated_by', nullable: true })
+  @Column({ name: 'updatedBy', nullable: true })
   updatedBy?: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'updated_by' })
+  @JoinColumn({ name: 'updatedBy' })
   updater?: User;
 
-  // Virtual properties
   get isEncrypted(): boolean {
     return this.type === ConfigType.ENCRYPTED || this.isSensitive;
   }
@@ -228,7 +194,7 @@ export class SystemConfig {
     if (this.isSensitive) {
       return '***HIDDEN***';
     }
-    
+
     if (this.type === ConfigType.JSON) {
       try {
         return JSON.stringify(JSON.parse(this.value), null, 2);
@@ -236,38 +202,36 @@ export class SystemConfig {
         return this.value;
       }
     }
-    
+
     return this.value;
   }
 
-  // Methods
   getParsedValue(): any {
     switch (this.type) {
       case ConfigType.BOOLEAN:
         return this.value.toLowerCase() === 'true';
-      
+
       case ConfigType.NUMBER:
         const num = parseFloat(this.value);
         return isNaN(num) ? 0 : num;
-      
+
       case ConfigType.JSON:
         try {
           return JSON.parse(this.value);
         } catch {
           return null;
         }
-      
+
       case ConfigType.ARRAY:
         try {
           return JSON.parse(this.value);
         } catch {
           return this.value.split(',').map(v => v.trim());
         }
-      
+
       case ConfigType.ENCRYPTED:
-        // This would be decrypted by a service
         return this.value;
-      
+
       default:
         return this.value;
     }
@@ -275,26 +239,25 @@ export class SystemConfig {
 
   setValue(newValue: any, userId?: string): void {
     let stringValue: string;
-    
+
     switch (this.type) {
       case ConfigType.BOOLEAN:
         stringValue = Boolean(newValue).toString();
         break;
-      
+
       case ConfigType.NUMBER:
         stringValue = Number(newValue).toString();
         break;
-      
+
       case ConfigType.JSON:
       case ConfigType.ARRAY:
         stringValue = JSON.stringify(newValue);
         break;
-      
+
       default:
         stringValue = String(newValue);
     }
 
-    // Track change history
     if (!this.metadata.changeHistory) {
       this.metadata.changeHistory = [];
     }
@@ -314,7 +277,6 @@ export class SystemConfig {
     const errors: string[] = [];
     const parsedValue = this.getParsedValue();
 
-    // Type validation
     if (this.type === ConfigType.NUMBER && isNaN(Number(this.value))) {
       errors.push('Value must be a valid number');
     }
@@ -331,7 +293,6 @@ export class SystemConfig {
       }
     }
 
-    // Validation rules
     const validation = this.validation;
 
     if (validation.minLength && this.value.length < validation.minLength) {
@@ -358,7 +319,6 @@ export class SystemConfig {
       errors.push(`Value must be one of: ${validation.allowedValues.join(', ')}`);
     }
 
-    // Format validation
     if (validation.format) {
       switch (validation.format) {
         case 'email':
@@ -366,7 +326,7 @@ export class SystemConfig {
             errors.push('Value must be a valid email address');
           }
           break;
-        
+
         case 'url':
           try {
             new URL(this.value);
@@ -374,13 +334,13 @@ export class SystemConfig {
             errors.push('Value must be a valid URL');
           }
           break;
-        
+
         case 'ip':
           if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(this.value)) {
             errors.push('Value must be a valid IP address');
           }
           break;
-        
+
         case 'port':
           const port = parseInt(this.value);
           if (isNaN(port) || port < 1 || port > 65535) {
@@ -399,9 +359,9 @@ export class SystemConfig {
   canBeModified(currentEnvironment: string): boolean {
     if (this.isReadonly) return false;
     if (!this.isActive) return false;
-    
-    if (this.environment !== ConfigEnvironment.ALL && 
-        this.environment !== currentEnvironment) {
+
+    if (this.environment !== ConfigEnvironment.ALL &&
+      this.environment !== currentEnvironment) {
       return false;
     }
 
@@ -425,7 +385,6 @@ export class SystemConfig {
     });
   }
 
-  // Static factory methods
   static createSystemConfig(
     key: string,
     name: string,
@@ -501,42 +460,35 @@ export class SystemConfig {
     };
   }
 
-  // Default system configurations
   static getDefaultConfigs(): Partial<SystemConfig>[] {
     return [
-      // System configs
       this.createSystemConfig('app.name', 'Application Name', 'Volkai HR Edu', ConfigType.STRING, ConfigCategory.SYSTEM),
       this.createSystemConfig('app.version', 'Application Version', '1.0.0', ConfigType.STRING, ConfigCategory.SYSTEM),
       this.createSystemConfig('app.environment', 'Environment', 'development', ConfigType.STRING, ConfigCategory.SYSTEM),
       this.createSystemConfig('app.debug', 'Debug Mode', false, ConfigType.BOOLEAN, ConfigCategory.SYSTEM),
-      this.createSystemConfig('app.maintenance_mode', 'Maintenance Mode', false, ConfigType.BOOLEAN, ConfigCategory.SYSTEM),
-      
-      // Security configs
-      this.createSystemConfig('security.session_timeout', 'Session Timeout (minutes)', 60, ConfigType.NUMBER, ConfigCategory.SECURITY),
-      this.createSystemConfig('security.max_login_attempts', 'Max Login Attempts', 5, ConfigType.NUMBER, ConfigCategory.SECURITY),
-      this.createSystemConfig('security.password_min_length', 'Minimum Password Length', 8, ConfigType.NUMBER, ConfigCategory.SECURITY),
-      this.createSystemConfig('security.require_2fa', 'Require 2FA', false, ConfigType.BOOLEAN, ConfigCategory.SECURITY),
-      
-      // Feature flags
-      this.createFeatureFlag('features.ai_interviews', 'AI Mock Interviews', true, 'Enable AI-powered mock interviews'),
-      this.createFeatureFlag('features.resume_builder', 'Resume Builder', true, 'Enable resume builder functionality'),
-      this.createFeatureFlag('features.job_board', 'Job Board', true, 'Enable job board functionality'),
+      this.createSystemConfig('app.maintenanceMode', 'Maintenance Mode', false, ConfigType.BOOLEAN, ConfigCategory.SYSTEM),
+
+      this.createSystemConfig('security.sessionTimeout', 'Session Timeout (minutes)', 60, ConfigType.NUMBER, ConfigCategory.SECURITY),
+      this.createSystemConfig('security.maxLoginAttempts', 'Max Login Attempts', 5, ConfigType.NUMBER, ConfigCategory.SECURITY),
+      this.createSystemConfig('security.passwordMinLength', 'Minimum Password Length', 8, ConfigType.NUMBER, ConfigCategory.SECURITY),
+      this.createSystemConfig('security.require2FA', 'Require 2FA', false, ConfigType.BOOLEAN, ConfigCategory.SECURITY),
+
+      this.createFeatureFlag('features.aiInterviews', 'AI Mock Interviews', true, 'Enable AI-powered mock interviews'),
+      this.createFeatureFlag('features.resumeBuilder', 'Resume Builder', true, 'Enable resume builder functionality'),
+      this.createFeatureFlag('features.jobBoard', 'Job Board', true, 'Enable job board functionality'),
       this.createFeatureFlag('features.analytics', 'Analytics Dashboard', true, 'Enable analytics and reporting'),
-      
-      // Billing configs
-      this.createSystemConfig('billing.default_currency', 'Default Currency', 'USD', ConfigType.STRING, ConfigCategory.BILLING),
-      this.createSystemConfig('billing.trial_days', 'Default Trial Days', 14, ConfigType.NUMBER, ConfigCategory.BILLING),
-      this.createSystemConfig('billing.grace_period_days', 'Grace Period Days', 3, ConfigType.NUMBER, ConfigCategory.BILLING),
-      
-      // Notification configs
-      this.createSystemConfig('notifications.email_enabled', 'Email Notifications', true, ConfigType.BOOLEAN, ConfigCategory.NOTIFICATIONS),
-      this.createSystemConfig('notifications.sms_enabled', 'SMS Notifications', false, ConfigType.BOOLEAN, ConfigCategory.NOTIFICATIONS),
-      this.createSystemConfig('notifications.push_enabled', 'Push Notifications', true, ConfigType.BOOLEAN, ConfigCategory.NOTIFICATIONS),
-      
-      // Performance configs
-      this.createSystemConfig('performance.cache_ttl', 'Default Cache TTL (seconds)', 3600, ConfigType.NUMBER, ConfigCategory.PERFORMANCE),
-      this.createSystemConfig('performance.max_file_size_mb', 'Max File Size (MB)', 100, ConfigType.NUMBER, ConfigCategory.PERFORMANCE),
-      this.createSystemConfig('performance.api_rate_limit', 'API Rate Limit (per minute)', 1000, ConfigType.NUMBER, ConfigCategory.PERFORMANCE),
+
+      this.createSystemConfig('billing.defaultCurrency', 'Default Currency', 'USD', ConfigType.STRING, ConfigCategory.BILLING),
+      this.createSystemConfig('billing.trialDays', 'Default Trial Days', 14, ConfigType.NUMBER, ConfigCategory.BILLING),
+      this.createSystemConfig('billing.gracePeriodDays', 'Grace Period Days', 3, ConfigType.NUMBER, ConfigCategory.BILLING),
+
+      this.createSystemConfig('notifications.emailEnabled', 'Email Notifications', true, ConfigType.BOOLEAN, ConfigCategory.NOTIFICATIONS),
+      this.createSystemConfig('notifications.smsEnabled', 'SMS Notifications', false, ConfigType.BOOLEAN, ConfigCategory.NOTIFICATIONS),
+      this.createSystemConfig('notifications.pushEnabled', 'Push Notifications', true, ConfigType.BOOLEAN, ConfigCategory.NOTIFICATIONS),
+
+      this.createSystemConfig('performance.cacheTTL', 'Default Cache TTL (seconds)', 3600, ConfigType.NUMBER, ConfigCategory.PERFORMANCE),
+      this.createSystemConfig('performance.maxFileSizeMB', 'Max File Size (MB)', 100, ConfigType.NUMBER, ConfigCategory.PERFORMANCE),
+      this.createSystemConfig('performance.apiRateLimit', 'API Rate Limit (per minute)', 1000, ConfigType.NUMBER, ConfigCategory.PERFORMANCE),
     ];
   }
 }

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { AnalyticsEvent } from '../../database/entities/analytics-event.entity';
+import { AnalyticsEvent, EventType } from '../../database/entities/analytics-event.entity';
 
 export interface PerformanceMetrics {
   timestamp: Date;
@@ -355,7 +355,7 @@ export class PerformanceService {
 
       // Store metrics in analytics
       await this.analyticsEventRepository.save({
-        eventType: 'system.performance.metrics',
+        eventType: EventType.ERROR_OCCURRED,
         eventData: metrics,
         metadata: {
           source: 'performance_monitor',

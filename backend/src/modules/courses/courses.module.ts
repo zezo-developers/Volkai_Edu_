@@ -7,6 +7,8 @@ import { User } from '../../database/entities/user.entity';
 import { Organization } from '../../database/entities/organization.entity';
 import { CourseManagementService } from './services/course-management.service';
 import { CoursesController } from './courses.controller';
+import { Enrollment } from '@/database/entities/enrollment.entity';
+import { ModuleLessonManagementService } from './services/module-management.service';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { CoursesController } from './courses.controller';
       Lesson,
       User,
       Organization,
+      Enrollment
     ]),
   ],
   controllers: [
@@ -23,11 +26,11 @@ import { CoursesController } from './courses.controller';
   ],
   providers: [
     CourseManagementService,
-    'ModuleManagementService' as any,
+    ModuleLessonManagementService
   ],
   exports: [
     CourseManagementService,
-    'ModuleManagementService',
+    ModuleLessonManagementService,
   ],
 })
 export class CoursesModule {}

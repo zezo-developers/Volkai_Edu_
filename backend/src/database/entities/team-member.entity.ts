@@ -30,11 +30,11 @@ export class TeamMember {
   id: string;
 
   @ApiProperty({ description: 'Team ID' })
-  @Column({ name: 'team_id' })
+  @Column({ name: 'teamId' })
   teamId: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id' })
+  @Column({ name: 'userId' })
   userId: string;
 
   @ApiProperty({ enum: TeamRole, description: 'Team role' })
@@ -46,7 +46,7 @@ export class TeamMember {
   role: TeamRole;
 
   @ApiProperty({ description: 'Date joined the team' })
-  @Column({ name: 'joined_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'joinedAt', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   joinedAt: Date;
 
   @ApiProperty({ description: 'Member status' })
@@ -69,19 +69,19 @@ export class TeamMember {
   };
 
   @ApiProperty({ description: 'Performance metrics for this team member' })
-  @Column({ name: 'performance_metrics', type: 'jsonb', default: {} })
+  @Column({ name: 'performanceMetrics', type: 'jsonb', default: {} })
   performanceMetrics: {
     productivity?: {
       score: number;
       tasksCompleted: number;
-      averageCompletionTime: number; // in hours
+      averageCompletionTime: number;
       qualityRating: number;
     };
     collaboration?: {
       score: number;
-      meetingAttendance: number; // percentage
-      responseTime: number; // in hours
-      helpfulness: number; // peer rating
+      meetingAttendance: number;
+      responseTime: number;
+      helpfulness: number;
     };
     leadership?: {
       score: number;
@@ -97,7 +97,7 @@ export class TeamMember {
   availability: {
     workingHours?: {
       timezone: string;
-      schedule: Record<string, { start: string; end: string; available: boolean; }>;
+      schedule: Record<string, { start: string; end: string; available: boolean }>;
     };
     vacationDays?: Array<{
       startDate: Date;
@@ -105,7 +105,7 @@ export class TeamMember {
       type: 'vacation' | 'sick' | 'personal' | 'other';
       status: 'approved' | 'pending' | 'rejected';
     }>;
-    currentCapacity?: number; // percentage (0-100)
+    currentCapacity?: number;
     preferredWorkload?: 'light' | 'normal' | 'heavy';
   };
 
@@ -122,19 +122,17 @@ export class TeamMember {
     private: boolean;
   }>;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  // Relations
   @ManyToOne(() => Team, team => team.members)
-  @JoinColumn({ name: 'team_id' })
+  @JoinColumn({ name: 'teamId' })
   team: Team;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  // Virtual properties
   get daysSinceJoined(): number {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - this.joinedAt.getTime());
@@ -179,21 +177,21 @@ export class TeamMember {
     if (!this.availability.vacationDays) return false;
 
     const now = new Date();
-    return this.availability.vacationDays.some(vacation => 
-      vacation.status === 'approved' &&
-      new Date(vacation.startDate) <= now &&
-      new Date(vacation.endDate) >= now
+    return this.availability.vacationDays.some(
+      vacation =>
+        vacation.status === 'approved' &&
+        new Date(vacation.startDate) <= now &&
+        new Date(vacation.endDate) >= now
     );
   }
 
-  // Methods
   updateRole(newRole: TeamRole, performedBy: string): void {
     const oldRole = this.role;
     this.role = newRole;
 
     this.addFeedback({
       from: performedBy,
-      fromName: 'System', // Would be populated with actual user name
+      fromName: 'System',
       type: 'manager',
       comments: `Role changed from ${oldRole} to ${newRole}`,
       private: false,
@@ -219,12 +217,7 @@ export class TeamMember {
     }
   }
 
-  addProject(project: {
-    name: string;
-    role: string;
-    startDate: Date;
-    endDate?: Date;
-  }): void {
+  addProject(project: { name: string; role: string; startDate: Date; endDate?: Date }): void {
     if (!this.responsibilities.currentProjects) {
       this.responsibilities.currentProjects = [];
     }
@@ -286,8 +279,7 @@ export class TeamMember {
     if (!this.availability.vacationDays) return;
 
     const timeOff = this.availability.vacationDays.find(
-      v => v.startDate.getTime() === startDate.getTime() && 
-           v.endDate.getTime() === endDate.getTime()
+      v => v.startDate.getTime() === startDate.getTime() && v.endDate.getTime() === endDate.getTime()
     );
 
     if (timeOff) {
@@ -299,8 +291,7 @@ export class TeamMember {
     if (!this.availability.vacationDays) return;
 
     const timeOff = this.availability.vacationDays.find(
-      v => v.startDate.getTime() === startDate.getTime() && 
-           v.endDate.getTime() === endDate.getTime()
+      v => v.startDate.getTime() === startDate.getTime() && v.endDate.getTime() === endDate.getTime()
     );
 
     if (timeOff) {
@@ -318,7 +309,7 @@ export class TeamMember {
 
   deactivate(reason?: string): void {
     this.status = 'inactive';
-    
+
     if (reason) {
       this.addFeedback({
         from: 'system',
@@ -332,7 +323,7 @@ export class TeamMember {
 
   reactivate(): void {
     this.status = 'active';
-    
+
     this.addFeedback({
       from: 'system',
       fromName: 'System',
@@ -344,7 +335,7 @@ export class TeamMember {
 
   remove(reason?: string): void {
     this.status = 'removed';
-    
+
     if (reason) {
       this.addFeedback({
         from: 'system',
@@ -360,18 +351,12 @@ export class TeamMember {
     if (!this.performanceMetrics.productivity) return 0;
 
     const { tasksCompleted, averageCompletionTime, qualityRating } = this.performanceMetrics.productivity;
-    
-    // Score based on tasks completed (weight: 40%)
-    const taskScore = Math.min(tasksCompleted * 2, 100); // 50 tasks = 100 points
-    
-    // Score based on completion time (weight: 30%)
-    // Assuming 8 hours is optimal completion time
-    const timeScore = Math.max(0, 100 - ((averageCompletionTime - 8) * 5));
-    
-    // Score based on quality (weight: 30%)
-    const qualityScore = qualityRating * 20; // Convert 1-5 scale to 0-100
-    
-    return Math.round((taskScore * 0.4) + (timeScore * 0.3) + (qualityScore * 0.3));
+
+    const taskScore = Math.min(tasksCompleted * 2, 100);
+    const timeScore = Math.max(0, 100 - (averageCompletionTime - 8) * 5);
+    const qualityScore = qualityRating * 20;
+
+    return Math.round(taskScore * 0.4 + timeScore * 0.3 + qualityScore * 0.3);
   }
 
   generateMemberReport(): any {
@@ -401,7 +386,6 @@ export class TeamMember {
     };
   }
 
-  // Static helper methods
   static getDefaultAvailability(): TeamMember['availability'] {
     return {
       workingHours: {

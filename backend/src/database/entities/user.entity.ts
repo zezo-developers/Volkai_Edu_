@@ -52,7 +52,6 @@ export enum UserRole {
   // add other roles here
 }
 
-
 export enum UserStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -146,13 +145,13 @@ export class User {
   @Exclude({ toPlainOnly: true })
   refreshTokenHash?: string;
 
-  @Column({ name: 'created_at' })
-  created_at: Date; // property in TS can be camelCase
+  @Column({ name: 'createdAt' })
+  createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ name: 'deletedAt' })
   deletedAt?: Date;
 
   // Relations

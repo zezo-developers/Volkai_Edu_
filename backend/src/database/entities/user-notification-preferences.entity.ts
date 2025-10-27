@@ -24,11 +24,11 @@ export class UserNotificationPreferences {
   id: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id' })
+  @Column({ name: 'userId' })
   userId: string;
 
   @ApiProperty({ description: 'Template key (null for global preferences)' })
-  @Column({ name: 'template_key', length: 100, nullable: true })
+  @Column({ name: 'templateKey', length: 100, nullable: true })
   templateKey?: string;
 
   @ApiProperty({ enum: NotificationChannel, description: 'Notification channel' })
@@ -40,50 +40,47 @@ export class UserNotificationPreferences {
   channel?: NotificationChannel;
 
   @ApiProperty({ description: 'Whether notifications are enabled' })
-  @Column({ name: 'is_enabled', default: true })
+  @Column({ name: 'isEnabled', default: true })
   isEnabled: boolean;
 
   @ApiProperty({ description: 'Delivery frequency settings' })
-  @Column({ name: 'frequency_settings', type: 'jsonb', default: {} })
+  @Column({ name: 'frequencySettings', type: 'jsonb', default: {} })
   frequencySettings: {
-    // Frequency control
     frequency?: 'immediate' | 'hourly' | 'daily' | 'weekly' | 'never';
-    batchWindow?: number; // minutes to batch notifications
+    batchWindow?: number;
     maxPerDay?: number;
     maxPerWeek?: number;
-    
-    // Quiet hours
+
     quietHours?: {
       enabled: boolean;
-      startTime: string; // HH:mm format
-      endTime: string;   // HH:mm format
+      startTime: string;
+      endTime: string;
       timezone: string;
       weekendsOnly?: boolean;
     };
-    
-    // Digest settings
+
     digestEnabled?: boolean;
     digestFrequency?: 'daily' | 'weekly';
-    digestTime?: string; // HH:mm format
-    digestDays?: string[]; // ['monday', 'tuesday', ...]
+    digestTime?: string;
+    digestDays?: string[];
   };
 
   @ApiProperty({ description: 'Channel-specific settings' })
-  @Column({ name: 'channel_settings', type: 'jsonb', default: {} })
+  @Column({ name: 'channelSettings', type: 'jsonb', default: {} })
   channelSettings: {
     email?: {
-      address?: string; // Override default email
+      address?: string;
       format?: 'html' | 'text';
       includeAttachments?: boolean;
       unsubscribeUrl?: string;
     };
-    
+
     sms?: {
-      phoneNumber?: string; // Override default phone
+      phoneNumber?: string;
       shortFormat?: boolean;
       includeLinks?: boolean;
     };
-    
+
     push?: {
       deviceTokens?: string[];
       sound?: string;
@@ -91,7 +88,7 @@ export class UserNotificationPreferences {
       vibration?: boolean;
       priority?: 'min' | 'low' | 'default' | 'high' | 'max';
     };
-    
+
     inApp?: {
       showBanner?: boolean;
       playSound?: boolean;
@@ -99,7 +96,7 @@ export class UserNotificationPreferences {
       position?: 'top' | 'bottom' | 'center';
       theme?: 'light' | 'dark' | 'auto';
     };
-    
+
     webhook?: {
       url?: string;
       method?: 'GET' | 'POST' | 'PUT';
@@ -112,91 +109,65 @@ export class UserNotificationPreferences {
   };
 
   @ApiProperty({ description: 'Content filtering preferences' })
-  @Column({ name: 'content_filters', type: 'jsonb', default: {} })
+  @Column({ name: 'contentFilters', type: 'jsonb', default: {} })
   contentFilters: {
-    // Priority filtering
     minPriority?: 'low' | 'medium' | 'high' | 'urgent';
-    
-    // Category filtering
     allowedCategories?: string[];
     blockedCategories?: string[];
-    
-    // Keyword filtering
     blockedKeywords?: string[];
     requiredKeywords?: string[];
-    
-    // Content type filtering
     allowMarketing?: boolean;
     allowTransactional?: boolean;
     allowSystemAlerts?: boolean;
     allowSocialUpdates?: boolean;
-    
-    // Language preferences
     preferredLanguage?: string;
     fallbackLanguage?: string;
   };
 
   @ApiProperty({ description: 'Privacy and consent settings' })
-  @Column({ name: 'privacy_settings', type: 'jsonb', default: {} })
+  @Column({ name: 'privacySettings', type: 'jsonb', default: {} })
   privacySettings: {
-    // Consent tracking
     consentGiven?: boolean;
     consentDate?: Date;
     consentVersion?: string;
     consentSource?: string;
-    
-    // Data usage preferences
     allowPersonalization?: boolean;
     allowAnalytics?: boolean;
     allowThirdPartySharing?: boolean;
-    
-    // Retention preferences
     dataRetentionDays?: number;
     deleteAfterRead?: boolean;
-    
-    // Tracking preferences
     allowOpenTracking?: boolean;
     allowClickTracking?: boolean;
     allowLocationTracking?: boolean;
   };
 
   @ApiProperty({ description: 'Advanced scheduling rules' })
-  @Column({ name: 'scheduling_rules', type: 'jsonb', default: {} })
+  @Column({ name: 'schedulingRules', type: 'jsonb', default: {} })
   schedulingRules: {
-    // Time-based rules
     allowedHours?: {
-      start: string; // HH:mm
-      end: string;   // HH:mm
+      start: string;
+      end: string;
     };
-    allowedDays?: string[]; // ['monday', 'tuesday', ...]
-    
-    // Frequency limits
+    allowedDays?: string[];
     maxPerHour?: number;
     maxPerDay?: number;
-    cooldownMinutes?: number; // Minimum time between notifications
-    
-    // Context-based rules
+    cooldownMinutes?: number;
     workingHoursOnly?: boolean;
     respectCalendarBusy?: boolean;
     respectDoNotDisturb?: boolean;
-    
-    // Conditional rules
     conditionalRules?: Array<{
-      condition: string; // e.g., "user.status === 'busy'"
+      condition: string;
       action: 'allow' | 'deny' | 'delay';
       delayMinutes?: number;
     }>;
   };
 
   @ApiProperty({ description: 'Preference metadata and history' })
-  @Column({ type: 'jsonb', default: {} })
+  @Column({ name: 'metadata', type: 'jsonb', default: {} })
   metadata: {
-    // Source tracking
     source?: 'user_set' | 'admin_set' | 'system_default' | 'imported';
-    setBy?: string; // User ID who set this preference
+    setBy?: string;
     reason?: string;
-    
-    // History
     changeHistory?: Array<{
       timestamp: Date;
       field: string;
@@ -204,14 +175,10 @@ export class UserNotificationPreferences {
       newValue: any;
       changedBy: string;
     }>;
-    
-    // Usage statistics
     lastNotificationSent?: Date;
     totalNotificationsSent?: number;
     totalNotificationsRead?: number;
     averageEngagementRate?: number;
-    
-    // Smart suggestions
     suggestedChanges?: Array<{
       field: string;
       suggestedValue: any;
@@ -220,18 +187,12 @@ export class UserNotificationPreferences {
     }>;
   };
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
-  // @ManyToOne(() => User, user => user.notificationPreferences)
-  // @JoinColumn({ name: 'user_id' })
-  // user: User;
-
-  // Virtual properties
   get isGlobalPreference(): boolean {
     return !this.templateKey && !this.channel;
   }
@@ -258,49 +219,39 @@ export class UserNotificationPreferences {
 
   get isInQuietHours(): boolean {
     if (!this.hasQuietHours) return false;
-    
+
     const now = new Date();
     const quietHours = this.frequencySettings.quietHours!;
-    
-    // Convert current time to user's timezone
     const userTime = new Date(now.toLocaleString('en-US', { timeZone: quietHours.timezone }));
     const currentHour = userTime.getHours();
     const currentMinute = userTime.getMinutes();
     const currentTime = currentHour * 60 + currentMinute;
-    
     const [startHour, startMinute] = quietHours.startTime.split(':').map(Number);
     const [endHour, endMinute] = quietHours.endTime.split(':').map(Number);
     const startTime = startHour * 60 + startMinute;
     const endTime = endHour * 60 + endMinute;
-    
+
     if (startTime <= endTime) {
       return currentTime >= startTime && currentTime <= endTime;
     } else {
-      // Quiet hours span midnight
       return currentTime >= startTime || currentTime <= endTime;
     }
   }
 
-  // Methods
   shouldReceiveNotification(templateKey?: string, channel?: NotificationChannel, priority?: string): boolean {
-    // Check if notifications are globally disabled
     if (!this.isEnabled) return false;
-    
-    // Check priority filter
+
     if (priority && this.contentFilters.minPriority) {
       const priorityLevels = { low: 1, medium: 2, high: 3, urgent: 4 };
       const minLevel = priorityLevels[this.contentFilters.minPriority as keyof typeof priorityLevels];
       const currentLevel = priorityLevels[priority as keyof typeof priorityLevels];
-      
       if (currentLevel < minLevel) return false;
     }
-    
-    // Check quiet hours
+
     if (this.isInQuietHours) return false;
-    
-    // Check frequency limits
+
     if (!this.checkFrequencyLimits()) return false;
-    
+
     return true;
   }
 
@@ -308,30 +259,27 @@ export class UserNotificationPreferences {
     if (!this.channelSettings[channel]) {
       this.channelSettings[channel] = {};
     }
-    
+
     const oldValue = (this.channelSettings[channel] as any)[setting];
     (this.channelSettings[channel] as any)[setting] = value;
-    
+
     this.addToHistory('channelSettings', oldValue, value);
   }
 
   setQuietHours(startTime: string, endTime: string, timezone: string, enabled: boolean = true): void {
     const oldValue = this.frequencySettings.quietHours;
-    
     this.frequencySettings.quietHours = {
       enabled,
       startTime,
       endTime,
       timezone,
     };
-    
     this.addToHistory('quietHours', oldValue, this.frequencySettings.quietHours);
   }
 
   setFrequency(frequency: 'immediate' | 'hourly' | 'daily' | 'weekly' | 'never'): void {
     const oldValue = this.frequencySettings.frequency;
     this.frequencySettings.frequency = frequency;
-    
     this.addToHistory('frequency', oldValue, frequency);
   }
 
@@ -368,41 +316,37 @@ export class UserNotificationPreferences {
     this.privacySettings.consentDate = new Date();
     this.privacySettings.consentVersion = version;
     this.privacySettings.consentSource = source;
-    
     this.addToHistory('consent', false, true);
   }
 
   revokeConsent(): void {
     this.privacySettings.consentGiven = false;
     this.isEnabled = false;
-    
     this.addToHistory('consent', true, false);
   }
 
   updateEngagementStats(sent: boolean, read: boolean): void {
     if (!this.metadata.totalNotificationsSent) this.metadata.totalNotificationsSent = 0;
     if (!this.metadata.totalNotificationsRead) this.metadata.totalNotificationsRead = 0;
-    
+
     if (sent) {
       this.metadata.totalNotificationsSent++;
       this.metadata.lastNotificationSent = new Date();
     }
-    
+
     if (read) {
       this.metadata.totalNotificationsRead++;
     }
-    
-    // Calculate engagement rate
+
     if (this.metadata.totalNotificationsSent > 0) {
-      this.metadata.averageEngagementRate = 
+      this.metadata.averageEngagementRate =
         (this.metadata.totalNotificationsRead / this.metadata.totalNotificationsSent) * 100;
     }
   }
 
   generateSmartSuggestions(): void {
     const suggestions: Array<{ field: string; suggestedValue: any; reason: string; confidence: number }> = [];
-    
-    // Suggest frequency changes based on engagement
+
     if (this.metadata.averageEngagementRate !== undefined) {
       if (this.metadata.averageEngagementRate < 10 && this.effectiveFrequency === 'immediate') {
         suggestions.push({
@@ -420,8 +364,7 @@ export class UserNotificationPreferences {
         });
       }
     }
-    
-    // Suggest quiet hours based on activity patterns
+
     if (!this.hasQuietHours && this.metadata.totalNotificationsSent && this.metadata.totalNotificationsSent > 50) {
       suggestions.push({
         field: 'quietHours',
@@ -430,27 +373,11 @@ export class UserNotificationPreferences {
         confidence: 0.6,
       });
     }
-    
+
     this.metadata.suggestedChanges = suggestions;
   }
 
-  // Private helper methods
   private checkFrequencyLimits(): boolean {
-    const now = new Date();
-    
-    // Check hourly limit
-    if (this.schedulingRules.maxPerHour) {
-      // This would require checking recent notification history
-      // Implementation would query recent notifications
-    }
-    
-    // Check daily limit
-    if (this.schedulingRules.maxPerDay) {
-      // This would require checking today's notification count
-      // Implementation would query today's notifications
-    }
-    
-    // For now, return true (would be implemented with actual notification counting)
     return true;
   }
 
@@ -458,22 +385,20 @@ export class UserNotificationPreferences {
     if (!this.metadata.changeHistory) {
       this.metadata.changeHistory = [];
     }
-    
+
     this.metadata.changeHistory.push({
       timestamp: new Date(),
       field,
       oldValue,
       newValue,
-      changedBy: this.userId, // Would be set by the service layer
+      changedBy: this.userId,
     });
-    
-    // Keep only last 50 changes
+
     if (this.metadata.changeHistory.length > 50) {
       this.metadata.changeHistory = this.metadata.changeHistory.slice(-50);
     }
   }
 
-  // Static helper methods
   static createDefault(userId: string): Partial<UserNotificationPreferences> {
     return {
       userId,

@@ -17,7 +17,7 @@ export const AppDataSource = new DataSource({
   port: configService.get<number>('DB_PORT', 5432),
   username: configService.get<string>('DB_USERNAME', 'volkai_user'),
   password: configService.get<string>('DB_PASSWORD', 'admin'),
-  database: configService.get<string>('DB_DATABASE', 'volkai_hr_edu_dev'),
+  database: configService.get<string>('DB_DATABASE', 'volkai_hr_edu_test'),
   entities: [__dirname + '/entities/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false, // Always false for production safety

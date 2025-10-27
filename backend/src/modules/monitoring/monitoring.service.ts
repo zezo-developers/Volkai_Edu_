@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AnalyticsEvent } from '../../database/entities/analytics-event.entity';
+import { AnalyticsEvent, EventType } from '../../database/entities/analytics-event.entity';
 import * as os from 'os';
-import * as process from 'process';
+import  process from 'process';
 
 export interface SystemMetrics {
   timestamp: Date;
@@ -277,7 +277,7 @@ export class MonitoringService {
 
     // Store in analytics
     this.analyticsEventRepository.save({
-      eventType: 'system.alert.created',
+      eventType: EventType.ERROR_OCCURRED,
       eventData: alert,
       metadata: {
         source: 'monitoring_service',

@@ -9,7 +9,7 @@ export const databaseConfig = registerAs('database', () => ({
   port: parseInt(process.env.DB_PORT || '5432', 10),
   username: process.env.DB_USERNAME || 'volkai_user',
   password: process.env.DB_PASSWORD || 'admin',
-  database: process.env.DB_DATABASE || 'volkai_hr_edu_dev',
+  database: process.env.DB_DATABASE || 'volkai_hr_edu_test',
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
   logging: process.env.DB_LOGGING === 'true',
 }));

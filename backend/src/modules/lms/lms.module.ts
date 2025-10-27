@@ -7,15 +7,15 @@ import { CertificatesModule } from '../certificates/certificates.module';
 @Module({
   imports: [
     CoursesModule,
-    AssessmentsModule,
-    EnrollmentsModule,
-    CertificatesModule,
+    // AssessmentsModule,
+    // EnrollmentsModule,
+    // CertificatesModule,
   ],
   exports: [
     CoursesModule,
-    AssessmentsModule,
-    EnrollmentsModule,
-    CertificatesModule,
+    // AssessmentsModule,
+    // EnrollmentsModule,
+    // CertificatesModule,
   ],
 })
 export class LMSModule {}

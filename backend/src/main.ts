@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+EventEmitter.defaultMaxListeners = 30;
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';

@@ -22,41 +22,34 @@ export enum WebhookStatus {
 }
 
 export enum WebhookEvent {
-  // User events
   USER_CREATED = 'user.created',
   USER_UPDATED = 'user.updated',
   USER_DELETED = 'user.deleted',
   USER_LOGIN = 'user.login',
   USER_LOGOUT = 'user.logout',
-  
-  // Organization events
+
   ORGANIZATION_CREATED = 'organization.created',
   ORGANIZATION_UPDATED = 'organization.updated',
   ORGANIZATION_DELETED = 'organization.deleted',
-  
-  // Course events
+
   COURSE_CREATED = 'course.created',
   COURSE_UPDATED = 'course.updated',
   COURSE_PUBLISHED = 'course.published',
   COURSE_DELETED = 'course.deleted',
-  
-  // Enrollment events
+
   ENROLLMENT_CREATED = 'enrollment.created',
   ENROLLMENT_COMPLETED = 'enrollment.completed',
   ENROLLMENT_CANCELLED = 'enrollment.cancelled',
-  
-  // Assessment events
+
   ASSESSMENT_STARTED = 'assessment.started',
   ASSESSMENT_COMPLETED = 'assessment.completed',
   ASSESSMENT_GRADED = 'assessment.graded',
-  
-  // Interview events
+
   INTERVIEW_SCHEDULED = 'interview.scheduled',
   INTERVIEW_STARTED = 'interview.started',
   INTERVIEW_COMPLETED = 'interview.completed',
   INTERVIEW_CANCELLED = 'interview.cancelled',
-  
-  // Job events
+
   JOB_CREATED = 'job.created',
   JOB_UPDATED = 'job.updated',
   JOB_CLOSED = 'job.closed',
@@ -64,8 +57,7 @@ export enum WebhookEvent {
   APPLICATION_REVIEWED = 'application.reviewed',
   APPLICATION_ACCEPTED = 'application.accepted',
   APPLICATION_REJECTED = 'application.rejected',
-  
-  // Billing events
+
   SUBSCRIPTION_CREATED = 'subscription.created',
   SUBSCRIPTION_UPDATED = 'subscription.updated',
   SUBSCRIPTION_CANCELLED = 'subscription.cancelled',
@@ -73,16 +65,13 @@ export enum WebhookEvent {
   PAYMENT_FAILED = 'payment.failed',
   INVOICE_CREATED = 'invoice.created',
   INVOICE_PAID = 'invoice.paid',
-  
-  // Certificate events
+
   CERTIFICATE_ISSUED = 'certificate.issued',
   CERTIFICATE_REVOKED = 'certificate.revoked',
-  
-  // System events
+
   SYSTEM_MAINTENANCE = 'system.maintenance',
   SYSTEM_ALERT = 'system.alert',
-  
-  // Custom events
+
   CUSTOM_EVENT = 'custom.event',
 }
 
@@ -117,15 +106,15 @@ export class WebhookEndpoint {
   status: WebhookStatus;
 
   @ApiProperty({ description: 'Whether webhook is currently active' })
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'isActive', default: true })
   isActive: boolean;
 
   @ApiProperty({ description: 'Organization ID (nullable for system webhooks)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'User who created the webhook' })
-  @Column({ name: 'created_by' })
+  @Column({ name: 'createdBy' })
   createdBy: string;
 
   @ApiProperty({ description: 'Events this webhook subscribes to', type: [String] })
@@ -135,39 +124,26 @@ export class WebhookEndpoint {
   @ApiProperty({ description: 'Webhook configuration and settings' })
   @Column({ type: 'jsonb', default: {} })
   config: {
-    // HTTP settings
     method?: 'POST' | 'PUT' | 'PATCH';
     headers?: Record<string, string>;
-    timeout?: number; // milliseconds
-    
-    // Security settings
+    timeout?: number;
     secret?: string;
     signatureHeader?: string;
     signatureAlgorithm?: 'sha256' | 'sha1' | 'md5';
-    
-    // Retry settings
     maxRetries?: number;
-    retryDelay?: number; // milliseconds
+    retryDelay?: number;
     exponentialBackoff?: boolean;
-    
-    // Filtering
     filters?: Array<{
       field: string;
       operator: 'equals' | 'not_equals' | 'contains' | 'starts_with' | 'ends_with';
       value: any;
     }>;
-    
-    // Transformation
-    template?: string; // Handlebars template for payload transformation
+    template?: string;
     includeMetadata?: boolean;
-    
-    // Rate limiting
     rateLimit?: {
       requests: number;
-      window: number; // seconds
+      window: number;
     };
-    
-    // Custom settings
     customHeaders?: Record<string, string>;
     customPayload?: Record<string, any>;
   };
@@ -175,71 +151,56 @@ export class WebhookEndpoint {
   @ApiProperty({ description: 'Webhook metadata and statistics' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Statistics
     totalDeliveries?: number;
     successfulDeliveries?: number;
     failedDeliveries?: number;
     lastDeliveryAt?: Date;
     lastSuccessAt?: Date;
     lastFailureAt?: Date;
-    
-    // Performance metrics
     averageResponseTime?: number;
     successRate?: number;
-    
-    // Error tracking
     consecutiveFailures?: number;
     lastError?: string;
     errorCount?: number;
-    
-    // Health status
-    healthScore?: number; // 0-100
+    healthScore?: number;
     isHealthy?: boolean;
-    
-    // Usage tracking
     dailyDeliveries?: number;
     monthlyDeliveries?: number;
-    
-    // Version info
     version?: string;
     apiVersion?: string;
-    
-    // Custom metadata
     tags?: string[];
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'Webhook verification token' })
-  @Column({ name: 'verification_token', nullable: true })
+  @Column({ name: 'verificationToken', nullable: true })
   verificationToken?: string;
 
   @ApiProperty({ description: 'Whether webhook is verified' })
-  @Column({ name: 'is_verified', default: false })
+  @Column({ name: 'isVerified', default: false })
   isVerified: boolean;
 
   @ApiProperty({ description: 'Last verification attempt' })
-  @Column({ name: 'last_verified_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'lastVerifiedAt', type: 'timestamp', nullable: true })
   lastVerifiedAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'createdBy' })
   creator: User;
 
   @ManyToOne(() => Organization, { nullable: true })
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization?: Organization;
 
   @OneToMany(() => WebhookDelivery, delivery => delivery.endpoint)
   deliveries: WebhookDelivery[];
 
-  // Virtual properties
   get isHealthy(): boolean {
     return this.metadata.isHealthy !== false && this.status === WebhookStatus.ACTIVE;
   }
@@ -262,15 +223,14 @@ export class WebhookEndpoint {
   get nextRetryDelay(): number {
     const baseDelay = this.config.retryDelay || 1000;
     const failures = this.consecutiveFailures;
-    
+
     if (this.config.exponentialBackoff) {
       return baseDelay * Math.pow(2, failures);
     }
-    
+
     return baseDelay;
   }
 
-  // Methods
   recordDelivery(success: boolean, responseTime?: number, error?: string): void {
     this.metadata.totalDeliveries = (this.metadata.totalDeliveries || 0) + 1;
     this.metadata.lastDeliveryAt = new Date();
@@ -279,11 +239,11 @@ export class WebhookEndpoint {
       this.metadata.successfulDeliveries = (this.metadata.successfulDeliveries || 0) + 1;
       this.metadata.lastSuccessAt = new Date();
       this.metadata.consecutiveFailures = 0;
-      
+
       if (responseTime) {
         const avgResponseTime = this.metadata.averageResponseTime || 0;
         const totalDeliveries = this.metadata.totalDeliveries;
-        this.metadata.averageResponseTime = 
+        this.metadata.averageResponseTime =
           (avgResponseTime * (totalDeliveries - 1) + responseTime) / totalDeliveries;
       }
     } else {
@@ -294,13 +254,9 @@ export class WebhookEndpoint {
       this.metadata.errorCount = (this.metadata.errorCount || 0) + 1;
     }
 
-    // Update success rate
     this.metadata.successRate = this.successRate;
-
-    // Update health score
     this.updateHealthScore();
 
-    // Auto-disable if too many consecutive failures
     if (this.consecutiveFailures >= (this.config.maxRetries || 3) * 2) {
       this.status = WebhookStatus.SUSPENDED;
       this.isActive = false;
@@ -310,19 +266,15 @@ export class WebhookEndpoint {
   updateHealthScore(): void {
     let score = 100;
 
-    // Reduce score based on failure rate
     const failureRate = 100 - this.successRate;
     score -= failureRate * 0.5;
 
-    // Reduce score based on consecutive failures
     score -= this.consecutiveFailures * 10;
 
-    // Reduce score based on response time
     const avgResponseTime = this.metadata.averageResponseTime || 0;
-    if (avgResponseTime > 5000) score -= 20; // > 5 seconds
-    else if (avgResponseTime > 2000) score -= 10; // > 2 seconds
+    if (avgResponseTime > 5000) score -= 20;
+    else if (avgResponseTime > 2000) score -= 10;
 
-    // Ensure score is between 0 and 100
     this.metadata.healthScore = Math.max(0, Math.min(100, score));
     this.metadata.isHealthy = this.metadata.healthScore >= 70;
   }
@@ -338,7 +290,7 @@ export class WebhookEndpoint {
 
     return this.config.filters.every(filter => {
       const fieldValue = this.getNestedValue(payload, filter.field);
-      
+
       switch (filter.operator) {
         case 'equals':
           return fieldValue === filter.value;
@@ -364,11 +316,8 @@ export class WebhookEndpoint {
     const crypto = require('crypto');
     const secret = this.config.secret || '';
     const algorithm = this.config.signatureAlgorithm || 'sha256';
-    
-    return crypto
-      .createHmac(algorithm, secret)
-      .update(payload)
-      .digest('hex');
+
+    return crypto.createHmac(algorithm, secret).update(payload).digest('hex');
   }
 
   transformPayload(originalPayload: any): any {
@@ -376,15 +325,13 @@ export class WebhookEndpoint {
       return originalPayload;
     }
 
-    // This would use a templating engine like Handlebars
-    // For now, return the original payload
     return originalPayload;
   }
 
   disable(reason?: string): void {
     this.status = WebhookStatus.DISABLED;
     this.isActive = false;
-    
+
     if (reason) {
       this.metadata.customFields = {
         ...this.metadata.customFields,
@@ -405,7 +352,6 @@ export class WebhookEndpoint {
     this.lastVerifiedAt = new Date();
   }
 
-  // Static factory methods
   static createEndpoint(
     name: string,
     url: string,

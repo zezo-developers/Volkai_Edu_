@@ -31,16 +31,16 @@ export class UserSkill {
   id: string;
 
   @ApiProperty({ description: 'User ID' })
-  @Column({ name: 'user_id' })
+  @Column({ name: 'userId' })
   userId: string;
 
   @ApiProperty({ description: 'Skill ID' })
-  @Column({ name: 'skill_id' })
+  @Column({ name: 'skillId' })
   skillId: string;
 
   @ApiProperty({ enum: SkillProficiency, description: 'Proficiency level' })
   @Column({
-    name: 'proficiency_level',
+    name: 'proficiencyLevel',
     type: 'enum',
     enum: SkillProficiency,
     default: SkillProficiency.BEGINNER,
@@ -48,26 +48,26 @@ export class UserSkill {
   proficiencyLevel: SkillProficiency;
 
   @ApiProperty({ description: 'Years of experience with this skill' })
-  @Column({ name: 'years_experience', nullable: true })
+  @Column({ name: 'yearsExperience', nullable: true })
   yearsExperience?: number;
 
   @ApiProperty({ description: 'Whether skill is featured on profile' })
-  @Column({ name: 'is_featured', default: false })
+  @Column({ name: 'isFeatured', default: false })
   isFeatured: boolean;
 
   @ApiProperty({ description: 'Self-assessed confidence level (1-10)' })
-  @Column({ name: 'confidence_level', nullable: true })
+  @Column({ name: 'confidenceLevel', nullable: true })
   confidenceLevel?: number;
 
   @ApiProperty({ description: 'How the skill was acquired' })
-  @Column({ name: 'acquisition_method', nullable: true })
+  @Column({ name: 'acquisitionMethod', nullable: true })
   acquisitionMethod?: 'self_taught' | 'formal_education' | 'online_course' | 'bootcamp' | 'work_experience' | 'certification';
 
   @ApiProperty({ description: 'Skill verification details' })
-  @Column({ name: 'verification_data', type: 'jsonb', default: {} })
+  @Column({ name: 'verificationData', type: 'jsonb', default: {} })
   verificationData: {
     method?: 'course_completion' | 'certification' | 'peer_review' | 'project_demonstration' | 'assessment';
-    source?: string; // Course ID, Certificate ID, etc.
+    source?: string;
     score?: number;
     assessmentDate?: Date;
     validUntil?: Date;
@@ -75,11 +75,11 @@ export class UserSkill {
   };
 
   @ApiProperty({ description: 'User ID who verified this skill' })
-  @Column({ name: 'verified_by', nullable: true })
+  @Column({ name: 'verifiedBy', nullable: true })
   verifiedBy?: string;
 
   @ApiProperty({ description: 'Skill verification timestamp' })
-  @Column({ name: 'verified_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'verifiedAt', type: 'timestamp', nullable: true })
   verifiedAt?: Date;
 
   @ApiProperty({ description: 'Evidence/proof of skill' })
@@ -102,11 +102,11 @@ export class UserSkill {
     description: string;
     startDate: Date;
     endDate?: Date;
-    intensity: 'low' | 'medium' | 'high'; // How heavily the skill was used
+    intensity: 'low' | 'medium' | 'high';
   }>;
 
   @ApiProperty({ description: 'Learning progress and goals' })
-  @Column({ name: 'learning_data', type: 'jsonb', default: {} })
+  @Column({ name: 'learningData', type: 'jsonb', default: {} })
   learningData: {
     currentGoal?: string;
     targetProficiency?: SkillProficiency;
@@ -115,7 +115,7 @@ export class UserSkill {
       resource: string;
       type: 'course' | 'book' | 'tutorial' | 'practice';
       status: 'planned' | 'in_progress' | 'completed';
-      progress?: number; // 0-100
+      progress?: number;
     }>;
     practiceHours?: number;
     lastPracticed?: Date;
@@ -128,7 +128,7 @@ export class UserSkill {
     endorserName: string;
     relationship: 'colleague' | 'manager' | 'client' | 'peer' | 'mentor';
     comment?: string;
-    rating?: number; // 1-5
+    rating?: number;
     date: Date;
   }>;
 
@@ -140,26 +140,20 @@ export class UserSkill {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
-  // @ManyToOne(() => User, user => user.skills)
-  // @JoinColumn({ name: 'user_id' })
-  // user: User;
-
   @ManyToOne(() => Skill, skill => skill.userSkills)
-  @JoinColumn({ name: 'skill_id' })
+  @JoinColumn({ name: 'skillId' })
   skill: Skill;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'verified_by' })
+  @JoinColumn({ name: 'verifiedBy' })
   verifier?: User;
 
-  // Virtual properties
   get isVerified(): boolean {
     return !!this.verifiedAt;
   }
@@ -182,7 +176,6 @@ export class UserSkill {
     if (this.endorsements.length === 0) return 0;
     const ratingsWithValues = this.endorsements.filter(e => e.rating);
     if (ratingsWithValues.length === 0) return 0;
-    
     const sum = ratingsWithValues.reduce((acc, e) => acc + e.rating, 0);
     return sum / ratingsWithValues.length;
   }
@@ -194,11 +187,10 @@ export class UserSkill {
   }
 
   get needsUpdate(): boolean {
-    return this.isStale || (this.learningData.lastPracticed && 
+    return this.isStale || (this.learningData.lastPracticed &&
            this.learningData.lastPracticed < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
   }
 
-  // Methods
   updateProficiency(level: SkillProficiency, yearsExperience?: number): void {
     this.proficiencyLevel = level;
     if (yearsExperience !== undefined) {
@@ -226,7 +218,6 @@ export class UserSkill {
   }
 
   addEndorsement(endorsement: UserSkill['endorsements'][0]): void {
-    // Check if endorser already endorsed this skill
     const existingIndex = this.endorsements.findIndex(e => e.endorserId === endorsement.endorserId);
     if (existingIndex >= 0) {
       this.endorsements[existingIndex] = endorsement;
@@ -286,11 +277,11 @@ export class UserSkill {
   }
 
   updateLearningProgress(resourceIndex: number, progress: number): void {
-    if (this.learningData.learningPath && 
-        resourceIndex >= 0 && 
+    if (this.learningData.learningPath &&
+        resourceIndex >= 0 &&
         resourceIndex < this.learningData.learningPath.length) {
       this.learningData.learningPath[resourceIndex].progress = Math.max(0, Math.min(100, progress));
-      
+
       if (progress >= 100) {
         this.learningData.learningPath[resourceIndex].status = 'completed';
       } else if (progress > 0) {
@@ -306,62 +297,32 @@ export class UserSkill {
 
   calculateSkillScore(): number {
     let score = this.proficiencyScore;
-
-    // Boost for years of experience
-    if (this.yearsExperience) {
-      score += Math.min(this.yearsExperience * 2, 20);
-    }
-
-    // Boost for verification
-    if (this.isVerified) {
-      score += 10;
-    }
-
-    // Boost for endorsements
+    if (this.yearsExperience) score += Math.min(this.yearsExperience * 2, 20);
+    if (this.isVerified) score += 10;
     score += Math.min(this.endorsementCount * 2, 15);
-
-    // Boost for confidence level
-    if (this.confidenceLevel) {
-      score += this.confidenceLevel;
-    }
-
-    // Boost for evidence
+    if (this.confidenceLevel) score += this.confidenceLevel;
     score += Math.min(this.evidence.length * 3, 15);
-
-    // Boost for recent usage
     const recentUsage = this.usage.filter(u => {
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
       return (u.endDate || new Date()) > threeMonthsAgo;
     });
     score += Math.min(recentUsage.length * 5, 20);
-
-    return Math.min(score, 150); // Cap at 150
+    return Math.min(score, 150);
   }
 
   getRecommendations(): string[] {
     const recommendations: string[] = [];
-
-    if (!this.isVerified && this.proficiencyLevel !== SkillProficiency.BEGINNER) {
+    if (!this.isVerified && this.proficiencyLevel !== SkillProficiency.BEGINNER)
       recommendations.push('Consider getting this skill verified through a certification or peer review');
-    }
-
-    if (this.endorsementCount < 3) {
+    if (this.endorsementCount < 3)
       recommendations.push('Ask colleagues or peers to endorse this skill');
-    }
-
-    if (this.evidence.length === 0) {
+    if (this.evidence.length === 0)
       recommendations.push('Add evidence of your work with this skill (projects, certificates, etc.)');
-    }
-
-    if (this.needsUpdate) {
+    if (this.needsUpdate)
       recommendations.push('Update your skill information and recent usage');
-    }
-
-    if (!this.learningData.currentGoal && this.proficiencyLevel !== SkillProficiency.EXPERT) {
+    if (!this.learningData.currentGoal && this.proficiencyLevel !== SkillProficiency.EXPERT)
       recommendations.push('Set a learning goal to advance this skill further');
-    }
-
     return recommendations;
   }
 
@@ -397,26 +358,10 @@ export class UserSkill {
   }
 
   static getDefaultLearningPath(skillName: string): UserSkill['learningData']['learningPath'] {
-    // This could be enhanced with actual learning path data
     return [
-      {
-        resource: `${skillName} Fundamentals`,
-        type: 'course',
-        status: 'planned',
-        progress: 0,
-      },
-      {
-        resource: `${skillName} Best Practices`,
-        type: 'tutorial',
-        status: 'planned',
-        progress: 0,
-      },
-      {
-        resource: `Advanced ${skillName}`,
-        type: 'course',
-        status: 'planned',
-        progress: 0,
-      },
+      { resource: `${skillName} Fundamentals`, type: 'course', status: 'planned', progress: 0 },
+      { resource: `${skillName} Best Practices`, type: 'tutorial', status: 'planned', progress: 0 },
+      { resource: `Advanced ${skillName}`, type: 'course', status: 'planned', progress: 0 },
     ];
   }
 }

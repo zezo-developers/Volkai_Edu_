@@ -40,14 +40,14 @@ export class WebhookDelivery {
   id: string;
 
   @ApiProperty({ description: 'Webhook endpoint ID' })
-  @Column({ name: 'endpoint_id' })
+  @Column({ name: 'endpointId' })
   endpointId: string;
 
   @ApiProperty({ enum: WebhookEvent, description: 'Event type that triggered this delivery' })
   @Column({
     type: 'enum',
     enum: WebhookEvent,
-    enumName: 'webhook_event', // Name of Postgres enum
+    enumName: 'webhook_event',
   })
   eventType: WebhookEvent;
 
@@ -68,22 +68,17 @@ export class WebhookDelivery {
   priority: DeliveryPriority;
 
   @ApiProperty({ description: 'Organization ID (nullable for system events)' })
-  @Column({ name: 'organization_id', nullable: true })
+  @Column({ name: 'organizationId', nullable: true })
   organizationId?: string;
 
   @ApiProperty({ description: 'Event payload data' })
   @Column({ type: 'jsonb' })
   payload: {
-    // Event metadata
     event: string;
     eventId: string;
     timestamp: Date;
     version: string;
-    
-    // Event data
     data: any;
-    
-    // Context information
     context?: {
       userId?: string;
       organizationId?: string;
@@ -92,11 +87,7 @@ export class WebhookDelivery {
       ipAddress?: string;
       source?: string;
     };
-    
-    // Previous state (for update events)
     previousData?: any;
-    
-    // Custom fields
     [key: string]: any;
   };
 
@@ -131,8 +122,6 @@ export class WebhookDelivery {
     maxAttempts: number;
     nextAttemptAt?: Date;
     lastAttemptAt?: Date;
-    
-    // Attempt history
     history: Array<{
       attemptNumber: number;
       timestamp: Date;
@@ -141,8 +130,6 @@ export class WebhookDelivery {
       error?: string;
       success: boolean;
     }>;
-    
-    // Retry configuration
     retryDelay: number;
     exponentialBackoff: boolean;
     backoffMultiplier: number;
@@ -157,8 +144,6 @@ export class WebhookDelivery {
     details?: any;
     stack?: string;
     retryable?: boolean;
-    
-    // Network error details
     networkError?: {
       code?: string;
       errno?: number;
@@ -166,8 +151,6 @@ export class WebhookDelivery {
       hostname?: string;
       port?: number;
     };
-    
-    // HTTP error details
     httpError?: {
       statusCode?: number;
       statusText?: string;
@@ -178,61 +161,48 @@ export class WebhookDelivery {
   @ApiProperty({ description: 'Delivery metadata and tracking' })
   @Column({ type: 'jsonb', default: {} })
   metadata: {
-    // Tracking
     traceId?: string;
     correlationId?: string;
-    
-    // Performance
-    queueTime?: number; // Time spent in queue
-    processingTime?: number; // Time spent processing
-    totalTime?: number; // Total time from creation to completion
-    
-    // Source information
-    triggeredBy?: string; // User or system that triggered the event
-    sourceEvent?: string; // Original event that caused this delivery
-    
-    // Delivery context
+    queueTime?: number;
+    processingTime?: number;
+    totalTime?: number;
+    triggeredBy?: string;
+    sourceEvent?: string;
     deliveryAttempt?: number;
     isRetry?: boolean;
-    originalDeliveryId?: string; // For retry deliveries
-    
-    // Rate limiting
+    originalDeliveryId?: string;
     rateLimitRemaining?: number;
     rateLimitReset?: Date;
-    
-    // Custom metadata
     tags?: string[];
     customFields?: Record<string, any>;
   };
 
   @ApiProperty({ description: 'When delivery is scheduled to be sent' })
-  @Column({ name: 'scheduled_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ name: 'scheduledAt', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   scheduledAt: Date;
 
   @ApiProperty({ description: 'When delivery was actually sent' })
-  @Column({ name: 'sent_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'sentAt', type: 'timestamp', nullable: true })
   sentAt?: Date;
 
   @ApiProperty({ description: 'When delivery was completed (success or final failure)' })
-  @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'completedAt', type: 'timestamp', nullable: true })
   completedAt?: Date;
 
   @ApiProperty({ description: 'When delivery expires and should not be retried' })
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'expiresAt', type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => WebhookEndpoint, endpoint => endpoint.deliveries)
-  @JoinColumn({ name: 'endpoint_id' })
+  @JoinColumn({ name: 'endpointId' })
   endpoint: WebhookEndpoint;
 
-  // Virtual properties
   get isCompleted(): boolean {
     return [
       DeliveryStatus.SUCCESS,
@@ -268,7 +238,6 @@ export class WebhookDelivery {
     return this.isRetryable && !this.isExpired;
   }
 
-  // Methods
   markAsProcessing(): void {
     this.status = DeliveryStatus.PROCESSING;
     this.sentAt = new Date();
@@ -277,38 +246,22 @@ export class WebhookDelivery {
   markAsSuccess(response: any, responseTime: number): void {
     this.status = DeliveryStatus.SUCCESS;
     this.completedAt = new Date();
-    this.response = {
-      ...response,
-      responseTime,
-    };
-
-    // Record successful attempt
+    this.response = { ...response, responseTime };
     this.recordAttempt(true, response.statusCode, responseTime);
   }
 
   markAsFailed(error: any, response?: any): void {
     this.status = DeliveryStatus.FAILED;
     this.error = this.parseError(error);
-    
-    if (response) {
-      this.response = response;
-    }
-
-    // Record failed attempt
+    if (response) this.response = response;
     this.recordAttempt(false, response?.statusCode, response?.responseTime, error.message);
-
-    // Schedule retry if applicable
-    if (this.shouldRetry) {
-      this.scheduleRetry();
-    } else {
-      this.completedAt = new Date();
-    }
+    if (this.shouldRetry) this.scheduleRetry();
+    else this.completedAt = new Date();
   }
 
   markAsCancelled(reason?: string): void {
     this.status = DeliveryStatus.CANCELLED;
     this.completedAt = new Date();
-    
     if (reason) {
       this.metadata.customFields = {
         ...this.metadata.customFields,
@@ -324,12 +277,9 @@ export class WebhookDelivery {
 
   scheduleRetry(): void {
     if (!this.shouldRetry) return;
-
     this.status = DeliveryStatus.RETRYING;
-    
     const delay = this.calculateRetryDelay();
     this.attempts.nextAttemptAt = new Date(Date.now() + delay);
-    
     this.metadata.isRetry = true;
     this.metadata.deliveryAttempt = this.attempts.count + 1;
   }
@@ -337,11 +287,9 @@ export class WebhookDelivery {
   private calculateRetryDelay(): number {
     const baseDelay = this.attempts.retryDelay;
     const attemptNumber = this.attempts.count;
-    
     if (this.attempts.exponentialBackoff) {
       return baseDelay * Math.pow(this.attempts.backoffMultiplier || 2, attemptNumber);
     }
-    
     return baseDelay;
   }
 
@@ -349,11 +297,10 @@ export class WebhookDelivery {
     success: boolean,
     statusCode?: number,
     responseTime?: number,
-    error?: string
+    error?: string,
   ): void {
     this.attempts.count += 1;
     this.attempts.lastAttemptAt = new Date();
-
     this.attempts.history.push({
       attemptNumber: this.attempts.count,
       timestamp: new Date(),
@@ -370,8 +317,6 @@ export class WebhookDelivery {
       type: 'network',
       retryable: true,
     };
-
-    // Network errors
     if (error.code) {
       errorInfo.networkError = {
         code: error.code,
@@ -380,13 +325,9 @@ export class WebhookDelivery {
         hostname: error.hostname,
         port: error.port,
       };
-      
-      // Determine if retryable based on error code
       const nonRetryableCodes = ['ENOTFOUND', 'ECONNREFUSED'];
       errorInfo.retryable = !nonRetryableCodes.includes(error.code);
     }
-
-    // HTTP errors
     if (error.response) {
       errorInfo.type = 'http';
       errorInfo.httpError = {
@@ -394,29 +335,22 @@ export class WebhookDelivery {
         statusText: error.response.statusText,
         responseBody: error.response.data,
       };
-      
-      // HTTP status codes that shouldn't be retried
       const nonRetryableStatuses = [400, 401, 403, 404, 405, 410, 422];
       errorInfo.retryable = !nonRetryableStatuses.includes(error.response.status);
     }
-
-    // Timeout errors
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       errorInfo.type = 'timeout';
       errorInfo.retryable = true;
     }
-
     return errorInfo;
   }
 
-  setExpiration(hours: number = 24): void {
+  setExpiration(hours = 24): void {
     this.expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
   }
 
   addMetadata(key: string, value: any): void {
-    if (!this.metadata.customFields) {
-      this.metadata.customFields = {};
-    }
+    if (!this.metadata.customFields) this.metadata.customFields = {};
     this.metadata.customFields[key] = value;
   }
 
@@ -428,13 +362,12 @@ export class WebhookDelivery {
     this.metadata.correlationId = correlationId;
   }
 
-  // Static factory methods
   static createDelivery(
     endpointId: string,
     eventType: WebhookEvent,
     payload: any,
     priority: DeliveryPriority = DeliveryPriority.NORMAL,
-    organizationId?: string
+    organizationId?: string,
   ): Partial<WebhookDelivery> {
     return {
       endpointId,
@@ -467,7 +400,7 @@ export class WebhookDelivery {
     endpointId: string,
     eventType: WebhookEvent,
     payload: any,
-    organizationId?: string
+    organizationId?: string,
   ): Partial<WebhookDelivery> {
     return this.createDelivery(endpointId, eventType, payload, DeliveryPriority.HIGH, organizationId);
   }
@@ -476,16 +409,13 @@ export class WebhookDelivery {
     endpointId: string,
     eventType: WebhookEvent,
     payload: any,
-    organizationId?: string
+    organizationId?: string,
   ): Partial<WebhookDelivery> {
     const delivery = this.createDelivery(endpointId, eventType, payload, DeliveryPriority.CRITICAL, organizationId);
-    
-    // Critical deliveries have more aggressive retry settings
     if (delivery.attempts) {
       delivery.attempts.maxAttempts = 5;
       delivery.attempts.retryDelay = 500;
     }
-    
     return delivery;
   }
 
@@ -495,7 +425,7 @@ export class WebhookDelivery {
     payload: any,
     scheduledAt: Date,
     priority: DeliveryPriority = DeliveryPriority.NORMAL,
-    organizationId?: string
+    organizationId?: string,
   ): Partial<WebhookDelivery> {
     const delivery = this.createDelivery(endpointId, eventType, payload, priority, organizationId);
     delivery.scheduledAt = scheduledAt;
@@ -504,7 +434,7 @@ export class WebhookDelivery {
 
   static createRetryDelivery(
     originalDelivery: WebhookDelivery,
-    scheduledAt: Date
+    scheduledAt: Date,
   ): Partial<WebhookDelivery> {
     return {
       endpointId: originalDelivery.endpointId,
@@ -515,7 +445,7 @@ export class WebhookDelivery {
       status: DeliveryStatus.PENDING,
       attempts: {
         ...originalDelivery.attempts,
-        count: 0, // Reset for new delivery
+        count: 0,
         history: [],
       },
       request: {},
