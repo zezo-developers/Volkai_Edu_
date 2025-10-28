@@ -29,7 +29,7 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 @ApiTags('API Keys')
 @Controller('api-keys')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class ApiKeyController {
   constructor(private readonly apiKeyService: ApiKeyService) {}
 

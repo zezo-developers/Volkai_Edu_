@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AssessmentsController } from './assessments.controller';
 import { AssessmentService } from './services/assessment.service';
 import { Assessment } from '../../database/entities/assessment.entity';
 import { AssessmentAttempt } from '../../database/entities/assessment-attempt.entity';
@@ -9,6 +8,7 @@ import { Module as CourseModule } from '../../database/entities/module.entity';
 import { Lesson } from '../../database/entities/lesson.entity';
 import { Enrollment } from '../../database/entities/enrollment.entity';
 import { User } from '../../database/entities/user.entity';
+import { AssessmentsController } from './assessments.controller';
 
 @Module({
   imports: [

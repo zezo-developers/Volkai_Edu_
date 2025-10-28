@@ -38,11 +38,13 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 
 @ApiTags('Enrollments')
 @Controller('enrollments')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class EnrollmentsController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
@@ -66,11 +68,14 @@ export class EnrollmentsController {
   async enrollUser(
     @Body() enrollUserDto: EnrollUserDto,
     @Request() req: any,
+    @CurrentUser() user: AuthenticatedUser
   ): Promise<EnrollmentResponseDto> {
+    console.log("body: ",enrollUserDto)
     try {
       const enrollment = await this.enrollmentService.enrollUser(
         req.user.id,
-        enrollUserDto,
+        user,
+        enrollUserDto.courseId
       );
       return new EnrollmentResponseDto(enrollment);
     } catch (error) {
@@ -192,10 +197,14 @@ export class EnrollmentsController {
     @Request() req: any,
   ): Promise<EnrollmentResponseDto> {
     try {
+      console.log({ courseId,
+       req: req.user,})
       const enrollment = await this.enrollmentService.getUserEnrollment(
         courseId,
         req.user,
       );
+      console.log("Enrollement: ", enrollment)
+      if(!enrollment) throw new HttpException("Enrollment not found", HttpStatus.NOT_FOUND)
       return new EnrollmentResponseDto(enrollment);
     } catch (error) {
       throw new HttpException(

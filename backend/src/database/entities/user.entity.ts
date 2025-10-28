@@ -73,7 +73,7 @@ export class User {
   @Index()
   email: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
+  @Column({ type: 'varchar', length: 255})
   @Index()
   roles: string;
 
@@ -158,23 +158,23 @@ export class User {
   @OneToMany(() => OrganizationMembership, membership => membership.user)
   organizationMemberships: OrganizationMembership[];
 
-  // @OneToMany(() => AuditLog, auditLog => auditLog.actor)
-  // auditLogs: AuditLog[];
+  @OneToMany(() => AuditLog, auditLog => auditLog.actor)
+  auditLogs: AuditLog[];
 
   // Added missing relations
-  // @OneToMany(() => UserResume, resume => resume.user)
-  // resumes: UserResume[];
+  @OneToMany(() => UserResume, resume => resume.userId)
+  resumes: UserResume[];
 
-  // @OneToMany(() => UserSkill, skill => skill.user)
-  // skills: UserSkill[];
+  @OneToMany(() => UserSkill, skill => skill.userId)
+  skills: UserSkill[];
 
-  // @OneToOne(() => HRProfile, hrProfile => hrProfile.user)
-  // @JoinColumn()
-  // hrProfile: HRProfile;
+  @OneToOne(() => HRProfile, hrProfile => hrProfile.userId)
+  @JoinColumn()
+  hrProfile: HRProfile;
 
-  // @OneToOne(() => UserNotificationPreferences, np => np.user)
-  // @JoinColumn()
-  // notificationPreferences: UserNotificationPreferences;
+  @OneToOne(() => UserNotificationPreferences, np => np.userId)
+  @JoinColumn()
+  notificationPreferences: UserNotificationPreferences;
 
   // Virtual properties
   get fullName(): string {

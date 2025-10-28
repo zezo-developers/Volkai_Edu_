@@ -5,6 +5,8 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -353,6 +355,7 @@ export class OrganizationsService {
     currentUser: AuthenticatedUser,
   ): Promise<{ invitation: OrganizationMembership }> {
     const { email, role, message } = inviteMemberDto;
+    console.log('inviteMemberDto', currentUser);
 
     // Check if user can manage members
     const membership = await this.membershipRepository.findOne({
@@ -362,7 +365,7 @@ export class OrganizationsService {
         status: MembershipStatus.ACTIVE,
       },
     });
-
+    console.log('membership', membership);
     if (!membership || !membership.canManageUsers) {
       throw new ForbiddenException('Insufficient permissions to invite members');
     }
@@ -376,6 +379,7 @@ export class OrganizationsService {
     const existingUser = await this.userRepository.findOne({
       where: { email, status: UserStatus.ACTIVE, deletedAt: null },
     });
+    console.log('existingUser', existingUser);
 
     // Check if user is already a member
     if (existingUser) {
@@ -386,40 +390,44 @@ export class OrganizationsService {
       if (existingMembership && existingMembership.status !== MembershipStatus.REMOVED) {
         throw new ConflictException('User is already a member of this organization');
       }
+    }else{
+      throw new HttpException('User does not exist', HttpStatus.FORBIDDEN);
     }
 
     // Generate invitation token
     const invitationToken = uuidv4();
     const invitationExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
+    if(existingUser){
+      const invitation = this.membershipRepository.create({
+        userId: existingUser?.id, // Will be null for new users
+        organizationId,
+        role,
+        status: MembershipStatus.INVITED,
+        invitedBy: currentUser.id,
+        invitedAt: new Date(),
+        invitationToken,
+        invitationExpiresAt,
+      });
+  
+      const savedInvitation = await this.membershipRepository.save(invitation);
+  
+      // Emit member invited event
+      this.eventEmitter.emit('member.invited', {
+        organizationId,
+        email,
+        role,
+        invitedBy: currentUser.id,
+        invitationToken,
+        message,
+        existingUser: !!existingUser,
+      });
+  
+      this.logger.log(`Member invited: ${email} to ${organizationId} by ${currentUser.id}`);
+  
+      return { invitation: savedInvitation };
+    }
     // Create invitation membership
-    const invitation = this.membershipRepository.create({
-      userId: existingUser?.id, // Will be null for new users
-      organizationId,
-      role,
-      status: MembershipStatus.INVITED,
-      invitedBy: currentUser.id,
-      invitedAt: new Date(),
-      invitationToken,
-      invitationExpiresAt,
-    });
-
-    const savedInvitation = await this.membershipRepository.save(invitation);
-
-    // Emit member invited event
-    this.eventEmitter.emit('member.invited', {
-      organizationId,
-      email,
-      role,
-      invitedBy: currentUser.id,
-      invitationToken,
-      message,
-      existingUser: !!existingUser,
-    });
-
-    this.logger.log(`Member invited: ${email} to ${organizationId} by ${currentUser.id}`);
-
-    return { invitation: savedInvitation };
   }
 
   /**

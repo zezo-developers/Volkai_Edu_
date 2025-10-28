@@ -20,6 +20,7 @@ import { Module } from '@database/entities/module.entity';
 import { Lesson } from '@database/entities/lesson.entity';
 import { Enrollment } from '@database/entities/enrollment.entity';
 import { AuthenticatedUser } from '@modules/auth/strategies/jwt.strategy';
+import { CreateCourseDto } from '../dto/course.dto';
 
 /**
  * Course creation request interface
@@ -32,7 +33,7 @@ export interface CourseCreateRequest {
   prerequisites?: string;
   category?: string;
   tags?: string[];
-  difficulty?: CourseDifficulty;
+  difficulty: CourseDifficulty;
   accessType?: CourseAccessType;
   price?: number;
   currency?: string;
@@ -120,7 +121,7 @@ export class CourseManagementService {
    * Create a new course
    */
   async createCourse(
-    request: CourseCreateRequest,
+    request: CreateCourseDto,
     currentUser: AuthenticatedUser,
   ): Promise<Course> {
     this.logger.log(`Creating course: ${request.title} by user: ${currentUser.id}`);
@@ -578,7 +579,7 @@ export class CourseManagementService {
       throw new ForbiddenException('Access denied to clone this course');
     }
 
-    const cloneData: CourseCreateRequest = {
+    const cloneData: any = {
       title: newTitle,
       description: originalCourse.description,
       shortDescription: originalCourse.shortDescription,
@@ -600,6 +601,8 @@ export class CourseManagementService {
       metadata: JSON.parse(JSON.stringify(originalCourse.metadata || {})),
       settings: JSON.parse(JSON.stringify(originalCourse.settings || {})),
     };
+
+    console.log('cloned data', cloneData);
 
     const clonedCourse = await this.createCourse(cloneData, currentUser);
 

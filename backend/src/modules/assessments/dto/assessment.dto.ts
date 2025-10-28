@@ -92,19 +92,16 @@ export class CreateAssessmentDto {
   type: AssessmentType;
 
   @ApiPropertyOptional({ description: 'Course ID this assessment belongs to' })
-  @IsOptional()
   @IsUUID()
-  courseId?: string;
+  courseId: string;
 
   @ApiPropertyOptional({ description: 'Module ID this assessment belongs to' })
-  @IsOptional()
   @IsUUID()
-  moduleId?: string;
+  moduleId: string;
 
   @ApiPropertyOptional({ description: 'Lesson ID this assessment belongs to' })
-  @IsOptional()
   @IsUUID()
-  lessonId?: string;
+  lessonId: string;
 
   @ApiPropertyOptional({
     type: [QuestionDto],
@@ -185,7 +182,6 @@ export class SearchAssessmentsDto {
   search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by course ID' })
-  @IsOptional()
   @IsUUID()
   courseId?: string;
 

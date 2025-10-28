@@ -49,7 +49,7 @@ export class UsersService {
 
     const { q, role, status, page = 1, limit = 20 } = query;
     const offset = (page - 1) * limit;
-
+    console.log("Inside get users")
     // Build query for organization members
     const queryBuilder = this.membershipRepository
       .createQueryBuilder('membership')
@@ -59,33 +59,33 @@ export class UsersService {
       .andWhere('membership.status = :membershipStatus', { membershipStatus: MembershipStatus.ACTIVE })
       .andWhere('user.status = :userStatus', { userStatus: UserStatus.ACTIVE })
       .andWhere('user.deletedAt IS NULL');
-
-    // Apply filters
-    if (q) {
+      // Apply filters
+      if (q) {
       queryBuilder.andWhere(
         '(LOWER(user.firstName) LIKE LOWER(:search) OR LOWER(user.lastName) LIKE LOWER(:search) OR LOWER(user.email) LIKE LOWER(:search))',
         { search: `%${q}%` },
       );
     }
-
+    
     if (role) {
       queryBuilder.andWhere('membership.role = :role', { role });
     }
-
+    
     if (status) {
       queryBuilder.andWhere('user.status = :status', { status });
     }
-
+    
     // Get total count
     const total = await queryBuilder.getCount();
-
+    
     // Get paginated results
     const memberships = await queryBuilder
-      .orderBy('user.created_at', 'DESC')
+    .orderBy('user.createdAt', 'DESC')
       .skip(offset)
       .take(limit)
       .getMany();
-
+      
+      console.log('queryBUilder: ', memberships)
     // Transform results
     const users = memberships.map(membership => ({
       ...membership.user,

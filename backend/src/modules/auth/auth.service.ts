@@ -93,11 +93,11 @@ export class AuthService {
       emailVerificationToken,
       emailVerificationExpiresAt,
       status: UserStatus.ACTIVE,
-      roles: [Role.USER] as any,
+      roles: Role.USER as string,
     }) ;
 
     const savedUser:any = await this.userRepository.save(user);
-    // console.log('Saved User:', savedUser);
+    console.log('Saved User:', savedUser);
 
     let organization: Organization | undefined;
     let membership: OrganizationMembership | undefined;

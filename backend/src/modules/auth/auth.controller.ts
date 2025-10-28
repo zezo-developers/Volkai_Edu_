@@ -30,7 +30,7 @@ import { AuthenticatedUser } from './strategies/jwt.strategy';
  * Handles all authentication-related endpoints including registration, login,
  * token management, password operations, and email verification
  */
-// @ApiTags('Authentication')
+@ApiTags('Authentication')
 @Controller('auth')
 // @UseGuards(AdvancedThrottlerGuard) // Advanced rate limiting for all auth endpoints
 export class AuthController {

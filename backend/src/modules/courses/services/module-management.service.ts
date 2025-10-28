@@ -95,13 +95,13 @@ export class ModuleLessonManagementService {
     currentUser: AuthenticatedUser,
   ): Promise<Module> {
     this.logger.log(`Creating module: ${request.title} by user: ${currentUser.id}`);
-
+    console.log('REquest: ', request);
     try {
       // Verify course access
       const course = await this.courseRepository.findOne({
         where: { id: request.courseId },
       });
-
+      console.log('Course: ', course);
       if (!course) {
         throw new NotFoundException(`Course not found: ${request.courseId}`);
       }

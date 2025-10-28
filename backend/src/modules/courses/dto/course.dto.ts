@@ -11,7 +11,7 @@ import {
   Min,
   Max,
   IsObject,
-  IsUrl,
+  IsUrl
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
@@ -43,9 +43,10 @@ export class CreateCourseDto {
   @IsString()
   shortDescription?: string;
 
-  @ApiProperty({ enum: CourseDifficulty, description: 'Course difficulty level' })
+  @ApiProperty({ enum: CourseDifficulty, description: 'Course difficulty level', default: CourseDifficulty.BEGINNER })
   @IsEnum(CourseDifficulty)
-  difficulty: CourseDifficulty;
+  @IsOptional()
+  difficulty: CourseDifficulty = CourseDifficulty.BEGINNER;
 
   @ApiPropertyOptional({ description: 'Course duration in minutes' })
   @IsOptional()
@@ -98,13 +99,20 @@ export class CreateCourseDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  learningObjectives?: string[];
+  learningObjectives?: string;
+
+  @IsOptional()
+  estimatedDurationMinutes?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  allowEnrollment?: boolean;
 
   @ApiPropertyOptional({ description: 'Course prerequisites', type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  prerequisites?: string[];
+  prerequisites?: string;
 
   @ApiPropertyOptional({ description: 'Course language' })
   @IsOptional()

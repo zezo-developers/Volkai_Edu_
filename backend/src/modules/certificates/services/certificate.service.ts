@@ -127,7 +127,7 @@ export class CertificateService {
       if (!this.canUserGenerateCertificate(enrollment, currentUser)) {
         throw new ForbiddenException('Insufficient permissions to generate certificate');
       }
-
+      console.log('enrollment', enrollment.course.passingScore)
       // Check if enrollment is eligible for certificate
       if (!enrollment.isEligibleForCertificate(enrollment.course.passingScore)) {
         throw new BadRequestException('Enrollment is not eligible for certificate');

@@ -49,6 +49,9 @@ import { CommonModule } from '@common/common.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { MyTestModule } from './my-test/my-test.module';
 import { User } from './database/entities/user.entity';
+import { AssessmentsModule } from './modules/assessments/assessments.module';
+import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { CertificatesModule } from './modules/certificates/certificates.module';
 
 /**
  * Root application module that orchestrates all feature modules
@@ -203,10 +206,15 @@ import { User } from './database/entities/user.entity';
     VersioningModule,
     AntiCheatModule,
     NotificationsModule,
-    // BillingModule,
+    BillingModule,
     AdminModule,
     WebhooksModule,
+
+    AssessmentsModule,
+    EnrollmentsModule,
+    CertificatesModule,
     
+
     // // Performance & Security modules
     PerformanceModule,
     SecurityModule,

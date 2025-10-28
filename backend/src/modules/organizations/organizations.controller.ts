@@ -33,13 +33,7 @@ import { OrganizationMembership } from '@database/entities/organization-membersh
 @ApiTags('Organizations')
 @Controller('orgs')
 // @UseGuards(JwtAuthGuard, PermissionsGuard)
-@UseGuards(JwtAuthGuard
-
-
-
-
-
-)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}

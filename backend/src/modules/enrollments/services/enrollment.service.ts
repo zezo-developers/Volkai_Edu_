@@ -123,12 +123,13 @@ export class EnrollmentService {
   async enrollUser(
     request: EnrollmentRequest,
     currentUser: AuthenticatedUser | any,
+    courseId?:string,
   ): Promise<Enrollment> {
     this.logger.log(`Enrolling user ${currentUser.id} in course: ${request.courseId}`);
 
     try {
       // Check if course exists and is available
-      const course = await this.courseRepository.findOne({
+      const   course = await this.courseRepository.findOne({
         where: { id: request.courseId },
         relations: ['modules', 'modules.lessons'],
       });
@@ -136,18 +137,23 @@ export class EnrollmentService {
       if (!course) {
         throw new NotFoundException(`Course not found: ${request.courseId}`);
       }
-
-      if (!course.canEnroll(currentUser.id, currentUser.currentOrganizationId)) {
+      console.log('currentUser: ', currentUser);
+      if (course.canEnroll(currentUser.id, currentUser.currentOrganizationId)) {
         throw new BadRequestException('Course is not available for enrollment');
       }
-
+      console.log({
+          userId: currentUser.id,
+          courseId: courseId,
+        })
       // Check if user is already enrolled
       const existingEnrollment = await this.enrollmentRepository.findOne({
         where: {
           userId: currentUser.id,
-          courseId: request.courseId,
+          courseId: courseId,
         },
       });
+
+      console.log('existingEnrollment: ', existingEnrollment);  
 
       if (existingEnrollment) {
         if (existingEnrollment.isActive || existingEnrollment.isCompleted) {
@@ -175,10 +181,19 @@ export class EnrollmentService {
       const totalLessons = course.modules?.reduce((sum, module) => 
         sum + (module.lessons?.length || 0), 0) || 0;
 
+      console.log({
+        userId: currentUser.id,
+        courseId: courseId,
+        status: course.requiresApproval ? EnrollmentStatus.PENDING : EnrollmentStatus.ACTIVE,
+        totalLessons,
+        notes: request.notes,
+        metadata: request.metadata || {},
+        receiveNotifications: true,
+      })
       // Create new enrollment
       const enrollment = this.enrollmentRepository.create({
         userId: currentUser.id,
-        courseId: request.courseId,
+        courseId: courseId,
         status: course.requiresApproval ? EnrollmentStatus.PENDING : EnrollmentStatus.ACTIVE,
         totalLessons,
         notes: request.notes,
@@ -226,6 +241,10 @@ export class EnrollmentService {
     courseId: string,
     currentUser: AuthenticatedUser,
   ): Promise<Enrollment | null> {
+    console.log("data inserviec: ", {
+        userId: currentUser.id,
+        courseId,
+      })
     return await this.enrollmentRepository.findOne({
       where: {
         userId: currentUser.id,

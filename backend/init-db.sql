@@ -17,3 +17,5 @@ BEGIN
    END IF;
 END
 $$;
+
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;

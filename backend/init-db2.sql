@@ -1,390 +1,32 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+-- Create database if not exists
+DO
+$$
+BEGIN
+   IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'volkai_hr_edu') THEN
+      CREATE DATABASE volkai_hr_edu;
+   END IF;
+END
+$$;
 
-/**
- * Initial migration to create core tables for authentication and organization management
- * Creates users, organizations, memberships, roles, permissions, and audit logs tables
- */
-export class InitialMigration1698000000000 implements MigrationInterface {
-  name = 'InitialMigration1698000000000';
+-- Create user if not exists
+DO
+$$
+BEGIN
+   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'volkai_user') THEN
+      CREATE USER volkai_user WITH ENCRYPTED PASSWORD 'volkai_password';
+   END IF;
+END
+$$;
 
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create enums
-    // await queryRunner.query(`
-    //   CREATE TYPE "user_status_enum" AS ENUM('active', 'inactive', 'suspended', 'deleted')
-    // `);
-    
-    // await queryRunner.query(`
-    //   CREATE TYPE "organization_size_enum" AS ENUM('startup', 'small', 'medium', 'large', 'enterprise')
-    // `);
-    
-    // await queryRunner.query(`
-    //   CREATE TYPE "organization_status_enum" AS ENUM('active', 'trial', 'suspended', 'cancelled')
-    // `);
-    
-    // await queryRunner.query(`
-    //   CREATE TYPE "membership_role_enum" AS ENUM('owner', 'admin', 'manager', 'hr', 'interviewer', 'learner')
-    // `);
-    
-    // await queryRunner.query(`
-    //   CREATE TYPE "membership_status_enum" AS ENUM('invited', 'active', 'inactive', 'removed')
-    // `);
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 
-    // // Create users table
-    // await queryRunner.query(`
-    //   CREATE TABLE "users" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    // "email" character varying(255) NOT NULL,
-    // "roles" character varying(255) NOT NULL,
-    // "passwordHash" character varying(255),
-    // "organizationId" character varying(255),
-    // "failedLoginAttempts" character varying(255),
-    // "lastLoginIp" character varying(255),
-    // "firstName" character varying(100) NOT NULL,
-    // "lastName" character varying(100) NOT NULL,
-    // "phone" character varying(20),
-    // "avatarUrl" text,
-    // "locale" character varying(10) NOT NULL DEFAULT 'en',
-    // "timezone" character varying(50) NOT NULL DEFAULT 'UTC',
-    // "status" "user_status_enum" NOT NULL DEFAULT 'active',
-    // "emailVerified" boolean NOT NULL DEFAULT false,
-    // "phoneVerified" boolean NOT NULL DEFAULT false,
-    // "lastLoginAt" TIMESTAMP,
-    // "emailVerificationToken" character varying(255),
-    // "emailVerificationExpiresAt" TIMESTAMP,
-    // "passwordResetToken" character varying(255),
-    // "passwordResetExpiresAt" TIMESTAMP,
-    // "refreshTokenHash" character varying(255),
-    // "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    // "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-    // "deletedAt" TIMESTAMP,
-    // CONSTRAINT "PK_users_id" PRIMARY KEY ("id")
-    //   )
-    // `);
-
-    // // Create organizations table
-    // await queryRunner.query(`
-    //   CREATE TABLE "organizations" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "name" character varying(255) NOT NULL,
-    //     "slug" character varying(100) NOT NULL,
-    //     "domain" character varying(255),
-    //     "logoUrl" text,
-    //     "website" character varying(255),
-    //     "industry" character varying(100),
-    //     "size" "organization_size_enum",
-    //     "timezone" character varying(50) NOT NULL DEFAULT 'UTC',
-    //     "status" "organization_status_enum" NOT NULL DEFAULT 'trial',
-    //     "settings" jsonb NOT NULL DEFAULT '{}',
-    //     "createdBy" uuid NOT NULL,
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_organizations_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "FK_organizations_createdBy" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE
-    //   )
-    // `);
-
-    // // Create organization_memberships table
-    // await queryRunner.query(`
-    //   CREATE TABLE "organization_memberships" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "userId" uuid NOT NULL,
-    //     "organizationId" uuid NOT NULL,
-    //     "role" "membership_role_enum" NOT NULL,
-    //     "status" "membership_status_enum" NOT NULL DEFAULT 'active',
-    //     "invitedBy" uuid,
-    //     "invitedAt" TIMESTAMP,
-    //     "joinedAt" TIMESTAMP,
-    //     "invitationToken" character varying(255),
-    //     "invitationExpiresAt" TIMESTAMP,
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_organization_memberships_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "UQ_organization_memberships_user_org" UNIQUE ("userId", "organizationId"),
-    //     CONSTRAINT "FK_organization_memberships_userId" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    //     CONSTRAINT "FK_organization_memberships_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    //     CONSTRAINT "FK_organization_memberships_invitedBy" FOREIGN KEY ("invitedBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE
-    //   )
-    // `);
-
-    // // Create permissions table
-    // await queryRunner.query(`
-    //   CREATE TABLE "permissions" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "name" character varying(100) NOT NULL,
-    //     "resource" character varying(50) NOT NULL,
-    //     "action" character varying(50) NOT NULL,
-    //     "description" text,
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_permissions_id" PRIMARY KEY ("id")
-    //   )
-    // `);
-
-    // // Create roles table
-    // await queryRunner.query(`
-    //   CREATE TABLE "roles" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "name" character varying(100) NOT NULL,
-    //     "description" text,
-    //     "organizationId" uuid,
-    //     "isSystem" boolean NOT NULL DEFAULT false,
-    //     "permissions" text array NOT NULL DEFAULT '{}',
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_roles_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "FK_roles_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE
-    //   )
-    // `);
-
-    // // Create role_permissions junction table
-    // await queryRunner.query(`
-    //   CREATE TABLE "role_permissions" (
-    //     "roleId" uuid NOT NULL,
-    //     "permissionId" uuid NOT NULL,
-    //     CONSTRAINT "PK_role_permissions" PRIMARY KEY ("roleId", "permissionId"),
-    //     CONSTRAINT "FK_role_permissions_roleId" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    //     CONSTRAINT "FK_role_permissions_permissionId" FOREIGN KEY ("permissionId") REFERENCES "permissions"("id") ON DELETE CASCADE ON UPDATE CASCADE
-    //   )
-    // `);
-
-    // // Create audit_logs table
-    // await queryRunner.query(`
-    //   CREATE TABLE "audit_logs" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "actorId" uuid,
-    //     "organizationId" uuid,
-    //     "action" character varying(100) NOT NULL,
-    //     "resourceType" character varying(50) NOT NULL,
-    //     "resourceId" uuid,
-    //     "oldValues" jsonb,
-    //     "newValues" jsonb,
-    //     "metadata" jsonb NOT NULL DEFAULT '{}',
-    //     "ipAddress" inet,
-    //     "userAgent" text,
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_audit_logs_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "FK_audit_logs_actorId" FOREIGN KEY ("actorId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    //     CONSTRAINT "FK_audit_logs_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE
-    //   )
-    // `);
-
-    // await queryRunner.query(`
-    //   CREATE TYPE "ai_interview_status_enum" AS ENUM ('pending', 'in_progress', 'completed', 'failed', 'cancelled');
-    //   CREATE TYPE "interview_format_enum" AS ENUM ('voice_only', 'video', 'text_only', 'mixed');
-    //   CREATE TYPE "interview_difficulty_enum" AS ENUM ('easy', 'medium', 'hard');
-
-    //   CREATE TABLE "ai_mock_interviews" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "user_id" uuid NOT NULL,
-    //     "job_role" character varying(255) NOT NULL,
-    //     "job_description" text,
-    //     "cancellationReason" text,
-    //     "failureReason" text,
-    //     "company_name" character varying(255),
-    //     "difficulty" "interview_difficulty_enum" NOT NULL DEFAULT 'medium',
-    //     "duration_minutes" integer NOT NULL DEFAULT 30,
-    //     "format" "interview_format_enum" NOT NULL DEFAULT 'voice_only',
-    //     "status" "ai_interview_status_enum" NOT NULL DEFAULT 'pending',
-    //     "started_at" TIMESTAMP,
-    //     "completed_at" TIMESTAMP,
-    //     "config" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "transcript" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "ai_feedback" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "overall_score" integer,
-    //     "performance_metrics" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "improvement_areas" text[] NOT NULL DEFAULT '{}',
-    //     "strengths" text[] NOT NULL DEFAULT '{}',
-    //     "skills_assessed" text[] NOT NULL DEFAULT '{}',
-    //     "skill_scores" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "ai_model_version" character varying(255),
-    //     "recording_urls" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "analytics" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "follow_up_recommendations" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_ai_mock_interviews_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "FK_ai_mock_interviews_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
-    //   );
-
-    //   CREATE INDEX "IDX_ai_mock_interviews_userId_status" ON "ai_mock_interviews" ("user_id", "status");
-    //   CREATE INDEX "IDX_ai_mock_interviews_jobRole_difficulty" ON "ai_mock_interviews" ("job_role", "difficulty");
-    //   CREATE INDEX "IDX_ai_mock_interviews_createdAt" ON "ai_mock_interviews" ("created_at");
-    // `);
-
-    // // Create files table
-    // await queryRunner.query(`
-    //    -- Create enums
-    //   CREATE TYPE "fileOwnerTypeEnum" AS ENUM ('user', 'organization', 'system');
-    //   CREATE TYPE "fileAccessLevelEnum" AS ENUM ('private', 'organization', 'public', 'link_only');
-    //   CREATE TYPE "virusScanStatusEnum" AS ENUM ('pending', 'scanning', 'clean', 'infected', 'error');
-    //   CREATE TYPE "fileProcessingStatusEnum" AS ENUM ('pending', 'processing', 'completed', 'failed');
-
-    //   -- Create table with camelCase column names
-    //   CREATE TABLE "files" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "ownerId" uuid,
-    //     "organizationId" uuid,
-    //     "ownerType" "fileOwnerTypeEnum" NOT NULL,
-    //     "filename" character varying(255) NOT NULL,
-    //     "originalFilename" character varying(255) NOT NULL,
-    //     "mimeType" character varying(100) NOT NULL,
-    //     "sizeBytes" bigint NOT NULL,
-    //     "storagePath" text NOT NULL,
-    //     "publicUrl" text,
-    //     "cdnUrl" text,
-    //     "thumbnailUrl" text,
-    //     "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "virusScanStatus" "virusScanStatusEnum" NOT NULL DEFAULT 'pending',
-    //     "virusScanResult" text,
-    //     "virusScanAt" TIMESTAMP,
-    //     "processingStatus" "fileProcessingStatusEnum" NOT NULL DEFAULT 'pending',
-    //     "processingError" text,
-    //     "accessLevel" "fileAccessLevelEnum" NOT NULL DEFAULT 'private',
-    //     "downloadCount" integer NOT NULL DEFAULT 0,
-    //     "viewCount" integer NOT NULL DEFAULT 0,
-    //     "lastAccessedAt" TIMESTAMP,
-    //     "expiresAt" TIMESTAMP,
-    //     "tags" text[] NOT NULL DEFAULT '{}',
-    //     "description" character varying(255),
-    //     "checksum" character varying(64),
-    //     "isProcessed" boolean NOT NULL DEFAULT false,
-    //     "isArchived" boolean NOT NULL DEFAULT false,
-    //     "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-    //     "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_files_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "FK_files_ownerId" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE SET NULL,
-    //     CONSTRAINT "FK_files_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL
-    //   );
-
-    //   -- Indexes
-    //   CREATE INDEX "IDX_files_ownerId_ownerType" ON "files" ("ownerId", "ownerType");
-    //   CREATE INDEX "IDX_files_organizationId" ON "files" ("organizationId");
-    //   CREATE INDEX "IDX_files_mimeType" ON "files" ("mimeType");
-    //   CREATE INDEX "IDX_files_accessLevel" ON "files" ("accessLevel");
-    //   CREATE INDEX "IDX_files_virusScanStatus" ON "files" ("virusScanStatus");
-    //   CREATE INDEX "IDX_files_createdAt" ON "files" ("createdAt");
-    //   CREATE INDEX "IDX_files_expiresAt" ON "files" ("expiresAt");
-    // `);
-
-    // //Create Course table
-    // await queryRunner.query(`
-    //   -- ==========================================================
-    //   -- ENUMS
-    //   -- ==========================================================
-    //   CREATE TYPE "courseStatusEnum" AS ENUM ('draft', 'published', 'archived', 'suspended');
-    //   CREATE TYPE "courseDifficultyEnum" AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
-    //   CREATE TYPE "courseAccessTypeEnum" AS ENUM ('free', 'paid', 'premium', 'organization_only');
-
-    //   -- ==========================================================
-    //   -- TABLE: courses
-    //   -- ==========================================================
-    //   CREATE TABLE "courses" (
-    //     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    //     "organizationId" uuid NOT NULL,
-    //     "instructorId" uuid NOT NULL,
-    //     "title" character varying(255) NOT NULL,
-    //     "slug" character varying(255) NOT NULL UNIQUE,
-    //     "description" text,
-    //     "shortDescription" text,
-    //     "learningObjectives" text,
-    //     "prerequisites" text,
-    //     "category" character varying(100),
-    //     "tags" text[] NOT NULL DEFAULT '{}',
-    //     "status" "courseStatusEnum" NOT NULL DEFAULT 'draft',
-    //     "difficulty" "courseDifficultyEnum" NOT NULL DEFAULT 'beginner',
-    //     "accessType" "courseAccessTypeEnum" NOT NULL DEFAULT 'free',
-    //     "price" numeric(10,2),
-    //     "currency" character varying(3) NOT NULL DEFAULT 'USD',
-    //     "thumbnailFileId" uuid,
-    //     "previewVideoFileId" uuid,
-    //     "thumbnailUrl" text,
-    //     "previewVideoUrl" text,
-    //     "estimatedDurationMinutes" integer NOT NULL DEFAULT 0,
-    //     "totalLessons" integer NOT NULL DEFAULT 0,
-    //     "totalModules" integer NOT NULL DEFAULT 0,
-    //     "totalAssessments" integer NOT NULL DEFAULT 0,
-    //     "averageRating" numeric(3,2) NOT NULL DEFAULT 0,
-    //     "totalRatings" integer NOT NULL DEFAULT 0,
-    //     "totalEnrollments" integer NOT NULL DEFAULT 0,
-    //     "totalCompletions" integer NOT NULL DEFAULT 0,
-    //     "viewCount" integer NOT NULL DEFAULT 0,
-    //     "isPublished" boolean NOT NULL DEFAULT false,
-    //     "allowEnrollment" boolean NOT NULL DEFAULT true,
-    //     "requiresApproval" boolean NOT NULL DEFAULT false,
-    //     "generateCertificate" boolean NOT NULL DEFAULT true,
-    //     "passingScore" integer,
-    //     "maxAttempts" integer,
-    //     "timeLimit" integer,
-    //     "publishedAt" TIMESTAMP,
-    //     "enrollmentStartDate" TIMESTAMP,
-    //     "enrollmentEndDate" TIMESTAMP,
-    //     "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "settings" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    //     "version" integer NOT NULL DEFAULT 0,
-    //     "isArchived" boolean NOT NULL DEFAULT false,
-    //     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    //     "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-    //     CONSTRAINT "PK_courses_id" PRIMARY KEY ("id"),
-    //     CONSTRAINT "FK_courses_organizationId" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE CASCADE,
-    //     CONSTRAINT "FK_courses_instructorId" FOREIGN KEY ("instructorId") REFERENCES "users"("id") ON DELETE CASCADE,
-    //     CONSTRAINT "FK_courses_thumbnailFileId" FOREIGN KEY ("thumbnailFileId") REFERENCES "files"("id") ON DELETE SET NULL,
-    //     CONSTRAINT "FK_courses_previewVideoFileId" FOREIGN KEY ("previewVideoFileId") REFERENCES "files"("id") ON DELETE SET NULL
-    //   );
-
-    //   -- ==========================================================
-    //   -- INDEXES
-    //   -- ==========================================================
-    //   CREATE INDEX "IDX_courses_organizationId" ON "courses" ("organizationId");
-    //   CREATE INDEX "IDX_courses_instructorId" ON "courses" ("instructorId");
-    //   CREATE INDEX "IDX_courses_status" ON "courses" ("status");
-    //   CREATE INDEX "IDX_courses_category" ON "courses" ("category");
-    //   CREATE INDEX "IDX_courses_difficulty" ON "courses" ("difficulty");
-    //   CREATE INDEX "IDX_courses_accessType" ON "courses" ("accessType");
-    //   CREATE INDEX "IDX_courses_isPublished" ON "courses" ("isPublished");
-    //   CREATE INDEX "IDX_courses_created_at" ON "courses" ("created_at");
-    //   CREATE INDEX "IDX_courses_slug" ON "courses" ("slug");
-    // `);
-
-
-
-
-    // // Create indexes for better performance
-    // await queryRunner.query(`CREATE UNIQUE INDEX "IDX_users_email" ON "users" ("email")`);
-    // await queryRunner.query(`CREATE UNIQUE INDEX "IDX_users_phone" ON "users" ("phone") WHERE "phone" IS NOT NULL`);
-    // await queryRunner.query(`CREATE INDEX "IDX_users_status" ON "users" ("status")`);
-    
-    // await queryRunner.query(`CREATE UNIQUE INDEX "IDX_organizations_slug" ON "organizations" ("slug")`);
-    // await queryRunner.query(`CREATE UNIQUE INDEX "IDX_organizations_domain" ON "organizations" ("domain") WHERE "domain" IS NOT NULL`);
-    // await queryRunner.query(`CREATE INDEX "IDX_organizations_status" ON "organizations" ("status")`);
-    
-    // await queryRunner.query(`CREATE INDEX "IDX_organization_memberships_userId_organizationId" ON "organization_memberships" ("userId", "organizationId")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_organization_memberships_organizationId_role" ON "organization_memberships" ("organizationId", "role")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_organization_memberships_status" ON "organization_memberships" ("status")`);
-    
-    // await queryRunner.query(`CREATE UNIQUE INDEX "IDX_permissions_name" ON "permissions" ("name")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_permissions_resource_action" ON "permissions" ("resource", "action")`);
-    
-    // await queryRunner.query(`CREATE UNIQUE INDEX "IDX_roles_name_organizationId" ON "roles" ("name", "organizationId")`);
-    
-    // await queryRunner.query(`CREATE INDEX "IDX_audit_logs_actorId" ON "audit_logs" ("actorId")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_audit_logs_organizationId" ON "audit_logs" ("organizationId")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_audit_logs_resourceType_resourceId" ON "audit_logs" ("resourceType", "resourceId")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_audit_logs_action" ON "audit_logs" ("action")`);
-    // await queryRunner.query(`CREATE INDEX "IDX_audit_logs_created_at" ON "audit_logs" ("created_at")`);
-
-
-    //*********************************************************** */
-
-
-    
-// Users Table
-await queryRunner.query(`
-  -- Create enums
   CREATE TYPE "userStatusEnum" AS ENUM ('active', 'inactive', 'suspended', 'deleted');
 
   -- Create table
   CREATE TABLE "users" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "email" character varying(255) NOT NULL UNIQUE,
-    "roles" character varying(255) NOT NULL,
+    "roles" character varying(255) NOT NULL UNIQUE,
     "passwordHash" character varying(255),
     "organizationId" character varying(255),
     "failedLoginAttempts" character varying(255),
@@ -417,11 +59,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_users_status" ON "users" ("status");
   CREATE INDEX "IDX_users_createdAt" ON "users" ("createdAt");
   CREATE INDEX "IDX_users_organizationId" ON "users" ("organizationId");
-`);
 
-// Organizations Table
-await queryRunner.query(`
-  -- Create enums
+
+  -- Organization Table
+   -- Create enums
   CREATE TYPE "organizationSizeEnum" AS ENUM ('startup', 'small', 'medium', 'large', 'enterprise');
   CREATE TYPE "organizationStatusEnum" AS ENUM ('active', 'trial', 'suspended', 'cancelled');
 
@@ -451,12 +92,10 @@ await queryRunner.query(`
   CREATE UNIQUE INDEX "IDX_organizations_slug" ON "organizations" ("slug");
   CREATE UNIQUE INDEX "IDX_organizations_domain" ON "organizations" ("domain") WHERE domain IS NOT NULL;
   CREATE INDEX "IDX_organizations_status" ON "organizations" ("status");
-`);
 
 
-// Organization Memberships Table
-await queryRunner.query(`
-  -- Create enums
+  --Organization Memberships Table
+   -- Create enums
   CREATE TYPE "membershipRoleEnum" AS ENUM ('owner', 'admin', 'manager', 'hr', 'interviewer', 'learner');
   CREATE TYPE "membershipStatusEnum" AS ENUM ('invited', 'active', 'inactive', 'removed');
 
@@ -484,15 +123,9 @@ await queryRunner.query(`
   CREATE INDEX "IDX_organization_memberships_userId_organizationId" ON "organization_memberships" ("userId", "organizationId");
   CREATE INDEX "IDX_organization_memberships_organizationId_role" ON "organization_memberships" ("organizationId", "role");
   CREATE INDEX "IDX_organization_memberships_status" ON "organization_memberships" ("status");
-`);
 
-
-
-
-
-    //Ai Mock Interview table
-    await queryRunner.query(`
-      -- Create enums
+  --Ai Mock Interview Table
+   -- Create enums
       CREATE TYPE "aiInterviewStatusEnum" AS ENUM ('pending', 'in_progress', 'completed', 'failed', 'cancelled');
       CREATE TYPE "interviewFormatEnum" AS ENUM ('voice_only', 'video', 'text_only', 'mixed');
       CREATE TYPE "interviewDifficultyEnum" AS ENUM ('easy', 'medium', 'hard');
@@ -536,10 +169,8 @@ await queryRunner.query(`
       CREATE INDEX "IDX_ai_mock_interviews_userId_status" ON "ai_mock_interviews" ("userId", "status");
       CREATE INDEX "IDX_ai_mock_interviews_jobRole_difficulty" ON "ai_mock_interviews" ("jobRole", "difficulty");
       CREATE INDEX "IDX_ai_mock_interviews_createdAt" ON "ai_mock_interviews" ("createdAt");
-    `);
 
-    //Analytics Event Table
-    await queryRunner.query(`
+--Analytics Event Table
   -- Create enums
   CREATE TYPE "eventTypeEnum" AS ENUM (
     'user_login',
@@ -602,7 +233,7 @@ await queryRunner.query(`
   CREATE TABLE "analytics_events" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "eventType" "eventTypeEnum" NOT NULL,
-    "category" "eventCategoryEnum" NOT NULL DEFAULT 'user',
+    "category" "eventCategoryEnum" NOT NULL,
     "userId" uuid NULL,
     "organizationId" uuid NULL,
     "sessionId" character varying(255) NULL,
@@ -624,11 +255,9 @@ await queryRunner.query(`
   CREATE INDEX "IDX_analytics_events_category_createdAt" ON "analytics_events" ("category", "createdAt");
   CREATE INDEX "IDX_analytics_events_sessionId" ON "analytics_events" ("sessionId");
   CREATE INDEX "IDX_analytics_events_ipAddress" ON "analytics_events" ("ipAddress");
-`);
 
-    // Api Keys Table
-await queryRunner.query(`
-  -- Create enums
+  --  Api Keys Table
+    -- Create enums
   CREATE TYPE "apiKeyStatusEnum" AS ENUM ('active', 'inactive', 'suspended', 'revoked', 'expired');
   CREATE TYPE "apiKeyTypeEnum" AS ENUM ('public', 'secret', 'webhook', 'integration', 'partner', 'internal');
   CREATE TYPE "apiScopeEnum" AS ENUM (
@@ -695,12 +324,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_api_keys_createdBy_status" ON "api_keys" ("createdBy", "status");
   CREATE INDEX "IDX_api_keys_type_status" ON "api_keys" ("type", "status");
   CREATE INDEX "IDX_api_keys_expiresAt" ON "api_keys" ("expiresAt");
-`);
 
-      // Api Key Usage Table
-      await queryRunner.query(`
 
-      -- Create enums
+
+  --Api Key Usage Table
+-- Create enums
       CREATE TYPE "requestMethodEnum" AS ENUM (
         'GET',
         'POST',
@@ -748,11 +376,10 @@ await queryRunner.query(`
       CREATE INDEX "IDX_api_key_usage_endpoint_createdAt" ON "api_key_usage" ("endpoint", "createdAt");
       CREATE INDEX "IDX_api_key_usage_ipAddress_createdAt" ON "api_key_usage" ("ipAddress", "createdAt");
       CREATE INDEX "IDX_api_key_usage_organizationId_createdAt" ON "api_key_usage" ("organizationId", "createdAt");
-    `);
 
-// Files Table
-await queryRunner.query(`
-  -- Create enums
+
+-- Files Table
+ -- Create enums
   CREATE TYPE "fileOwnerTypeEnum" AS ENUM ('user', 'organization', 'system');
   CREATE TYPE "fileAccessLevelEnum" AS ENUM ('private', 'organization', 'public', 'link_only');
   CREATE TYPE "virusScanStatusEnum" AS ENUM ('pending', 'scanning', 'clean', 'infected', 'error');
@@ -803,11 +430,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_files_virusScanStatus" ON "files" ("virusScanStatus");
   CREATE INDEX "IDX_files_createdAt" ON "files" ("createdAt");
   CREATE INDEX "IDX_files_expiresAt" ON "files" ("expiresAt");
-`);
-    
-// Courses Table
-await queryRunner.query(`
-  -- Create enums
+
+
+-- Courses Table
+ -- Create enums
   CREATE TYPE "courseStatusEnum" AS ENUM ('draft', 'published', 'archived', 'suspended');
   CREATE TYPE "courseDifficultyEnum" AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
   CREATE TYPE "courseAccessTypeEnum" AS ENUM ('free', 'paid', 'premium', 'organization_only');
@@ -876,11 +502,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_courses_isPublished" ON "courses" ("isPublished");
   CREATE INDEX "IDX_courses_createdAt" ON "courses" ("createdAt");
   CREATE INDEX "IDX_courses_slug" ON "courses" ("slug");
-`);
 
-// Modules Table
-await queryRunner.query(`
-  -- Create enums
+
+-- Modules Table
+-- Create enums
   CREATE TYPE "moduleStatusEnum" AS ENUM ('draft', 'published', 'archived');
 
   -- Create table
@@ -917,11 +542,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_modules_isPublished" ON "modules" ("isPublished");
   CREATE INDEX "IDX_modules_sortOrder" ON "modules" ("sortOrder");
   CREATE INDEX "IDX_modules_createdAt" ON "modules" ("createdAt");
-`);
 
-// Lessons Table
-await queryRunner.query(`
-  -- Create enums
+
+-- Lesson Table
+-- Create enums
   CREATE TYPE "lessonTypeEnum" AS ENUM ('video', 'text', 'audio', 'document', 'interactive', 'quiz', 'assignment', 'live_session');
   CREATE TYPE "lessonStatusEnum" AS ENUM ('draft', 'published', 'archived');
 
@@ -977,13 +601,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_lessons_isPublished" ON "lessons" ("isPublished");
   CREATE INDEX "IDX_lessons_sortOrder" ON "lessons" ("sortOrder");
   CREATE INDEX "IDX_lessons_createdAt" ON "lessons" ("createdAt");
-`);
 
 
-
-// Enrollment Table
-await queryRunner.query(`
-  -- Create enums
+--Enrollment Table
+-- Create enums
   CREATE TYPE "enrollmentStatusEnum" AS ENUM (
     'pending',
     'active',
@@ -1038,12 +659,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_enrollments_enrolledAt" ON "enrollments" ("enrolledAt");
   CREATE INDEX "IDX_enrollments_completedAt" ON "enrollments" ("completedAt");
   CREATE INDEX "IDX_enrollments_progressPercentage" ON "enrollments" ("progressPercentage");
-`);
 
 
-// Assessments Table
-await queryRunner.query(`
-  -- Create enums
+-- Assessment Table
+-- Create enums
   CREATE TYPE "assessmentTypeEnum" AS ENUM ('quiz', 'assignment', 'exam', 'project', 'survey', 'practice');
   CREATE TYPE "assessmentStatusEnum" AS ENUM ('draft', 'published', 'archived');
   CREATE TYPE "questionTypeEnumForAssessment" AS ENUM (
@@ -1117,12 +736,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_assessments_status" ON "assessments" ("status");
   CREATE INDEX "IDX_assessments_isPublished" ON "assessments" ("isPublished");
   CREATE INDEX "IDX_assessments_createdAt" ON "assessments" ("createdAt");
-`);
 
 
-// Assessment Attempts Table
-await queryRunner.query(`
-  -- Create enums
+--Assessment Attempts Table
+ -- Create enums
   CREATE TYPE "assessmentAttemptStatusEnum" AS ENUM (
     'started',
     'in_progress',
@@ -1180,14 +797,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_assessment_attempts_score" ON "assessment_attempts" ("score");
   CREATE INDEX "IDX_assessment_attempts_startedAt" ON "assessment_attempts" ("startedAt");
   CREATE INDEX "IDX_assessment_attempts_submittedAt" ON "assessment_attempts" ("submittedAt");
-`);
 
 
+--Audit Logs Table
 
-
-// Audit Logs Table
-await queryRunner.query(`
-  -- Create table
+-- Create table
   CREATE TABLE "audit_logs" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "actorId" uuid,
@@ -1212,12 +826,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_audit_logs_resourceType_resourceId" ON "audit_logs" ("resourceType", "resourceId");
   CREATE INDEX "IDX_audit_logs_action" ON "audit_logs" ("action");
   CREATE INDEX "IDX_audit_logs_createdAt" ON "audit_logs" ("createdAt");
-`);
 
 
-// Certificates Table
-await queryRunner.query(`
-  -- Create enums
+--Certifcates Table
+ -- Create enums
   CREATE TYPE "certificateStatusEnum" AS ENUM ('pending', 'issued', 'revoked', 'expired');
   CREATE TYPE "certificateTypeEnum" AS ENUM ('completion', 'achievement', 'participation', 'excellence');
 
@@ -1277,15 +889,9 @@ await queryRunner.query(`
   CREATE INDEX "IDX_certificates_issuedAt" ON "certificates" ("issuedAt");
   CREATE INDEX "IDX_certificates_certificateNumber" ON "certificates" ("certificateNumber");
   CREATE INDEX "IDX_certificates_verificationCode" ON "certificates" ("verificationCode");
-`);
 
-
-
-
-
-// Data Exports Table
-await queryRunner.query(`
-  -- Create enums
+-- Data Exports Table
+ -- Create enums
   CREATE TYPE "exportTypeEnum" AS ENUM (
     'users',
     'organizations',
@@ -1365,15 +971,9 @@ await queryRunner.query(`
   CREATE INDEX "IDX_data_exports_status_createdAt" ON "data_exports" ("status", "createdAt");
   CREATE INDEX "IDX_data_exports_exportType_createdAt" ON "data_exports" ("exportType", "createdAt");
   CREATE INDEX "IDX_data_exports_expiresAt" ON "data_exports" ("expiresAt");
-`);
 
-
-
-
-
-// HR Profiles Table
-await queryRunner.query(`
-  -- Create enums
+  --HR Profiles Table
+   -- Create enums
   CREATE TYPE "employmentTypeEnum" AS ENUM ('full_time', 'part_time', 'contract', 'intern', 'consultant');
 
   -- Create table
@@ -1405,12 +1005,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_hr_profiles_employeeId" ON "hr_profiles" ("employeeId");
   CREATE INDEX "IDX_hr_profiles_department" ON "hr_profiles" ("department");
   CREATE INDEX "IDX_hr_profiles_managerId" ON "hr_profiles" ("managerId");
-`);
 
 
-// Integrations Table
-await queryRunner.query(`
-  -- Create enums
+
+--Integration Table
+-- Create enums
   CREATE TYPE "integrationTypeEnum" AS ENUM (
     'calendar',
     'video_conferencing',
@@ -1486,12 +1085,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_integrations_provider_status" ON "integrations" ("provider", "status");
   CREATE INDEX "IDX_integrations_createdBy_status" ON "integrations" ("createdBy", "status");
   CREATE INDEX "IDX_integrations_type_status" ON "integrations" ("type", "status");
-`);
 
+  
 
-// Interview Question Banks Table
-await queryRunner.query(`
-  -- Create enums
+--Interview Question Banks Table
+ -- Create enums
   -- CREATE TYPE "interviewDifficultyEnum" AS ENUM ('easy', 'medium', 'hard', 'expert');
 
   -- Create table
@@ -1522,12 +1120,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_interview_question_banks_organizationId_isPublic" ON "interview_question_banks" ("organizationId", "isPublic");
   CREATE INDEX "IDX_interview_question_banks_category_difficulty" ON "interview_question_banks" ("category", "difficulty");
   CREATE INDEX "IDX_interview_question_banks_createdBy" ON "interview_question_banks" ("createdBy");
-`);
 
 
-// Interview Questions Table
-await queryRunner.query(`
-  -- Create enums
+
+-- Interview Questions Table
+-- Create enums
   -- CREATE TYPE "interviewDifficultyEnum" AS ENUM ('easy', 'medium', 'hard', 'expert');
   CREATE TYPE "questionTypeEnum" AS ENUM ('behavioral', 'technical', 'situational', 'coding', 'system_design', 'case_study', 'general');
 
@@ -1561,11 +1158,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_interview_questions_questionBankId_difficulty" ON "interview_questions" ("questionBankId", "difficulty");
   CREATE INDEX "IDX_interview_questions_type_difficulty" ON "interview_questions" ("type", "difficulty");
   -- CREATE INDEX "IDX_interview_questions_tags" ON "interview_questions" USING GIN ("tags");
-`);
 
-// Jobs Table
-await queryRunner.query(`
-  -- Create enums
+
+--Jobs Table
+-- Create enums
   CREATE TYPE "jobTypeEnum" AS ENUM ('full_time', 'part_time', 'contract', 'internship', 'freelance');
   CREATE TYPE "workModeEnum" AS ENUM ('office', 'remote', 'hybrid');
   CREATE TYPE "experienceLevelEnum" AS ENUM ('entry', 'junior', 'mid', 'senior', 'lead', 'executive');
@@ -1606,11 +1202,9 @@ await queryRunner.query(`
   CREATE INDEX "IDX_jobs_organizationId_status" ON "jobs" ("organizationId", "status");
   CREATE INDEX "IDX_jobs_type_experienceLevel" ON "jobs" ("type", "experienceLevel");
   CREATE INDEX "IDX_jobs_publishedAt" ON "jobs" ("publishedAt");
-`);
 
-// Interview Session Table
-await queryRunner.query(`
-  -- Create enums
+--Interview Session Table
+-- Create enums
   CREATE TYPE "interviewTypeEnum" AS ENUM ('technical', 'behavioral', 'hr', 'case_study', 'group', 'panel');
   CREATE TYPE "interviewModeEnum" AS ENUM ('video', 'audio', 'chat', 'in_person');
   CREATE TYPE "interviewStatusEnum" AS ENUM ('scheduled', 'in_progress', 'completed', 'cancelled', 'no_show');
@@ -1659,11 +1253,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_interview_sessions_candidateId_scheduledAt" ON "interview_sessions" ("candidateId", "scheduledAt");
   CREATE INDEX "IDX_interview_sessions_interviewerId_status" ON "interview_sessions" ("interviewerId", "status");
   CREATE INDEX "IDX_interview_sessions_createdAt" ON "interview_sessions" ("createdAt");
-`);
 
-// Interview Responses Table
-await queryRunner.query(`
-  -- Create enums
+
+--Interview Responses Table
+-- Create enums
   CREATE TYPE "responseStatusEnum" AS ENUM ('pending', 'answered', 'skipped', 'timed_out');
 
   -- Create table
@@ -1708,12 +1301,10 @@ await queryRunner.query(`
   -- Indexes
   CREATE INDEX "IDX_interview_responses_interviewSessionId_questionId" ON "interview_responses" ("interviewSessionId", "questionId");
   CREATE INDEX "IDX_interview_responses_userId_createdAt" ON "interview_responses" ("userId", "createdAt");
-`);
 
 
-// Plans Table
-await queryRunner.query(`
-  -- Create enums
+--Plans Table
+ -- Create enums
   CREATE TYPE "planTypeEnum" AS ENUM ('free', 'basic', 'professional', 'enterprise', 'custom');
   CREATE TYPE "planIntervalEnum" AS ENUM ('monthly', 'quarterly', 'yearly', 'lifetime');
   CREATE TYPE "planStatusEnum" AS ENUM ('active', 'inactive', 'archived');
@@ -1743,13 +1334,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_plans_status_isActive" ON "plans" ("status", "isActive");
   CREATE INDEX "IDX_plans_planType_interval" ON "plans" ("planType", "interval");
   CREATE INDEX "IDX_plans_priceAmount_currency" ON "plans" ("priceAmount", "currency");
-`);
 
 
-
-// Subscriptions Table
-await queryRunner.query(`
-  -- Create enums
+--Subscriptions Table
+-- Create enums
   CREATE TYPE "subscriptionStatusEnum" AS ENUM (
     'trialing',
     'active',
@@ -1808,11 +1396,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_subscriptions_status_currentPeriodEnd" ON "subscriptions" ("status", "currentPeriodEnd");
   CREATE INDEX "IDX_subscriptions_trialEnd" ON "subscriptions" ("trialEnd");
   CREATE INDEX "IDX_subscriptions_cancelAt" ON "subscriptions" ("cancelAt");
-`);
 
-// Invoice Table
-await queryRunner.query(`
-  -- Create enums
+
+--Invoices Table
+-- Create enums
   CREATE TYPE "invoiceStatusEnum" AS ENUM ('draft', 'open', 'paid', 'past_due', 'canceled', 'void');
   CREATE TYPE "invoiceTypeEnum" AS ENUM ('subscription', 'one_time', 'usage', 'credit_note', 'prorated');
 
@@ -1859,15 +1446,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_invoices_status_dueDate" ON "invoices" ("status", "dueDate");
   CREATE UNIQUE INDEX "IDX_invoices_invoiceNumber" ON "invoices" ("invoiceNumber");
   CREATE INDEX "IDX_invoices_createdAt" ON "invoices" ("createdAt");
-`);
 
 
 
-
-
-// Resume Templates Table
-await queryRunner.query(`
-  -- Create enums
+--Resumes Templates Table
+ -- Create enums
   CREATE TYPE "templateCategoryEnum" AS ENUM (
     'modern',
     'classic',
@@ -1907,12 +1490,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_resume_templates_category_isActive" ON "resume_templates" ("category", "isActive");
   CREATE INDEX "IDX_resume_templates_isPremium_rating" ON "resume_templates" ("isPremium", "rating");
   CREATE INDEX "IDX_resume_templates_downloadCount" ON "resume_templates" ("downloadCount");
-`);
 
 
-// User Resumes Table
-await queryRunner.query(`
-  -- Create enums
+--User Resume Table
+-- Create enums
   CREATE TYPE "resumeVisibilityEnum" AS ENUM ('private', 'public', 'org_only', 'link_only');
 
   -- Create table
@@ -1945,12 +1526,12 @@ await queryRunner.query(`
   CREATE INDEX "IDX_user_resumes_userId_isPrimary" ON "user_resumes" ("userId", "isPrimary");
   CREATE INDEX "IDX_user_resumes_visibility_createdAt" ON "user_resumes" ("visibility", "createdAt");
   CREATE INDEX "IDX_user_resumes_templateId" ON "user_resumes" ("templateId");
-`);
 
 
-// Resume Sections Table
-await queryRunner.query(`
-  -- Create enums
+
+
+--Resumes Sections Table
+ -- Create enums
   CREATE TYPE "sectionTypeEnum" AS ENUM (
     'personal_info',
     'summary',
@@ -1984,11 +1565,11 @@ await queryRunner.query(`
   -- Indexes
   CREATE INDEX "IDX_resume_sections_resumeId_orderIndex" ON "resume_sections" ("resumeId", "orderIndex");
   CREATE INDEX "IDX_resume_sections_type_isVisible" ON "resume_sections" ("type", "isVisible");
-`);
 
-// Job Application Table
-await queryRunner.query(`
-  -- Create enums
+
+
+--Job Application Table
+-- Create enums
   CREATE TYPE "applicationStatusEnum" AS ENUM ('applied', 'screening', 'interviewing', 'offered', 'hired', 'rejected', 'withdrawn');
   CREATE TYPE "applicationStageEnum" AS ENUM ('screening', 'phone_screen', 'technical', 'onsite', 'final', 'offer', 'hired');
   CREATE TYPE "applicationSourceEnum" AS ENUM ('direct', 'referral', 'linkedin', 'job_board', 'career_page', 'other');
@@ -2032,14 +1613,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_job_applications_assignedTo_status" ON "job_applications" ("assignedTo", "status");
   CREATE INDEX "IDX_job_applications_stage_lastActivityAt" ON "job_applications" ("stage", "lastActivityAt");
   CREATE INDEX "IDX_job_applications_createdAt" ON "job_applications" ("createdAt");
-`);
 
 
 
-
-// Lesson Progress Table
-await queryRunner.query(`
-  -- Create enums
+--Lesson Progress Table
+-- Create enums
   CREATE TYPE "lessonProgressStatusEnum" AS ENUM ('not_started', 'in_progress', 'completed', 'skipped');
 
   -- Create table
@@ -2086,17 +1664,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_lesson_progress_status" ON "lesson_progress" ("status");
   CREATE INDEX "IDX_lesson_progress_completedAt" ON "lesson_progress" ("completedAt");
   CREATE INDEX "IDX_lesson_progress_progressPercentage" ON "lesson_progress" ("progressPercentage");
-`);
 
 
-
-
-
-
-
-// Notification Templates Table
-await queryRunner.query(`
-  -- Create enums
+--Notifications Template Table
+-- Create enums
   CREATE TYPE "notificationChannelEnum" AS ENUM ('email', 'sms', 'push', 'in_app', 'webhook');
 
   -- Create table
@@ -2124,12 +1695,11 @@ await queryRunner.query(`
   -- Indexes
   CREATE UNIQUE INDEX "IDX_notification_templates_key" ON "notification_templates" ("key");
   CREATE INDEX "IDX_notification_templates_isActive" ON "notification_templates" ("isActive");
-`);
 
 
-// Notifications Table
-await queryRunner.query(`
-  -- Create enums
+
+--Notification Table
+-- Create enums
   CREATE TYPE "notificationStatusEnum" AS ENUM ('pending', 'sent', 'delivered', 'read', 'failed', 'cancelled');
   CREATE TYPE "notificationPriorityEnum" AS ENUM ('low', 'medium', 'high', 'urgent');
   -- CREATE TYPE "notificationChannelEnum" AS ENUM ('email', 'sms', 'push', 'in_app', 'webhook');
@@ -2169,12 +1739,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_notifications_templateKey_createdAt" ON "notifications" ("templateKey", "createdAt");
   CREATE INDEX "IDX_notifications_scheduledAt" ON "notifications" ("scheduledAt");
   CREATE INDEX "IDX_notifications_status_retryCount" ON "notifications" ("status", "retryCount");
-`);
 
 
-// Payments Table
-await queryRunner.query(`
-  -- Create enums
+
+--Payments Table
+-- Create enums
   CREATE TYPE "paymentStatusEnum" AS ENUM ('pending', 'processing', 'succeeded', 'failed', 'canceled', 'refunded', 'partially_refunded', 'disputed', 'chargeback');
   CREATE TYPE "paymentMethodEnum" AS ENUM ('card', 'bank_transfer', 'wallet', 'upi', 'net_banking', 'emi', 'cryptocurrency', 'cash', 'check');
   CREATE TYPE "paymentProviderEnum" AS ENUM ('stripe', 'razorpay', 'paypal', 'square', 'manual');
@@ -2219,11 +1788,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_payments_status_createdAt" ON "payments" ("status", "createdAt");
   CREATE INDEX "IDX_payments_paymentProvider_providerPaymentId" ON "payments" ("paymentProvider", "providerPaymentId");
   CREATE INDEX "IDX_payments_paymentMethod_status" ON "payments" ("paymentMethod", "status");
-`);
 
-// Permission Table
-await queryRunner.query(`
-  -- Create table
+
+
+--Permission Table
+ -- Create table
   CREATE TABLE "permissions" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "name" character varying(100) NOT NULL UNIQUE,
@@ -2237,15 +1806,11 @@ await queryRunner.query(`
   -- Indexes
   CREATE UNIQUE INDEX "IDX_permissions_name" ON "permissions" ("name");
   CREATE INDEX "IDX_permissions_resource_action" ON "permissions" ("resource", "action");
-`);
 
 
 
-
-
-// Reports Table
-await queryRunner.query(`
-  -- Create enums
+--Reports Table
+-- Create enums
   CREATE TYPE "reportTypeEnum" AS ENUM (
     'user_analytics',
     'learning_analytics',
@@ -2303,14 +1868,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_reports_createdBy_status" ON "reports" ("createdBy", "status");
   CREATE INDEX "IDX_reports_status_createdAt" ON "reports" ("status", "createdAt");
   CREATE INDEX "IDX_reports_reportType_createdAt" ON "reports" ("reportType", "createdAt");
-`);
 
 
 
-
-// Roles Table
-await queryRunner.query(`
-  -- Create table
+--Roles Table
+-- Create table
   CREATE TABLE "roles" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "name" character varying(100) NOT NULL,
@@ -2335,12 +1897,11 @@ await queryRunner.query(`
 
   -- Indexes
   CREATE INDEX "IDX_roles_name_organizationId" ON "roles" ("name", "organizationId");
-`);
 
 
-// Skill Categories Table
-await queryRunner.query(`
-  -- Create table
+
+--Skills Categories Table
+ -- Create table
   CREATE TABLE "skill_categories" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "name" character varying(100) NOT NULL,
@@ -2357,12 +1918,11 @@ await queryRunner.query(`
 
   -- Indexes
   CREATE INDEX "IDX_skill_categories_name" ON "skill_categories" ("name");
-`);
 
 
-// Skills Table
-await queryRunner.query(`
-  -- Create table
+
+--Skills Table
+-- Create table
   CREATE TABLE "skills" (
     "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "name" character varying(100) NOT NULL,
@@ -2389,14 +1949,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_skills_name" ON "skills" ("name");
   CREATE INDEX "IDX_skills_categoryId_isVerified" ON "skills" ("categoryId", "isVerified");
   CREATE INDEX "IDX_skills_isVerified_popularityScore" ON "skills" ("isVerified", "popularityScore");
-`);
 
 
 
-
-// System Configs Table
-await queryRunner.query(`
-  -- Create enums
+--System config Table
+ -- Create enums
   CREATE TYPE "configCategoryEnum" AS ENUM (
     'system',
     'security',
@@ -2456,11 +2013,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_system_configs_category_isActive" ON "system_configs" ("category", "isActive");
   CREATE INDEX "IDX_system_configs_environment" ON "system_configs" ("environment");
   CREATE INDEX "IDX_system_configs_updatedAt" ON "system_configs" ("updatedAt");
-`);
 
-// Teams Table
-await queryRunner.query(`
-  -- Create enums
+
+
+  --Teams Table
+   -- Create enums
   CREATE TYPE "teamStatusEnum" AS ENUM ('active', 'inactive', 'archived');
 
   -- Create table
@@ -2487,12 +2044,10 @@ await queryRunner.query(`
   CREATE INDEX "IDX_teams_orgId" ON "teams" ("orgId");
   CREATE INDEX "IDX_teams_department" ON "teams" ("department");
   CREATE INDEX "IDX_teams_leadId" ON "teams" ("leadId");
-`);
 
 
-// Team Members Table
-await queryRunner.query(`
-  -- Create enums
+--Team Members Table
+ -- Create enums
   CREATE TYPE "teamRoleEnum" AS ENUM ('lead', 'senior', 'member', 'intern');
   CREATE TYPE "teamMemberStatusEnum" AS ENUM ('active', 'inactive', 'on_leave', 'removed');
 
@@ -2519,15 +2074,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_team_members_teamId" ON "team_members" ("teamId");
   CREATE INDEX "IDX_team_members_userId" ON "team_members" ("userId");
   CREATE INDEX "IDX_team_members_role" ON "team_members" ("role");
-`);
 
 
 
-
-
-// User Notification Preferences Table
-await queryRunner.query(`
-  -- Create enums
+--Users Notification Prefrence Table
+ -- Create enums
   -- CREATE TYPE "notificationChannelEnum" AS ENUM ('email', 'sms', 'push', 'inApp', 'webhook');
 
   -- Create table
@@ -2554,13 +2105,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_user_notification_preferences_userId" ON "user_notification_preferences" ("userId");
   CREATE INDEX "IDX_user_notification_preferences_templateKey" ON "user_notification_preferences" ("templateKey");
   CREATE INDEX "IDX_user_notification_preferences_channel_isEnabled" ON "user_notification_preferences" ("channel", "isEnabled");
-`);
 
 
 
-// User Skills Table
-await queryRunner.query(`
-  -- Create enums
+--User Skills Table
+-- Create enums
   CREATE TYPE "skillProficiencyEnum" AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
 
   -- Create table
@@ -2595,11 +2144,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_user_skills_userId_proficiencyLevel" ON "user_skills" ("userId", "proficiencyLevel");
   CREATE INDEX "IDX_user_skills_skillId_isFeatured" ON "user_skills" ("skillId", "isFeatured");
   CREATE INDEX "IDX_user_skills_verifiedAt" ON "user_skills" ("verifiedAt");
-`);
 
-// Webhook Endpoints Table
-await queryRunner.query(`
-  -- Create enums
+
+
+--Webhooks Endpoints Table
+ -- Create enums
   CREATE TYPE "webhookStatusEnum" AS ENUM ('active', 'inactive', 'disabled', 'suspended');
   CREATE TYPE "webhookEventEnum" AS ENUM (
     'user.created', 'user.updated', 'user.deleted', 'user.login', 'user.logout',
@@ -2646,12 +2195,11 @@ await queryRunner.query(`
   CREATE INDEX "IDX_webhook_endpoints_createdBy_status" ON "webhook_endpoints" ("createdBy", "status");
   CREATE INDEX "IDX_webhook_endpoints_url" ON "webhook_endpoints" ("url");
   CREATE INDEX "IDX_webhook_endpoints_status_isActive" ON "webhook_endpoints" ("status", "isActive");
-`);
 
 
-// Webhook Deliveries Table
-await queryRunner.query(`
-  -- Create enums
+
+--Webhook Deliviers Table
+-- Create enums
   CREATE TYPE "deliveryStatusEnum" AS ENUM ('pending', 'processing', 'success', 'failed', 'retrying', 'cancelled', 'expired');
   CREATE TYPE "deliveryPriorityEnum" AS ENUM ('low', 'normal', 'high', 'critical');
 
@@ -2686,48 +2234,3 @@ await queryRunner.query(`
   CREATE INDEX "IDX_webhook_deliveries_eventType_createdAt" ON "webhook_deliveries" ("eventType", "createdAt");
   CREATE INDEX "IDX_webhook_deliveries_organizationId_createdAt" ON "webhook_deliveries" ("organizationId", "createdAt");
   CREATE INDEX "IDX_webhook_deliveries_priority_scheduledAt" ON "webhook_deliveries" ("priority", "scheduledAt");
-`);
-
-
-
-
-
-
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  }
-
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop tables in reverse order
-    await queryRunner.query(`DROP TABLE "audit_logs"`);
-    await queryRunner.query(`DROP TABLE "role_permissions"`);
-    await queryRunner.query(`DROP TABLE "roles"`);
-    await queryRunner.query(`DROP TABLE "permissions"`);
-    await queryRunner.query(`DROP TABLE "organization_memberships"`);
-    await queryRunner.query(`DROP TABLE "organizations"`);
-    await queryRunner.query(`DROP TABLE "users"`);
-    
-    // Drop enums
-    await queryRunner.query(`DROP TYPE "membership_status_enum"`);
-    await queryRunner.query(`DROP TYPE "membership_role_enum"`);
-    await queryRunner.query(`DROP TYPE "organization_status_enum"`);
-    await queryRunner.query(`DROP TYPE "organization_size_enum"`);
-    await queryRunner.query(`DROP TYPE "user_status_enum"`);
-  }
-}

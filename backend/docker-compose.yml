@@ -86,7 +86,7 @@ services:
       DB_USERNAME: volkai_user
       DB_PASSWORD: volkai_password
       DB_DATABASE: volkai_hr_edu
-      DB_SYNCHRONIZE: false
+      DB_SYNCHRONIZE: true
       DB_LOGGING: false
 
       # Elasticsearch

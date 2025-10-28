@@ -41,12 +41,13 @@ import { Roles } from '@/common/decorators/roles.decorator';
 
 @ApiTags('Certificates')
 @Controller('certificates')
+@ApiBearerAuth('JWT-auth')
 export class CertificatesController {
   constructor(private readonly certificateService: CertificateService) {}
 
   @Post('generate')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.CONTENT_CREATOR)
+  // @Roles(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.CONTENT_CREATOR)
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Generate certificate for course completion' })
   @ApiResponse({

@@ -91,6 +91,7 @@ export class AnalyticsEvent {
   @Column({
     type: 'enum',
     enum: EventCategory,
+    default: EventCategory.USER
   })
   category: EventCategory;
 

@@ -187,9 +187,9 @@ Official SDKs available for:
       'https://opensource.org/licenses/MIT'
     )
     .setTermsOfService('https://volkai.com/terms')
+    .addServer('http://localhost:3000', 'Development Server')
     .addServer('https://api.volkai.com', 'Production Server')
     .addServer('https://staging-api.volkai.com', 'Staging Server')
-    .addServer('http://localhost:3000', 'Development Server')
     .addBearerAuth(
       {
         type: 'http',
