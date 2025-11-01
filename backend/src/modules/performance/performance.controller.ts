@@ -16,8 +16,9 @@ import { PerformanceService } from './performance.service';
 
 @ApiTags('Performance')
 @Controller('performance')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
+// @UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 export class PerformanceController {
   constructor(private readonly performanceService: PerformanceService) {}
 

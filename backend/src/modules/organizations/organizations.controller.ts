@@ -114,6 +114,7 @@ export class OrganizationsController {
     @Body() createOrganizationDto: CreateOrganizationDto,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<Organization> {
+    console.log('user 324: ', currentUser);
     return this.organizationsService.createOrganization(createOrganizationDto, currentUser);
   }
 

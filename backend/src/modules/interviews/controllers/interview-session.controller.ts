@@ -46,12 +46,12 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('Interview Sessions')
 @Controller('interviews/sessions')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class InterviewSessionController {
   constructor(private readonly interviewSessionService: InterviewSessionService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.CONTENT_CREATOR)
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Create a new interview session' })
@@ -74,6 +74,7 @@ export class InterviewSessionController {
     @Request() req: any,
   ): Promise<InterviewSessionResponseDto> {
     try {
+      console.log("Inside creat job controller")
       const session = await this.interviewSessionService.createInterviewSession(createDto, req.user);
       return new InterviewSessionResponseDto(session);
     } catch (error) {

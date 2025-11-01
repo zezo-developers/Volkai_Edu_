@@ -43,6 +43,7 @@ export class ResumeBuilderService {
     try {
       // Validate template if provided
       let template: ResumeTemplate | undefined;
+      console.log('createDto.templateId: ', createDto.templateId)
       if (createDto.templateId) {
         template = await this.templateRepository.findOne({
           where: { id: createDto.templateId, isActive: true },
@@ -54,12 +55,27 @@ export class ResumeBuilderService {
 
       // If this is set as primary, unset other primary resumes
       if (createDto.isPrimary) {
-        await this.resumeRepository.update(
+        const otherPrimaryResumes = await this.resumeRepository.update(
           { userId: user.id, isPrimary: true },
           { isPrimary: false }
         );
+        console.log('otherPrimaryResumes: ', otherPrimaryResumes)
       }
-
+      console.log({
+        userId: user.id,
+        templateId: createDto.templateId,
+        title: createDto.title,
+        isPrimary: createDto.isPrimary || false,
+        visibility: createDto.visibility || ResumeVisibility.PRIVATE,
+        data: createDto.data || this.getDefaultResumeData(user),
+        customization: createDto.customization || {},
+        metadata: {
+          version: '1.0.0',
+          autoSaveEnabled: true,
+          completionPercentage: 0,
+        },
+      }
+    )
       // Create resume with default data structure
       const resume = this.resumeRepository.create({
         userId: user.id,
@@ -75,6 +91,8 @@ export class ResumeBuilderService {
           completionPercentage: 0,
         },
       });
+
+      console.log('resume: ', resume)
 
       // Calculate initial completion percentage
       resume.updateCompletionPercentage();

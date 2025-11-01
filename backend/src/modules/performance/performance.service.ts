@@ -103,6 +103,8 @@ export class PerformanceService {
         WHERE datname = current_database()
       `);
 
+      console.log('connectonResult: ',connectionResult)
+
       // Get slow queries (queries taking more than 1 second)
       const slowQueriesResult = await queryRunner.query(`
         SELECT query, mean_exec_time as duration, calls, last_exec_time as timestamp
@@ -111,6 +113,8 @@ export class PerformanceService {
         ORDER BY mean_exec_time DESC 
         LIMIT 10
       `);
+
+      console.log('slowQueriesResult: ',slowQueriesResult)
 
       // Get table statistics
       const tableStatsResult = await queryRunner.query(`
@@ -125,7 +129,7 @@ export class PerformanceService {
         ORDER BY total_operations DESC 
         LIMIT 20
       `);
-
+        console.log('tableStatsResult: ',tableStatsResult)
       // Get lock information
       const lockInfoResult = await queryRunner.query(`
         SELECT 
@@ -139,7 +143,7 @@ export class PerformanceService {
         WHERE NOT granted OR EXTRACT(EPOCH FROM (now() - query_start)) > 5
         ORDER BY duration DESC
       `);
-
+        console.log('lockInfoResult: ',lockInfoResult)
       return {
         connectionCount: connectionResult[0]?.connection_count || 0,
         slowQueries: slowQueriesResult.map((row: any) => ({

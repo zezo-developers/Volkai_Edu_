@@ -234,6 +234,10 @@ export class UserResume {
   @JoinColumn({ name: 'templateId' })
   template?: ResumeTemplate;
 
+  @ManyToOne(() => User, (user) => user.resumes, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
   @OneToMany(() => ResumeSection, section => section.resume)
   sections: ResumeSection[];
 
@@ -363,23 +367,23 @@ export class UserResume {
     let score = 0;
     const maxScore = 100;
 
-    if (this.data.personalInfo.firstName && this.data.personalInfo.lastName) score += 10;
-    if (this.data.personalInfo.email) score += 5;
-    if (this.data.personalInfo.phone) score += 5;
+    // if (this.data?.personalInfo?.firstName && this.data?.personalInfo?.lastName) score += 10;
+    // if (this.data?.personalInfo.email) score += 5;
+    // if (this.data?.personalInfo.phone) score += 5;
 
-    if (this.data.summary && this.data.summary.length > 50) score += 10;
+    // if (this.data.summary && this.data.summary.length > 50) score += 10;
 
-    if (this.data.experience.length > 0) score += 15;
-    if (this.data.experience.length > 2) score += 10;
+    // if (this.data.experience && this.data.experience.length > 0) score += 15;
+    // if (this.data.experience && this.data.experience.length > 2) score += 10;
 
-    if (this.data.education.length > 0) score += 15;
+    // if (this.data.education && this.data.education.length > 0) score += 15;
 
-    if (this.data.skills.length > 0) score += 10;
-    if (this.data.skills.length > 5) score += 5;
+    // if (this.data.skills && this.data.skills.length > 0) score += 10;
+    // if (this.data.skills && this.data.skills.length > 5) score += 5;
 
-    if (this.data.projects.length > 0) score += 10;
+    // if (this.data.projects && this.data.projects.length > 0) score += 10;
 
-    if (this.data.certifications.length > 0) score += 5;
+    // if (this.data.certifications &&this.data.certifications.length > 0) score += 5;
 
     return Math.min(score, maxScore);
   }
@@ -387,16 +391,16 @@ export class UserResume {
   private calculateAtsScore(): number {
     let score = 100;
 
-    if (!this.data.personalInfo.firstName || !this.data.personalInfo.lastName) score -= 20;
-    if (!this.data.personalInfo.email) score -= 15;
-    if (!this.data.summary || this.data.summary.length < 50) score -= 10;
-    if (this.data.experience.length === 0) score -= 25;
-    if (this.data.education.length === 0) score -= 15;
-    if (this.data.skills.length === 0) score -= 15;
+    // if (!this.data.personalInfo.firstName || !this.data.personalInfo.lastName) score -= 20;
+    // if (!this.data.personalInfo.email) score -= 15;
+    // if (!this.data.summary || this.data.summary.length < 50) score -= 10;
+    // if (this.data.experience.length === 0) score -= 25;
+    // if (this.data.education.length === 0) score -= 15;
+    // if (this.data.skills.length === 0) score -= 15;
 
-    if (this.data.skills.length > 10) score += 5;
-    if (this.data.experience.some(e => e.achievements && e.achievements.length > 0)) score += 5;
-    if (this.data.projects.length > 0) score += 5;
+    // if (this.data.skills.length > 10) score += 5;
+    // if (this.data.experience.some(e => e.achievements && e.achievements.length > 0)) score += 5;
+    // if (this.data.projects.length > 0) score += 5;
 
     return Math.max(0, Math.min(100, score));
   }

@@ -1543,7 +1543,8 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
     'languages',
     'hobbies',
     'references',
-    'custom'
+    'custom',
+    'header',
   );
 
   -- Create table

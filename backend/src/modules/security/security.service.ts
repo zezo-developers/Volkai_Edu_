@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
@@ -367,12 +367,13 @@ export class SecurityService {
     }, {} as Record<string, number>);
 
     // Get login metrics from audit logs
+     // ✅ Correct SQL-compatible query using TypeORM operators
     const loginAudits = await this.auditLogRepository.find({
       where: {
-        action: ['auth.login.success', 'auth.login.failed'] as any,
-        createdAt: { $gte: last24Hours } as any,
+        action: In(['auth.login.success', 'auth.login.failed']),
+        createdAt: MoreThanOrEqual(last24Hours),
       },
-    });
+    }); 
 
     const successfulLogins = loginAudits.filter(a => a.action === 'auth.login.success').length;
     const failedLogins = loginAudits.filter(a => a.action === 'auth.login.failed').length;
@@ -478,6 +479,7 @@ export class SecurityService {
 
   // Input sanitization
   sanitizeInput(input: string): string {
+    console.log('input got : ',input)
     return input
       .replace(/[<>]/g, '') // Remove angle brackets
       .replace(/javascript:/gi, '') // Remove javascript: protocol
@@ -487,6 +489,7 @@ export class SecurityService {
 
   sanitizeHtml(html: string): string {
     // Basic HTML sanitization - in production, use a library like DOMPurify
+    console.log('html got : ',html)
     return html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')

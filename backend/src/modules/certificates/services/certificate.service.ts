@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
-import * as PDFDocument from 'pdfkit';
+import  PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import * as path from 'path';
 import { 
@@ -127,16 +127,17 @@ export class CertificateService {
       if (!this.canUserGenerateCertificate(enrollment, currentUser)) {
         throw new ForbiddenException('Insufficient permissions to generate certificate');
       }
-      console.log('enrollment', enrollment.course.passingScore)
+      console.log('enrollment', enrollment)
       // Check if enrollment is eligible for certificate
       if (!enrollment.isEligibleForCertificate(enrollment.course.passingScore)) {
         throw new BadRequestException('Enrollment is not eligible for certificate');
       }
-
+      console.log('request: ',request)
       // Check if certificate already exists
       const existingCertificate = await this.certificateRepository.findOne({
-        where: { enrollmentId: request.enrollmentId },
+        where: { enrollmentId: request },
       });
+      console.log('existing :',existingCertificate)
 
       if (existingCertificate && existingCertificate.isValid) {
         throw new BadRequestException('Certificate already exists for this enrollment');
@@ -145,18 +146,20 @@ export class CertificateService {
       // Generate certificate number and verification code
       const certificateNumber = Certificate.generateCertificateNumber(
         enrollment.course.organizationId,
-        enrollment.courseId,
+        enrollment.course.id,
       );
       const verificationCode = Certificate.generateVerificationCode();
 
       // Determine certificate type
       const certificateType = request.type || this.determineCertificateType(enrollment);
 
+      console.log("Certificate type: ", certificateType)
+
       // Create certificate record
       const certificate = this.certificateRepository.create({
         userId: enrollment.userId,
-        courseId: enrollment.courseId,
-        enrollmentId: request.enrollmentId,
+        courseId: enrollment.course.id,
+        enrollmentId: request,
         organizationId: enrollment.course.organizationId,
         certificateNumber,
         verificationCode,
@@ -184,10 +187,15 @@ export class CertificateService {
         isPublic: true,
       });
 
+      console.log("Certificate: ", certificate)
+
       const savedCertificate = await this.certificateRepository.save(certificate);
+
+      console.log('savedCertificate: ', savedCertificate);
 
       // Generate PDF certificate
       const pdfBuffer = await this.generateCertificatePDF(savedCertificate);
+      console.log("PDF Buffer: ", pdfBuffer)
 
       // Upload PDF to file storage
       const uploadResult = await this.fileManagerService.uploadFile(pdfBuffer, {

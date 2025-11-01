@@ -39,7 +39,7 @@ import {
 @ApiTags('Resume Builder')
 @Controller('resume/builder')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class ResumeBuilderController {
   constructor(
     private readonly resumeService: ResumeBuilderService,
@@ -58,7 +58,7 @@ export class ResumeBuilderController {
   })
   async createResume(
     @Body(ValidationPipe) createDto: CreateResumeDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
     const resume = await this.resumeService.createResume(createDto, user);
     return new ResumeResponseDto(resume);
@@ -79,7 +79,7 @@ export class ResumeBuilderController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   async searchResumes(
     @Query(ValidationPipe) searchDto: SearchResumesDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeListResponseDto> {
     return await this.resumeService.searchResumes(searchDto, user);
   }
@@ -95,7 +95,7 @@ export class ResumeBuilderController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   async getMyResumes(
     @Query(ValidationPipe) searchDto: SearchResumesDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeListResponseDto> {
     const mySearchDto = { ...searchDto, userId: user.id };
     return await this.resumeService.searchResumes(mySearchDto, user);
@@ -113,7 +113,7 @@ export class ResumeBuilderController {
     description: 'No primary resume found',
   })
   async getPrimaryResume(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
     const searchDto = { userId: user.id, isPrimary: true, limit: 1 };
     const result = await this.resumeService.searchResumes(searchDto, user);
@@ -143,7 +143,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getResumeById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
     const resume = await this.resumeService.getResumeById(id, user);
     return new ResumeResponseDto(resume);
@@ -168,7 +168,7 @@ export class ResumeBuilderController {
   async updateResume(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateResumeDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
     const resume = await this.resumeService.updateResume(id, updateDto, user);
     return new ResumeResponseDto(resume);
@@ -195,7 +195,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async deleteResume(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<void> {
     await this.resumeService.deleteResume(id, user);
   }
@@ -219,7 +219,7 @@ export class ResumeBuilderController {
   async cloneResume(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('title') newTitle: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
     const resume = await this.resumeService.cloneResume(id, newTitle, user);
     return new ResumeResponseDto(resume);
@@ -250,7 +250,7 @@ export class ResumeBuilderController {
   async shareResume(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) shareDto: ShareResumeDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ shareToken: string; shareUrl: string }> {
     return await this.resumeService.shareResume(id, shareDto, user);
   }
@@ -272,7 +272,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async revokeShare(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<void> {
     await this.resumeService.revokeShare(id, user);
   }
@@ -295,7 +295,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async setPrimaryResume(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
     const updateDto = { isPrimary: true };
     const resume = await this.resumeService.updateResume(id, updateDto, user);
@@ -322,7 +322,7 @@ export class ResumeBuilderController {
     @Param('resumeId', ParseUUIDPipe) resumeId: string,
     @Param('sectionId', ParseUUIDPipe) sectionId: string,
     @Body(ValidationPipe) updateDto: UpdateSectionDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const section = await this.resumeService.updateSection(resumeId, sectionId, updateDto, user);
     return {
@@ -355,7 +355,7 @@ export class ResumeBuilderController {
   async reorderSections(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) reorderDto: ReorderSectionsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any[]> {
     const sections = await this.resumeService.reorderSections(id, reorderDto, user);
     return sections.map(section => ({
@@ -385,7 +385,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getResumeAnalytics(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumeAnalyticsDto> {
     return await this.resumeService.getResumeAnalytics(id, user);
   }
@@ -413,7 +413,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async validateResume(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const resume = await this.resumeService.getResumeById(id, user);
     const validation = resume.validate();
@@ -448,7 +448,7 @@ export class ResumeBuilderController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getRecommendations(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const analytics = await this.resumeService.getResumeAnalytics(id, user);
     
@@ -473,7 +473,7 @@ export class ResumeBuilderController {
   async autoSaveResume(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateResumeDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ success: boolean; lastSaved: Date }> {
     const autoSaveDto = { ...updateDto, isAutoSave: true };
     const resume = await this.resumeService.updateResume(id, autoSaveDto, user);

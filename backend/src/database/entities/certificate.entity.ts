@@ -249,6 +249,7 @@ export class Certificate {
   }
 
   static generateCertificateNumber(organizationId: string, courseId: string): string {
+    console.log("INside generate certifcate")
     const timestamp = Date.now().toString(36).toUpperCase();
     const orgPrefix = organizationId.substring(0, 4).toUpperCase();
     const coursePrefix = courseId.substring(0, 4).toUpperCase();

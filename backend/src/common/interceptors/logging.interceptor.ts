@@ -45,10 +45,23 @@ export class LoggingInterceptor implements NestInterceptor {
       ...(Object.keys(query).length > 0 && { query }),
       ...(this.shouldLogBody(method, url) && body && { body }),
     });
+    
+    console.log('incming; ', {
+      method,
+      url,
+      userId,
+      orgId,
+      ip,
+      userAgent,
+      ...(Object.keys(params).length > 0 && { params }),
+      ...(Object.keys(query).length > 0 && { query }),
+      ...(this.shouldLogBody(method, url) && body && { body }),
+    })
 
     return next.handle().pipe(
       tap({
         next: (data) => {
+          console.log('Data from login interceptor', data)
           const duration = Date.now() - startTime;
           const statusCode = response.statusCode;
           
@@ -64,6 +77,7 @@ export class LoggingInterceptor implements NestInterceptor {
           });
         },
         error: (error) => {
+          console.log('Error form login interceptor', error);
           const duration = Date.now() - startTime;
           const statusCode = response.statusCode || 500;
           
@@ -108,6 +122,7 @@ export class LoggingInterceptor implements NestInterceptor {
    * Get approximate response size for logging
    */
   private getResponseSize(data: unknown): string {
+    console.log('Inside Response size');
     try {
       if (!data) return '0B';
       

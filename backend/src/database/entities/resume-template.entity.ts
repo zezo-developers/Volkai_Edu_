@@ -238,8 +238,6 @@ export class ResumeTemplate {
       category: this.category,
       templateData: JSON.parse(JSON.stringify(this.templateData)),
       isPremium: false,
-      tags: [...this.tags],
-      features: [...this.features],
       difficultyLevel: this.difficultyLevel,
       completionTime: this.completionTime,
       customizationOptions: { ...this.customizationOptions },

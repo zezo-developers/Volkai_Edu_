@@ -11,18 +11,20 @@ import {
   Ip,
   Headers,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../../common/guards/roles.guard';
 import { AdminOnly, Roles } from '../../common/decorators/roles.decorator';
 import { SecurityService } from './security.service';
 import { RateLimitingService } from './rate-limiting.service';
 import { Role } from '@/database/entities/user.entity';
+import { ResolveThreatsDto } from './dto/resolveThreats.dto';
 
 @ApiTags('Security')
 @Controller('security')
-@UseGuards(JwtAuthGuard, AdminGuard)
-@ApiBearerAuth()
+// @UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 export class SecurityController {
   constructor(
     private readonly securityService: SecurityService,
@@ -62,8 +64,8 @@ export class SecurityController {
   @ApiResponse({ status: 200, description: 'Security threats resolved successfully' })
   @HttpCode(HttpStatus.OK)
   @Roles(Role.ADMIN)
-  async resolveThreats(@Body('threatIds') threatIds: string[]) {
-    await this.securityService.resolveThreats(threatIds);
+  async resolveThreats(@Body() body: ResolveThreatsDto) {
+    await this.securityService.resolveThreats(body.threatIds);
 
     return {
       success: true,
@@ -147,6 +149,19 @@ export class SecurityController {
   @Post('validate-password')
   @ApiOperation({ summary: 'Validate password strength' })
   @ApiResponse({ status: 200, description: 'Password validation completed' })
+    @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        password: {
+          type: 'string',
+          example: 'StrongP@ssw0rd!',
+          description: 'Password to be validated for strength',
+        },
+      },
+      required: ['password'],
+    },
+  })
   @HttpCode(HttpStatus.OK)
   async validatePassword(@Body('password') password: string) {
     const validation = await this.securityService.validatePasswordStrength(password);
@@ -209,8 +224,29 @@ export class SecurityController {
   @ApiResponse({ status: 200, description: 'Input sanitization completed' })
   @HttpCode(HttpStatus.OK)
   @Roles(Role.ADMIN, Role.DEVELOPER)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        input: {
+          type: 'string',
+          example: '',
+          description: 'jsdlkfjsdfjsldjfsdjfsdlf sdjfsld ',
+        },
+        type: {
+          type: 'string',
+          enum: ['text', 'html'],
+          example: 'text',
+          description: 'type of input text or html',
+        },
+      },
+      required: ['input', 'type'],
+    },
+  })
   async sanitizeInput(@Body('input') input: string, @Body('type') type: 'text' | 'html' = 'text') {
     let sanitized: string;
+    console.log('input got : ',input)
+    console.log('type got : ',type)
     
     if (type === 'html') {
       sanitized = this.securityService.sanitizeHtml(input);

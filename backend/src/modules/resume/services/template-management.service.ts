@@ -42,8 +42,7 @@ export class TemplateManagementService {
       if (!validationResult.isValid) {
         throw new BadRequestException(`Template validation failed: ${validationResult.errors.join(', ')}`);
       }
-
-      const template = this.templateRepository.create({
+      console.log('Resueme template : ',{
         name: createDto.name,
         description: createDto.description,
         category: createDto.category,
@@ -52,6 +51,26 @@ export class TemplateManagementService {
         isPremium: createDto.isPremium || false,
         tags: createDto.tags || [],
         features: createDto.features || [],
+        difficultyLevel: createDto.difficultyLevel || 'beginner',
+        completionTime: createDto.completionTime,
+        customizationOptions: {
+          colors: createDto.customizationOptions?.colors ?? true,
+          fonts: createDto.customizationOptions?.fonts ?? true,
+          layout: createDto.customizationOptions?.layout ?? false,
+          sections: createDto.customizationOptions?.sections ?? true,
+          spacing: createDto.customizationOptions?.spacing ?? true,
+        },
+        createdBy: user.id,
+      })
+      const tags = Array.isArray(createDto.tags) ? createDto.tags : [];
+    const features = Array.isArray(createDto.features) ? createDto.features : [];
+      const template = this.templateRepository.create({
+        name: createDto.name,
+        description: createDto.description,
+        category: createDto.category,
+        previewImageUrl: createDto.previewImageUrl,
+        templateData: createDto.templateData,
+        isPremium: createDto.isPremium || false,
         difficultyLevel: createDto.difficultyLevel || 'beginner',
         completionTime: createDto.completionTime,
         customizationOptions: {
@@ -302,7 +321,7 @@ export class TemplateManagementService {
   ): Promise<ResumeTemplate> {
     try {
       const originalTemplate = await this.getTemplateById(id, user);
-
+      console.log('originalTemplate: ', originalTemplate)
       // Create cloned template
       const clonedData = originalTemplate.clone(cloneDto.name, user.id);
       const clonedTemplate = this.templateRepository.create(clonedData);

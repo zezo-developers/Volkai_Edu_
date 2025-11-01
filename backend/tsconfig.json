@@ -30,6 +30,6 @@
       "@config/*": ["src/config/*"]
     }
   },
-  "include": ["src/**/*", "../1698000000000-AddPerformanceIndexes.ts", "../1698000000000-AddPerformanceIndexes.ts", "../1698000000000-AddPerformanceIndexes.ts", "../1698000000000-AddPerformanceIndexes.ts", "../1698000000000-AddPerformanceIndexes.ts", "../1698000000000-AddPerformanceIndexes.ts"],
+  "include": ["src/**/*", "src/database/migrations/1698000000000-AddPerformanceIndexes.ts", "src/database/migrations/1698000000000-AddPerformanceIndexes.ts", "src/database/migrations/1698000000000-AddPerformanceIndexes.ts", "src/database/migrations/1698000000000-AddPerformanceIndexes.ts", "src/database/migrations/1698000000000-AddPerformanceIndexes.ts", "src/database/migrations/1698000000000-AddPerformanceIndexes.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

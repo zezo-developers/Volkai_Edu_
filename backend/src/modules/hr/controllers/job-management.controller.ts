@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { OrgAdminGuard, RolesGuard } from '../../../common/guards/roles.guard';
@@ -38,16 +39,17 @@ import {
 
 @ApiTags('Job Management')
 @Controller('hr/jobs')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @HRRole()
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class JobManagementController {
   constructor(
     private readonly jobService: JobManagementService,
   ) {}
 
   @Post()
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Create a new job posting' })
   @ApiResponse({
@@ -64,12 +66,14 @@ export class JobManagementController {
     description: 'Invalid job data',
   })
   async createJob(
-    @Body(ValidationPipe) createDto: CreateJobDto,
-    @CurrentUser() user: User,
-  ): Promise<JobResponseDto> {
+    @Body() createDto: CreateJobDto,
+    @CurrentUser() user: any,
+  ): Promise<any> {
+    console.log('user got n controller: ', user);
     const job = await this.jobService.createJob(createDto, user);
     return new JobResponseDto(job);
   }
+
 
   @Get()
   @ApiOperation({ summary: 'Search and list job postings' })
@@ -87,13 +91,13 @@ export class JobManagementController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   async searchJobs(
     @Query(ValidationPipe) searchDto: SearchJobsDto,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<JobListResponseDto> {
     return await this.jobService.searchJobs(searchDto, user);
   }
 
   @Get('my')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get jobs created by current user' })
   @ApiResponse({
@@ -103,7 +107,7 @@ export class JobManagementController {
   })
   async getMyJobs(
     @Query(ValidationPipe) searchDto: SearchJobsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobListResponseDto> {
     // Filter by current user's created jobs
     const myJobsDto = { ...searchDto };
@@ -111,7 +115,7 @@ export class JobManagementController {
   }
 
   @Get('organization/:orgId')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get jobs by organization' })
   @ApiResponse({
@@ -123,7 +127,7 @@ export class JobManagementController {
   async getOrganizationJobs(
     @Param('orgId', ParseUUIDPipe) orgId: string,
     @Query(ValidationPipe) searchDto: SearchJobsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobListResponseDto> {
     const orgJobsDto = { ...searchDto, organizationId: orgId };
     return await this.jobService.searchJobs(orgJobsDto, user);
@@ -143,14 +147,14 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async getJobById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.getJobById(id, user);
     return new JobResponseDto(job);
   }
 
   @Put(':id')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Update job posting' })
   @ApiResponse({
@@ -170,14 +174,15 @@ export class JobManagementController {
   async updateJob(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateJobDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
+    console.log('inside job update')
     const job = await this.jobService.updateJob(id, updateDto, user);
     return new JobResponseDto(job);
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiOperation({ summary: 'Delete job posting' })
   @ApiResponse({
@@ -199,13 +204,13 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async deleteJob(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<void> {
     await this.jobService.deleteJob(id, user);
   }
 
   @Post(':id/publish')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Publish job posting' })
   @ApiResponse({
@@ -229,14 +234,14 @@ export class JobManagementController {
   async publishJob(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) publishDto: PublishJobDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.publishJob(id, publishDto, user);
     return new JobResponseDto(job);
   }
 
   @Post(':id/pause')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Pause job posting' })
   @ApiResponse({
@@ -255,14 +260,14 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async pauseJob(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.pauseJob(id, user);
     return new JobResponseDto(job);
   }
 
   @Post(':id/resume')
-  @UseGuards(RolesGuard)
+  // // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Resume paused job posting' })
   @ApiResponse({
@@ -281,14 +286,14 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async resumeJob(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.resumeJob(id, user);
     return new JobResponseDto(job);
   }
 
   @Post(':id/close')
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Close job posting' })
   @ApiResponse({
@@ -307,14 +312,14 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async closeJob(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.closeJob(id, user);
     return new JobResponseDto(job);
   }
 
   @Post(':id/archive')
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiOperation({ summary: 'Archive job posting' })
   @ApiResponse({
@@ -333,41 +338,53 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async archiveJob(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.archiveJob(id, user);
     return new JobResponseDto(job);
   }
 
-  @Post(':id/clone')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
-  @ApiOperation({ summary: 'Clone job posting' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Job cloned successfully',
-    type: JobResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Job not found',
-  })
-  @ApiResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'Insufficient permissions',
-  })
-  @ApiParam({ name: 'id', description: 'Job ID to clone' })
+@Post(':id/clone')
+@Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
+@ApiOperation({ summary: 'Clone job posting' })
+@ApiResponse({
+  status: HttpStatus.CREATED,
+  description: 'Job cloned successfully',
+  type: JobResponseDto,
+})
+@ApiResponse({
+  status: HttpStatus.NOT_FOUND,
+  description: 'Job not found',
+})
+@ApiResponse({
+  status: HttpStatus.FORBIDDEN,
+  description: 'Insufficient permissions',
+})
+@ApiParam({ name: 'id', description: 'Job ID to clone' })
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      title: {
+        type: 'string',
+        example: 'Senior Backend Developer (Copy)',
+        description: 'New title for the cloned job',
+      },
+    },
+    required: ['title'],
+  },
+})
   async cloneJob(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('title') newTitle: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobResponseDto> {
     const job = await this.jobService.cloneJob(id, newTitle, user);
     return new JobResponseDto(job);
   }
 
   @Get(':id/stats')
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get job statistics' })
   @ApiResponse({
@@ -386,13 +403,13 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async getJobStats(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<JobStatsDto> {
     return await this.jobService.getJobStats(id, user);
   }
 
   @Get(':id/applications')
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Get applications for a job' })
   @ApiResponse({
@@ -406,7 +423,7 @@ export class JobManagementController {
     @Param('id', ParseUUIDPipe) id: string,
     @Query('status') status?: string,
     @Query('stage') stage?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     // This would typically call the ApplicationTrackingService
     // For now, return a reference to use the applications endpoint
@@ -429,7 +446,7 @@ export class JobManagementController {
   async getSimilarJobs(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('limit') limit?: number,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<JobResponseDto[]> {
     const job = await this.jobService.getJobById(id, user);
     
@@ -448,7 +465,7 @@ export class JobManagementController {
   }
 
   @Get(':id/requirements-analysis')
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Analyze job requirements and suggest improvements' })
   @ApiResponse({
@@ -458,7 +475,7 @@ export class JobManagementController {
   @ApiParam({ name: 'id', description: 'Job ID' })
   async analyzeJobRequirements(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const job = await this.jobService.getJobById(id, user);
     

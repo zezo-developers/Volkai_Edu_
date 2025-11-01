@@ -33,8 +33,9 @@ export class JobManagementService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async createJob(createDto: CreateJobDto, user: User): Promise<Job> {
+  async createJob(createDto: CreateJobDto, user: User) {
     try {
+      console.log('inside create job', user);
       // Validate permissions
       if (user.roles=== UserRole.STUDENT) {
         throw new ForbiddenException('Students cannot create jobs');
@@ -51,8 +52,7 @@ export class JobManagementService {
 
       // Generate unique slug
       const slug = await this.generateUniqueSlug(createDto.title, createDto.organizationId);
-
-      const job = this.jobRepository.create({
+      console.log({
         organizationId: createDto.organizationId,
         title: createDto.title,
         slug,
@@ -72,6 +72,28 @@ export class JobManagementService {
         expiresAt: createDto.expiresAt,
         createdBy: user.id,
         status: JobStatus.DRAFT,
+      })
+      const job = this.jobRepository.create({
+        organizationId: createDto.organizationId,
+        title: createDto.title,
+        slug,
+        description: createDto.description,
+        requirements: createDto.requirements,
+        responsibilities: createDto.responsibilities,
+        location: createDto.location,
+        type: createDto.type,
+        mode: createDto.mode,
+        experienceLevel: createDto.experienceLevel,
+        salaryMin: createDto.salaryMin,
+        salaryMax: createDto.salaryMax,
+        currency: createDto.currency || 'USD',
+        department: createDto.department,
+        // tags: createDto.tags || [],
+        // skillsRequired: createDto.skillsRequired || [],
+        expiresAt: createDto.expiresAt,
+        createdBy: user.id,
+        status: JobStatus.DRAFT,
+        applications: [], 
       });
 
       const savedJob = await this.jobRepository.save(job);
@@ -250,6 +272,8 @@ export class JobManagementService {
     try {
       const job = await this.getJobById(id, user);
 
+      console.log('got job: ', job)
+
       // Check permissions
       const canUpdate = job.createdBy === user.id || 
                        user.roles=== UserRole.ADMIN ||
@@ -267,6 +291,7 @@ export class JobManagementService {
 
       // Update slug if title changed
       if (updateDto.title && updateDto.title !== job.title) {
+        console.log('update slug: ', updateDto.title, job.organizationId)
         updateDto.slug = await this.generateUniqueSlug(updateDto.title, job.organizationId);
       }
 
@@ -567,6 +592,7 @@ export class JobManagementService {
 
   // Private helper methods
   private async generateUniqueSlug(title: string, organizationId: string): Promise<string> {
+    console.log({title, organizationId});
     const baseSlug = title.toLowerCase()
                          .replace(/[^a-z0-9\s-]/g, '')
                          .replace(/\s+/g, '-')

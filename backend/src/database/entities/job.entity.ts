@@ -13,6 +13,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Organization } from './organization.entity';
 import { User } from '../entities/user.entity';
 import { InterviewSession } from './interview-session.entity';
+import { JobApplication } from './job-application.entity';
 
 export enum JobType {
   FULL_TIME = 'full_time',
@@ -62,9 +63,8 @@ export class Job {
   @Column({ length: 255 })
   title: string;
 
-  @ApiProperty({ description: 'Applications' })
-  @Column({ length: 255 })
-  applications: string;
+  @OneToMany(() => JobApplication, (application) => application.job)
+  applications: JobApplication[];
 
   @ApiProperty({ description: 'Job URL slug' })
   @Column({ length: 255 })
