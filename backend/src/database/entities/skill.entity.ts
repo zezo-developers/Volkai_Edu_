@@ -35,7 +35,7 @@ export class Skill {
   description?: string;
 
   @ApiProperty({ description: 'Alternative names/aliases' })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'text', array: true, default: [] })
   aliases: string[];
 
   @ApiProperty({ description: 'Whether skill is verified/official' })
@@ -101,7 +101,7 @@ export class Skill {
   };
 
   @ApiProperty({ description: 'Skill tags for search and categorization' })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'text', array: true, default: [] })
   tags: string[];
 
   @CreateDateColumn({ name: 'createdAt' })
@@ -115,7 +115,9 @@ export class Skill {
   @JoinColumn({ name: 'categoryId' })
   category?: SkillCategory;
 
-  @OneToMany(() => UserSkill, userSkill => userSkill.skill)
+  @OneToMany(() => UserSkill, userSkill => userSkill.skill, {
+    cascade: false,
+  })
   userSkills: UserSkill[];
 
   // Virtual properties

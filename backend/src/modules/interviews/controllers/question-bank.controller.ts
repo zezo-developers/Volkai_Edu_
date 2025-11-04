@@ -44,11 +44,12 @@ import {
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { CurrentUser } from '@/common/decorators/current-user.decorator';
 
 @ApiTags('Question Banks')
 @Controller('interviews/question-banks')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class QuestionBankController {
   constructor(private readonly questionBankService: QuestionBankService) {}
 
@@ -222,6 +223,15 @@ export class QuestionBankController {
   @Roles(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.CONTENT_CREATOR)
   @ApiOperation({ summary: 'Clone question bank' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+    @ApiBody({
+    schema:{
+      type: 'object',
+      properties: {
+        newName: { type: 'string' }
+      },
+      required: ['newName']
+    }
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Question bank cloned successfully',
@@ -241,6 +251,7 @@ export class QuestionBankController {
     @Request() req: any,
   ): Promise<QuestionBankResponseDto> {
     try {
+      console.log({id, newName, req: req.user})
       const clonedBank = await this.questionBankService.cloneQuestionBank(id, newName, req.user);
       return new QuestionBankResponseDto(clonedBank);
     } catch (error) {
@@ -390,10 +401,15 @@ export class QuestionBankController {
   async updateQuestion(
     @Param('questionId', ParseUUIDPipe) questionId: string,
     @Body() updateDto: UpdateQuestionDto,
-    @Request() req: any,
+    @CurrentUser() user: any,
   ): Promise<QuestionResponseDto> {
     try {
-      const question = await this.questionBankService.updateQuestion(questionId, updateDto, req.user);
+      console.log({
+        questionId,
+        updateDto,
+        user
+      })
+      const question = await this.questionBankService.updateQuestion(questionId, updateDto, user);
       return new QuestionResponseDto(question);
     } catch (error) {
       throw new HttpException(

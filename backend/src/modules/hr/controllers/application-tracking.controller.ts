@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -39,6 +40,8 @@ import { Roles } from '@/common/decorators/roles.decorator';
 
 @ApiTags('Application Tracking')
 @Controller('hr/applications')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class ApplicationTrackingController {
   constructor(
     private readonly applicationService: ApplicationTrackingService,
@@ -61,7 +64,7 @@ export class ApplicationTrackingController {
   })
   async createApplication(
     @Body(ValidationPipe) createDto: CreateApplicationDto,
-    @CurrentUser() user?: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.createApplication(createDto, user);
     return new ApplicationResponseDto(application);
@@ -85,7 +88,7 @@ export class ApplicationTrackingController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   async searchApplications(
     @Query(ValidationPipe) searchDto: SearchApplicationsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationListResponseDto> {
     return await this.applicationService.searchApplications(searchDto, user);
   }
@@ -100,7 +103,7 @@ export class ApplicationTrackingController {
   })
   async getMyApplications(
     @Query(ValidationPipe) searchDto: SearchApplicationsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationListResponseDto> {
     const myApplicationsDto = { ...searchDto, candidateId: user.id };
     return await this.applicationService.searchApplications(myApplicationsDto, user);
@@ -117,7 +120,7 @@ export class ApplicationTrackingController {
   })
   async getAssignedApplications(
     @Query(ValidationPipe) searchDto: SearchApplicationsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationListResponseDto> {
     const assignedDto = { ...searchDto, assignedTo: user.id };
     return await this.applicationService.searchApplications(assignedDto, user);
@@ -142,7 +145,7 @@ export class ApplicationTrackingController {
   @ApiParam({ name: 'id', description: 'Application ID' })
   async getApplicationById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.getApplicationById(id, user);
     return new ApplicationResponseDto(application);
@@ -173,7 +176,7 @@ export class ApplicationTrackingController {
   async updateApplication(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateApplicationDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.updateApplication(id, updateDto, user);
     return new ApplicationResponseDto(application);
@@ -200,7 +203,7 @@ export class ApplicationTrackingController {
   })
   async bulkUpdateApplications(
     @Body(ValidationPipe) bulkUpdateDto: BulkUpdateApplicationsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ updated: number; errors: string[] }> {
     return await this.applicationService.bulkUpdateApplications(bulkUpdateDto, user);
   }
@@ -228,7 +231,7 @@ export class ApplicationTrackingController {
     @Body('reason') reason: string,
     @Body('feedback') feedback?: string,
     @Body('sendFeedback') sendFeedback: boolean = false,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.rejectApplication(
       id,
@@ -260,7 +263,7 @@ export class ApplicationTrackingController {
   async withdrawApplication(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('reason') reason?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.withdrawApplication(id, reason, user);
     return new ApplicationResponseDto(application);
@@ -270,6 +273,17 @@ export class ApplicationTrackingController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Schedule interview for application' })
+  @ApiBody({
+    schema:{
+      type: 'object',
+      properties: {
+        type: { type: 'string' },
+        scheduledAt: { type: 'string', format: 'date-time' },
+        interviewers: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['type', 'scheduledAt', 'interviewers'],
+    }
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Interview scheduled successfully',
@@ -291,7 +305,7 @@ export class ApplicationTrackingController {
       scheduledAt: Date;
       interviewers: string[];
     },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.scheduleInterview(id, interviewData, user);
     return new ApplicationResponseDto(application);
@@ -320,7 +334,7 @@ export class ApplicationTrackingController {
       feedback: string;
       recommendation: 'hire' | 'no_hire' | 'maybe';
     },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.addInterviewFeedback(id, feedback, user);
     return new ApplicationResponseDto(application);
@@ -349,7 +363,7 @@ export class ApplicationTrackingController {
       content: string;
       attachments?: Array<{ name: string; url: string; }>;
     },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const application = await this.applicationService.addCommunication(id, communication, user);
     return new ApplicationResponseDto(application);
@@ -374,7 +388,7 @@ export class ApplicationTrackingController {
   @ApiParam({ name: 'id', description: 'Application ID' })
   async getApplicationTimeline(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationTimelineDto> {
     return await this.applicationService.getApplicationTimeline(id, user);
   }
@@ -399,7 +413,7 @@ export class ApplicationTrackingController {
   @ApiParam({ name: 'id', description: 'Application ID' })
   async getScreeningResults(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ScreeningResultsDto> {
     return await this.applicationService.getScreeningResults(id, user);
   }
@@ -415,7 +429,7 @@ export class ApplicationTrackingController {
   @ApiParam({ name: 'jobId', description: 'Job ID' })
   async getApplicationPipeline(
     @Param('jobId', ParseUUIDPipe) jobId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const searchDto = { jobId, limit: 100 };
     const applications = await this.applicationService.searchApplications(searchDto, user);
@@ -465,7 +479,7 @@ export class ApplicationTrackingController {
     @Query('organizationId') organizationId?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     // This would typically call a dedicated analytics service
     // For now, return mock analytics data
@@ -519,7 +533,7 @@ export class ApplicationTrackingController {
   async assignApplication(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('assignedTo') assignedTo: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const updateDto = { assignedTo };
     const application = await this.applicationService.updateApplication(id, updateDto, user);
@@ -538,7 +552,7 @@ export class ApplicationTrackingController {
   @ApiParam({ name: 'id', description: 'Application ID' })
   async unassignApplication(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ApplicationResponseDto> {
     const updateDto = { assignedTo: null };
     const application = await this.applicationService.updateApplication(id, updateDto, user);

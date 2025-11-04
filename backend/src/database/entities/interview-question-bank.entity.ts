@@ -51,7 +51,7 @@ export class InterviewQuestionBank {
   difficulty?: InterviewDifficulty;
 
   @ApiProperty({ description: 'Question bank tags' })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'text', array:true, default: [] })
   tags: string[];
 
   @ApiProperty({ description: 'Whether bank is publicly available' })

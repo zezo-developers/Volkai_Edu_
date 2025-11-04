@@ -17,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -28,7 +29,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('HR Integration')
 @Controller('hr/integration')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class IntegrationController {
   constructor(
     private readonly integrationService: IntegrationService,
@@ -75,6 +76,23 @@ export class IntegrationController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Match candidate skills to job requirements' })
+  @ApiBody({
+    schema:{
+      type: 'object',
+      properties: {
+        candidateSkills: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        jobId: {
+          type: 'string',
+        },
+      },
+      required: ['candidateSkills', 'jobId'],
+    }
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Skill matching completed successfully',
@@ -94,6 +112,59 @@ export class IntegrationController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Schedule interview from application' })
+  @ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      applicationId: {
+        type: 'string',
+        example: 'a3f89e12-45c1-4b9b-bb82-fc2b8e1c9b2f',
+        description: 'The ID of the job application to schedule an interview for',
+      },
+      type: {
+        type: 'string',
+        example: 'technical',
+        description: 'Type of interview (e.g., technical, HR, managerial)',
+      },
+      scheduledAt: {
+        type: 'string',
+        format: 'date-time',
+        example: '2025-11-05T10:00:00Z',
+        description: 'Date and time when the interview is scheduled',
+      },
+      duration: {
+        type: 'number',
+        example: 60,
+        description: 'Duration of the interview in minutes',
+      },
+      interviewers: {
+        type: 'array',
+        items: { type: 'string' },
+        example: [
+          'c7d4e7b2-47c8-4a3d-b612-fc14f9a2e3a4',
+          'b2a3f7d5-98c1-4e2a-bc77-e8d9f9c1a8b7',
+        ],
+        description: 'List of interviewer user IDs',
+      },
+      location: {
+        type: 'string',
+        example: 'Meeting Room 3B',
+        description: 'Physical location of the interview (if applicable)',
+      },
+      meetingUrl: {
+        type: 'string',
+        example: 'https://meet.google.com/abc-defg-hij',
+        description: 'Online meeting URL for virtual interviews',
+      },
+      notes: {
+        type: 'string',
+        example: 'Candidate to bring portfolio and ID proof.',
+        description: 'Additional notes or special instructions for the interview',
+      },
+    },
+    required: ['applicationId', 'type', 'scheduledAt', 'duration', 'interviewers'],
+  },
+})
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Interview scheduled successfully',
@@ -113,7 +184,7 @@ export class IntegrationController {
       meetingUrl?: string;
       notes?: string;
     },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     return await this.integrationService.scheduleInterviewFromApplication(
       applicationId,
@@ -126,6 +197,20 @@ export class IntegrationController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
   @ApiOperation({ summary: 'Sync resume with application' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        resumeId: {
+          type: 'string',
+        },
+        applicationId: {
+          type: 'string',
+        },
+      },
+      required: ['resumeId', 'applicationId'],
+    },
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Resume synced with application successfully',
@@ -163,6 +248,17 @@ export class IntegrationController {
   @Post('extract-skills')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        jobDescription: {
+          type: 'looking for a MERN Stack Developer',
+        },
+      },
+      required: ['jobDescription'],
+    },
+  })
   @ApiOperation({ summary: 'Extract skills from job description' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -202,6 +298,20 @@ export class IntegrationController {
   @Post('bulk-parse')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR)
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        applicationIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+      },
+      required: ['applicationIds'],
+    },
+  })
   @ApiOperation({ summary: 'Bulk parse resumes for multiple applications' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -267,6 +377,69 @@ export class IntegrationController {
   @Post('interview-scheduling/bulk')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER)
+    @ApiBody({
+    description: 'Bulk interview scheduling details',
+    schema: {
+      type: 'object',
+      properties: {
+        applicationIds: {
+          type: 'array',
+          description: 'List of job application IDs to schedule interviews for',
+          items: { type: 'string', example: 'f13a8f23-12c4-4c9d-bc23-938b34ea9a91' },
+          example: [
+            'f13a8f23-12c4-4c9d-bc23-938b34ea9a91',
+            'c73c14af-9b42-42c8-90a8-7d0e1c9a7a65',
+          ],
+        },
+        interviewTemplate: {
+          type: 'object',
+          description: 'Interview template applied to all applications',
+          properties: {
+            type: { type: 'string', example: 'Technical Round' },
+            duration: { type: 'number', example: 60, description: 'Duration in minutes' },
+            interviewers: {
+              type: 'array',
+              items: { type: 'string', example: 'user-12345' },
+              example: ['user-12345', 'user-67890'],
+            },
+            location: { type: 'string', example: 'Conference Room A' },
+            meetingUrl: { type: 'string', example: 'https://meet.google.com/abc-xyz' },
+          },
+          required: ['type', 'duration', 'interviewers'],
+        },
+        schedulingPreferences: {
+          type: 'object',
+          description: 'Time range and availability for scheduling',
+          properties: {
+            startDate: { type: 'string', format: 'date-time', example: '2025-11-06T09:00:00Z' },
+            endDate: { type: 'string', format: 'date-time', example: '2025-11-10T17:00:00Z' },
+            timeSlots: {
+              type: 'array',
+              description: 'Available daily time slots',
+              items: {
+                type: 'object',
+                properties: {
+                  start: { type: 'string', example: '09:00' },
+                  end: { type: 'string', example: '12:00' },
+                },
+              },
+              example: [
+                { start: '09:00', end: '12:00' },
+                { start: '14:00', end: '17:00' },
+              ],
+            },
+            excludeWeekends: {
+              type: 'boolean',
+              example: true,
+              description: 'Whether to skip weekends during scheduling',
+            },
+          },
+          required: ['startDate', 'endDate', 'timeSlots'],
+        },
+      },
+      required: ['applicationIds', 'interviewTemplate', 'schedulingPreferences'],
+    },
+  })
   @ApiOperation({ summary: 'Bulk schedule interviews for multiple applications' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -289,7 +462,7 @@ export class IntegrationController {
         excludeWeekends: boolean;
       };
     },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     // This would typically use a scheduling algorithm to find optimal times
     const { applicationIds, interviewTemplate, schedulingPreferences } = bulkScheduleData;

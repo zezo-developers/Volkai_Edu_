@@ -260,13 +260,21 @@ export class HRProfile {
   @OneToMany(() => HRProfile, profile => profile.manager)
   directReports: HRProfile[];
 
+  @OneToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
   // Virtual properties
   get yearsOfService(): number {
     if (!this.hireDate) return 0;
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - this.hireDate.getTime());
+
+    const hireDate =
+      this.hireDate instanceof Date ? this.hireDate : new Date(this.hireDate);
+
+    const diffTime = Math.abs(Date.now() - hireDate.getTime());
     return Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
   }
+
 
   get isManager(): boolean {
     return this.directReports && this.directReports.length > 0;

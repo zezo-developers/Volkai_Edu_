@@ -41,7 +41,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('HR Profiles')
 @Controller('hr/profiles')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class HRProfileController {
   constructor(
     private readonly hrProfileService: HRProfileService,
@@ -66,7 +66,7 @@ export class HRProfileController {
   })
   async createHRProfile(
     @Body(ValidationPipe) createDto: CreateHRProfileDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.createHRProfile(createDto, user);
     return new HRProfileResponseDto(profile);
@@ -93,7 +93,7 @@ export class HRProfileController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   async searchHRProfiles(
     @Query(ValidationPipe) searchDto: SearchHRProfilesDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileListResponseDto> {
     return await this.hrProfileService.searchHRProfiles(searchDto, user);
   }
@@ -110,7 +110,7 @@ export class HRProfileController {
     description: 'HR profile not found',
   })
   async getMyHRProfile(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.getHRProfileByUserId(user.id, user);
     return new HRProfileResponseDto(profile);
@@ -134,7 +134,7 @@ export class HRProfileController {
   @ApiParam({ name: 'userId', description: 'User ID' })
   async getHRProfileByUserId(
     @Param('userId', ParseUUIDPipe) userId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.getHRProfileByUserId(userId, user);
     return new HRProfileResponseDto(profile);
@@ -158,7 +158,7 @@ export class HRProfileController {
   @ApiParam({ name: 'id', description: 'HR Profile ID' })
   async getHRProfileById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.getHRProfileById(id, user);
     return new HRProfileResponseDto(profile);
@@ -185,7 +185,7 @@ export class HRProfileController {
   async updateHRProfile(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateHRProfileDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.updateHRProfile(id, updateDto, user);
     return new HRProfileResponseDto(profile);
@@ -210,7 +210,7 @@ export class HRProfileController {
   @ApiParam({ name: 'id', description: 'HR Profile ID' })
   async deleteHRProfile(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<void> {
     await this.hrProfileService.deleteHRProfile(id, user);
   }
@@ -239,7 +239,7 @@ export class HRProfileController {
     @Body('newDepartment') newDepartment?: string,
     @Body('newSalary') newSalary?: number,
     @Body('effectiveDate') effectiveDate?: Date,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.promoteEmployee(
       id,
@@ -273,7 +273,7 @@ export class HRProfileController {
   async addPerformanceReview(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) reviewDto: PerformanceReviewDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.addPerformanceReview(id, reviewDto, user);
     return new HRProfileResponseDto(profile);
@@ -300,7 +300,7 @@ export class HRProfileController {
   async addGoal(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) goalDto: GoalDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.addGoal(id, goalDto, user);
     return new HRProfileResponseDto(profile);
@@ -327,7 +327,7 @@ export class HRProfileController {
     @Param('id', ParseUUIDPipe) id: string,
     @Param('goalId') goalId: string,
     @Body('progress') progress: number,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.updateGoalProgress(id, goalId, progress, user);
     return new HRProfileResponseDto(profile);
@@ -354,7 +354,7 @@ export class HRProfileController {
   async addDocument(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) documentDto: DocumentDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.addDocument(id, documentDto, user);
     return new HRProfileResponseDto(profile);
@@ -381,7 +381,7 @@ export class HRProfileController {
   async addTraining(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) trainingDto: TrainingDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto> {
     const profile = await this.hrProfileService.addTraining(id, trainingDto, user);
     return new HRProfileResponseDto(profile);
@@ -403,7 +403,7 @@ export class HRProfileController {
   @ApiParam({ name: 'managerId', description: 'Manager user ID' })
   async getTeamMembers(
     @Param('managerId', ParseUUIDPipe) managerId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto[]> {
     const teamMembers = await this.hrProfileService.getTeamMembers(managerId, user);
     return teamMembers.map(profile => new HRProfileResponseDto(profile));
@@ -425,7 +425,7 @@ export class HRProfileController {
   @ApiParam({ name: 'department', description: 'Department name' })
   async getDepartmentEmployees(
     @Param('department') department: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto[]> {
     const employees = await this.hrProfileService.getDepartmentEmployees(department, user);
     return employees.map(profile => new HRProfileResponseDto(profile));
@@ -448,7 +448,7 @@ export class HRProfileController {
   @ApiParam({ name: 'id', description: 'HR Profile ID' })
   async getPerformanceMetrics(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     return await this.hrProfileService.getPerformanceMetrics(id, user);
   }
@@ -464,7 +464,7 @@ export class HRProfileController {
   @ApiQuery({ name: 'organizationId', required: false, description: 'Filter by organization' })
   async getHRAnalytics(
     @Query('organizationId') organizationId?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     // This would typically call a dedicated analytics service
     // For now, return mock HR analytics data
@@ -523,7 +523,7 @@ export class HRProfileController {
     @Query('department') department?: string,
     @Query('managerId') managerId?: string,
     @Query('period') period?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     const searchDto = { department, managerId, limit: 100 };
     const profiles = await this.hrProfileService.searchHRProfiles(searchDto, user!);
@@ -569,7 +569,7 @@ export class HRProfileController {
     type: [HRProfileResponseDto],
   })
   async getMyTeamMembers(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<HRProfileResponseDto[]> {
     const teamMembers = await this.hrProfileService.getTeamMembers(user.id, user);
     return teamMembers.map(profile => new HRProfileResponseDto(profile));

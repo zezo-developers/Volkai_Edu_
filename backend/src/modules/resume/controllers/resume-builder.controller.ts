@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -202,6 +203,15 @@ export class ResumeBuilderController {
 
   @Post(':id/clone')
   @ApiOperation({ summary: 'Clone resume' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', example: 'My Resume Copy', description: 'New title for the cloned resume' },
+      },
+      required: ['title'],
+    },
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Resume cloned successfully',
@@ -221,6 +231,7 @@ export class ResumeBuilderController {
     @Body('title') newTitle: string,
     @CurrentUser() user: any,
   ): Promise<ResumeResponseDto> {
+    console.log('id: ', id)
     const resume = await this.resumeService.cloneResume(id, newTitle, user);
     return new ResumeResponseDto(resume);
   }

@@ -46,7 +46,7 @@ export class RolesGuard implements CanActivate {
     
     if (!hasRequiredRole) {
       throw new ForbiddenException(
-        `Access denied. Required roles: ${requiredRoles.join(', ')}. User role: ${user.role || 'none'}`
+        `Access denied. Required roles: ${requiredRoles.join(', ')}. User role: ${user.roles || 'none'}`
       );
     }
 
@@ -54,12 +54,12 @@ export class RolesGuard implements CanActivate {
   }
 
   private checkUserRoles(user: any, requiredRoles: string[]): boolean {
-    if (!user || !user.role) {
+    console.log('user: ', user)
+    if (!user || !user.roles) {
       return false;
     }
-
     // Check direct role match
-    if (requiredRoles.includes(user.role)) {
+    if (requiredRoles.includes(user.roles)) {
       return true;
     }
 
@@ -70,7 +70,7 @@ export class RolesGuard implements CanActivate {
 
     // Check if user has admin or owner role (highest privileges)
     const adminRoles = ['admin', 'owner', 'super_admin'];
-    if (adminRoles.includes(user.role) && !requiredRoles.includes('super_admin_only')) {
+    if (adminRoles.includes(user.roles) && !requiredRoles.includes('super_admin_only')) {
       return true;
     }
 
@@ -95,7 +95,7 @@ export class AdminGuard implements CanActivate {
     }
 
     const adminRoles = ['admin', 'owner', 'super_admin'];
-    if (!adminRoles.includes(user.role)) {
+    if (!adminRoles.includes(user.roles)) {
       throw new ForbiddenException('Admin access required');
     }
 
@@ -123,7 +123,7 @@ export class OrgAdminGuard implements CanActivate {
     const orgId = request.params?.orgId || request.params?.organizationId || request.body?.organizationId;
     
     // Super admin can access any organization
-    if (user.role === 'super_admin') {
+    if (user.roles === 'super_admin') {
       return true;
     }
 
@@ -133,7 +133,7 @@ export class OrgAdminGuard implements CanActivate {
     }
 
     const orgAdminRoles = ['admin', 'owner'];
-    if (!orgAdminRoles.includes(user.organizationRole || user.role)) {
+    if (!orgAdminRoles.includes(user.organizationRole || user.roles)) {
       throw new ForbiddenException('Organization admin access required');
     }
 
@@ -159,7 +159,7 @@ export class ResourceOwnerGuard implements CanActivate {
 
     // Super admin and admin can access any resource
     const adminRoles = ['admin', 'owner', 'super_admin'];
-    if (adminRoles.includes(user.role)) {
+    if (adminRoles.includes(user.roles)) {
       return true;
     }
 
@@ -192,7 +192,7 @@ export class SelfOrAdminGuard implements CanActivate {
 
     // Admin roles can access any user's data
     const adminRoles = ['admin', 'owner', 'super_admin'];
-    if (adminRoles.includes(user.role)) {
+    if (adminRoles.includes(user.roles)) {
       return true;
     }
 

@@ -304,10 +304,11 @@ export class AiMockInterviewService {
     try {
       // Complete the interview
       interview.complete();
+      console.log('Interview Complete! ')
 
       // Generate comprehensive feedback
-      const comprehensiveFeedback = await this.generateComprehensiveFeedback(interview);
-      interview.aiFeedback = comprehensiveFeedback;
+      // const comprehensiveFeedback = await this.generateComprehensiveFeedback(interview);
+      // interview.aiFeedback = comprehensiveFeedback;
 
       // Generate follow-up recommendations
       interview.followUpRecommendations = await this.generateRecommendations(interview);
@@ -522,6 +523,12 @@ export class AiMockInterviewService {
 
   private async generateComprehensiveFeedback(interview: AiMockInterview): Promise<AIFeedbackResponse> {
     try {
+      console.log({
+          interviewId: interview.id,
+          transcript: interview.transcript,
+          skillScores: interview.skillScores,
+          performanceMetrics: interview.performanceMetrics,
+        })
       const response = await firstValueFrom(
         this.httpService.post(`${this.aiServiceUrl}/comprehensive-feedback`, {
           interviewId: interview.id,
@@ -533,6 +540,7 @@ export class AiMockInterviewService {
 
       return response.data;
     } catch (error) {
+      console.log('error: ', error)
       this.logger.error('Failed to generate comprehensive feedback', error);
       return this.generateFallbackFeedback(interview);
     }

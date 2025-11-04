@@ -36,6 +36,7 @@ export class JobManagementService {
   async createJob(createDto: CreateJobDto, user: User) {
     try {
       console.log('inside create job', user);
+      console.log('createDto: ', createDto);
       // Validate permissions
       if (user.roles=== UserRole.STUDENT) {
         throw new ForbiddenException('Students cannot create jobs');
@@ -73,6 +74,7 @@ export class JobManagementService {
         createdBy: user.id,
         status: JobStatus.DRAFT,
       })
+
       const job = this.jobRepository.create({
         organizationId: createDto.organizationId,
         title: createDto.title,
@@ -88,8 +90,8 @@ export class JobManagementService {
         salaryMax: createDto.salaryMax,
         currency: createDto.currency || 'USD',
         department: createDto.department,
-        // tags: createDto.tags || [],
-        // skillsRequired: createDto.skillsRequired || [],
+        tags: createDto.tags || [],
+        skillsRequired: createDto.skillsRequired || [],
         expiresAt: createDto.expiresAt,
         createdBy: user.id,
         status: JobStatus.DRAFT,
@@ -213,12 +215,16 @@ export class JobManagementService {
                               { salaryMax: searchDto.salaryMax });
       }
 
-      if (searchDto.skills && searchDto.skills.length > 0) {
-        queryBuilder.andWhere('job.skillsRequired && :skills', { skills: searchDto.skills });
+      if (Array.isArray(searchDto.skills) && searchDto.skills.length > 0) {
+        queryBuilder.andWhere('job.skillsRequired && ARRAY[:...skills]::text[]', {
+          skills: searchDto.skills,
+        });
       }
 
-      if (searchDto.tags && searchDto.tags.length > 0) {
-        queryBuilder.andWhere('job.tags && :tags', { tags: searchDto.tags });
+      if (Array.isArray(searchDto.tags) && searchDto.tags.length > 0) {
+        queryBuilder.andWhere('job.tags && ARRAY[:...tags]::text[]', {
+          tags: searchDto.tags,
+        });
       }
 
       if (searchDto.status) {

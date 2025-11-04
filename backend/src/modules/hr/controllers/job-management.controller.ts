@@ -449,7 +449,7 @@ export class JobManagementController {
     @CurrentUser() user?: any,
   ): Promise<JobResponseDto[]> {
     const job = await this.jobService.getJobById(id, user);
-    
+    console.log('job: ', job);
     // Find similar jobs based on skills, department, and type
     const searchDto = {
       skills: job.skillsRequired.slice(0, 3), // Top 3 skills
@@ -457,6 +457,11 @@ export class JobManagementController {
       type: job.type,
       limit: limit || 5,
     };
+
+    console.log({skills: job.skillsRequired.slice(0, 3), // Top 3 skills
+      department: job.department,
+      type: job.type,
+      limit: limit || 5,})
 
     const similarJobs = await this.jobService.searchJobs(searchDto, user);
     

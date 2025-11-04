@@ -159,15 +159,15 @@ export class AiMockInterview {
   };
 
   @ApiProperty({ description: 'Improvement areas identified' })
-  @Column({ name: 'improvementAreas', type: 'simple-array', default: [] })
+  @Column({ name: 'improvementAreas', type: 'text', array:true, default: [] })
   improvementAreas: string[];
 
   @ApiProperty({ description: 'Strengths identified' })
-  @Column({ name: 'strengths', type: 'simple-array', default: [] })
+  @Column({ name: 'strengths', type: 'text', array:true, default: [] })
   strengths: string[];
 
   @ApiProperty({ description: 'Skills assessed during interview' })
-  @Column({ name: 'skillsAssessed', type: 'simple-array', default: [] })
+  @Column({ name: 'skillsAssessed', type: 'text', array:true, default: [] })
   skillsAssessed: string[];
 
   @ApiProperty({ description: 'Skill scores breakdown' })

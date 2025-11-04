@@ -1,0 +1,2 @@
+In AI Mock Interview : add AI Implementation to generate comprehensive feedback via AI
+store array of organization in users model
