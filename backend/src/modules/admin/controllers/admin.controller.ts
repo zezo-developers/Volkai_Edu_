@@ -42,7 +42,7 @@ import {
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)
 @AdminOnly()
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
@@ -190,7 +190,7 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{
     success: boolean;
-    user: User;
+    user: any;
   }> {
     const user = await this.adminService.getUserById(id);
 
@@ -214,12 +214,15 @@ export class AdminController {
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateUserDto: any,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
-    user: User;
+    user: any;
     message: string;
   }> {
+    console.log({
+      id, updateUserDto, admin:admin.id
+    })
     const user = await this.adminService.updateUser(id, updateUserDto, admin.id);
 
     return {
@@ -239,7 +242,7 @@ export class AdminController {
   async deactivateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('reason') reason?: string,
-    @CurrentUser() admin?: User,
+    @CurrentUser() admin?: any,
   ): Promise<{
     success: boolean;
     message: string;
@@ -261,7 +264,7 @@ export class AdminController {
   @ApiParam({ name: 'id', description: 'User ID' })
   async reactivateUser(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     message: string;
@@ -299,6 +302,9 @@ export class AdminController {
       totalPages: number;
     };
   }> {
+    console.log({ search, status },
+      page,
+      limit)
     const result = await this.adminService.getOrganizations(
       { search, status },
       page,
@@ -369,7 +375,7 @@ export class AdminController {
   async updateSystemConfig(
     @Param('key') key: string,
     @Body(ValidationPipe) updateConfigDto: UpdateSystemConfigDto,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     config: any;
@@ -398,7 +404,7 @@ export class AdminController {
   })
   async createSystemConfig(
     @Body(ValidationPipe) createConfigDto: CreateSystemConfigDto,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     config: any;
@@ -460,7 +466,7 @@ export class AdminController {
   })
   async generateReport(
     @Body(ValidationPipe) generateReportDto: GenerateReportDto,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     report: any;
@@ -526,7 +532,7 @@ export class AdminController {
   })
   async createDataExport(
     @Body(ValidationPipe) createExportDto: CreateDataExportDto,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     export: any;
@@ -593,7 +599,7 @@ export class AdminController {
   async moderateContent(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) moderateDto: ModerateContentDto,
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     message: string;
@@ -673,7 +679,7 @@ export class AdminController {
   })
   async enableMaintenanceMode(
     @Body('message') message?: string,
-    @CurrentUser() admin?: User,
+    @CurrentUser() admin?: any,
   ): Promise<{
     success: boolean;
     message: string;
@@ -693,7 +699,7 @@ export class AdminController {
     description: 'Maintenance mode disabled successfully',
   })
   async disableMaintenanceMode(
-    @CurrentUser() admin: User,
+    @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;
     message: string;

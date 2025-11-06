@@ -46,7 +46,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('Anti-Cheating')
 @Controller('anti-cheating')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class AntiCheatController {
   constructor(private readonly antiCheatService: AntiCheatService) {}
 

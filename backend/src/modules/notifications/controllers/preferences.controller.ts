@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -27,15 +28,16 @@ import { NotificationChannel } from '../../../database/entities/notification-tem
 import { 
   PreferencesService, 
   UpdatePreferencesDto, 
-  BulkUpdatePreferencesDto 
+  BulkUpdatePreferencesDto as IBulkUpdatePreferencesDto 
 } from '../services/preferences.service';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { UserNotificationPreferences } from '@/database/entities/user-notification-preferences.entity';
 
 @ApiTags('Notification Preferences')
 @Controller('notifications/preferences')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class PreferencesController {
   constructor(
     private readonly preferencesService: PreferencesService,
@@ -48,7 +50,7 @@ export class PreferencesController {
     description: 'User preferences retrieved successfully',
   })
   async getMyPreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const preferences = await this.preferencesService.getUserPreferences(user.id);
     
@@ -94,7 +96,7 @@ export class PreferencesController {
   })
   async updateMyPreferences(
     @Body(ValidationPipe) updateDto: UpdatePreferencesDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const preference = await this.preferencesService.updatePreferences(user.id, updateDto, user);
     
@@ -130,7 +132,7 @@ export class PreferencesController {
   async updateUserPreferences(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body(ValidationPipe) updateDto: UpdatePreferencesDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const preference = await this.preferencesService.updatePreferences(userId, updateDto, user);
     
@@ -148,6 +150,35 @@ export class PreferencesController {
 
   @Put('my/bulk')
   @ApiOperation({ summary: 'Bulk update current user notification preferences' })
+  @ApiBody({
+    description: 'Bulk preference data',
+    schema: {
+      type: 'object',
+      properties: {
+        preferences: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              templateKey: {
+                type: 'string',
+                description: 'Template key',
+              },
+              channel: {
+                type: 'string',
+                enum: Object.values(NotificationChannel),
+                description: 'Notification channel',
+              },
+              isEnabled: {
+                type: 'boolean',
+                description: 'Whether the preference is enabled',
+              },
+            },
+          },
+        },
+      },
+    },
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Bulk preferences updated successfully',
@@ -157,8 +188,8 @@ export class PreferencesController {
     description: 'Invalid bulk preference data',
   })
   async bulkUpdateMyPreferences(
-    @Body(ValidationPipe) bulkDto: BulkUpdatePreferencesDto,
-    @CurrentUser() user: User,
+    @Body(ValidationPipe) bulkDto: IBulkUpdatePreferencesDto,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const result = await this.preferencesService.bulkUpdatePreferences(user.id, bulkDto, user);
     
@@ -184,7 +215,7 @@ export class PreferencesController {
     @Body('timezone') timezone: string,
     @Body('enabled') enabled: boolean = true,
     @Body('weekendsOnly') weekendsOnly: boolean = false,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const preference = await this.preferencesService.setQuietHours(
       user.id,
@@ -216,7 +247,7 @@ export class PreferencesController {
     @Body('frequency') frequency: 'daily' | 'weekly',
     @Body('time') time: string,
     @Body('days') days?: string[],
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     const preference = await this.preferencesService.setDigestPreferences(
       user.id,
@@ -246,7 +277,7 @@ export class PreferencesController {
   async giveConsent(
     @Body('version') version: string,
     @Body('source') source: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const preference = await this.preferencesService.giveConsent(user.id, version, source);
     
@@ -267,7 +298,7 @@ export class PreferencesController {
     description: 'Consent revoked successfully',
   })
   async revokeConsent(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const preference = await this.preferencesService.revokeConsent(user.id);
     
@@ -287,7 +318,7 @@ export class PreferencesController {
     description: 'Smart suggestions retrieved successfully',
   })
   async getSmartSuggestions(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const suggestions = await this.preferencesService.generateSmartSuggestions(user.id);
     
@@ -307,7 +338,7 @@ export class PreferencesController {
   @ApiQuery({ name: 'channel', required: false, enum: NotificationChannel })
   @ApiQuery({ name: 'priority', required: false, description: 'Notification priority' })
   async checkNotificationPermission(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Query('templateKey') templateKey?: string,
     @Query('channel') channel?: NotificationChannel,
     @Query('priority') priority?: string,
@@ -335,7 +366,7 @@ export class PreferencesController {
     description: 'Preferences exported successfully',
   })
   async exportMyPreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const exportData = await this.preferencesService.exportPreferences(user.id);
     
@@ -355,9 +386,154 @@ export class PreferencesController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid import data',
   })
+   @ApiBody({
+    description: 'List of user notification preferences to import',
+    schema: {
+      type: 'object',
+      properties: {
+        preferences: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              templateKey: { type: 'string', example: 'weekly_update' },
+              channel: { type: 'string', example: 'email' },
+              isEnabled: { type: 'boolean', example: true },
+              frequencySettings: {
+                type: 'object',
+                properties: {
+                  frequency: { type: 'string', example: 'weekly' },
+                  digestEnabled: { type: 'boolean', example: true },
+                  digestFrequency: { type: 'string', example: 'weekly' },
+                  digestDays: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: ['monday'],
+                  },
+                  digestTime: { type: 'string', example: '09:00' },
+                },
+              },
+              channelSettings: {
+                type: 'object',
+                properties: {
+                  email: {
+                    type: 'object',
+                    properties: {
+                      address: { type: 'string', example: 'user@example.com' },
+                      format: { type: 'string', example: 'html' },
+                      includeAttachments: { type: 'boolean', example: false },
+                    },
+                  },
+                },
+              },
+              contentFilters: {
+                type: 'object',
+                properties: {
+                  minPriority: { type: 'string', example: 'medium' },
+                  allowMarketing: { type: 'boolean', example: true },
+                  allowedCategories: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: ['updates', 'promotions'],
+                  },
+                },
+              },
+              privacySettings: {
+                type: 'object',
+                properties: {
+                  consentGiven: { type: 'boolean', example: true },
+                  allowAnalytics: { type: 'boolean', example: true },
+                  dataRetentionDays: { type: 'integer', example: 365 },
+                },
+              },
+              schedulingRules: {
+                type: 'object',
+                properties: {
+                  allowedHours: {
+                    type: 'object',
+                    properties: {
+                      start: { type: 'string', example: '08:00' },
+                      end: { type: 'string', example: '20:00' },
+                    },
+                  },
+                  allowedDays: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: [
+                      'monday',
+                      'tuesday',
+                      'wednesday',
+                      'thursday',
+                      'friday',
+                    ],
+                  },
+                  workingHoursOnly: { type: 'boolean', example: true },
+                },
+              },
+              metadata: {
+                type: 'object',
+                properties: {
+                  source: { type: 'string', example: 'imported' },
+                  setBy: { type: 'string', example: 'user' },
+                  reason: { type: 'string', example: 'Initial import' },
+                },
+              },
+            },
+          },
+          example: [
+            {
+              templateKey: 'weekly_update',
+              channel: 'email',
+              isEnabled: true,
+              frequencySettings: {
+                frequency: 'weekly',
+                digestEnabled: true,
+                digestFrequency: 'weekly',
+                digestDays: ['monday'],
+                digestTime: '09:00',
+              },
+              channelSettings: {
+                email: {
+                  address: 'user@example.com',
+                  format: 'html',
+                  includeAttachments: false,
+                },
+              },
+              contentFilters: {
+                minPriority: 'medium',
+                allowMarketing: true,
+                allowedCategories: ['updates', 'promotions'],
+              },
+              privacySettings: {
+                consentGiven: true,
+                allowAnalytics: true,
+                dataRetentionDays: 365,
+              },
+              schedulingRules: {
+                allowedHours: { start: '08:00', end: '20:00' },
+                allowedDays: [
+                  'monday',
+                  'tuesday',
+                  'wednesday',
+                  'thursday',
+                  'friday',
+                ],
+                workingHoursOnly: true,
+              },
+              metadata: {
+                source: 'imported',
+                setBy: 'user',
+                reason: 'Initial import',
+              },
+            },
+          ],
+        },
+      },
+    },
+  })
   async importMyPreferences(
-    @Body('preferences') preferencesData: any[],
-    @CurrentUser() user: User,
+    @Body('preferences') preferencesData: Partial<UserNotificationPreferences>[],
+    @CurrentUser() user: any,
   ): Promise<any> {
     const result = await this.preferencesService.importPreferences(user.id, preferencesData, user);
     
@@ -374,7 +550,7 @@ export class PreferencesController {
     description: 'All preferences deleted successfully',
   })
   async deleteAllMyPreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const count = await this.preferencesService.deleteAllPreferences(user.id, user);
     
@@ -479,10 +655,161 @@ export class PreferencesController {
     status: HttpStatus.FORBIDDEN,
     description: 'Only administrators can perform bulk updates',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        userIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        preferences: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              templateKey: { type: 'string', example: 'weekly_update' },
+              channel: { type: 'string', example: 'email' },
+              isEnabled: { type: 'boolean', example: true },
+              frequencySettings: {
+                type: 'object',
+                properties: {
+                  frequency: { type: 'string', example: 'weekly' },
+                  digestEnabled: { type: 'boolean', example: true },
+                  digestFrequency: { type: 'string', example: 'weekly' },
+                  digestDays: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: ['monday'],
+                  },
+                  digestTime: { type: 'string', example: '09:00' },
+                },
+              },
+              channelSettings: {
+                type: 'object',
+                properties: {
+                  email: {
+                    type: 'object',
+                    properties: {
+                      address: { type: 'string', example: 'user@example.com' },
+                      format: { type: 'string', example: 'html' },
+                      includeAttachments: { type: 'boolean', example: false },
+                    },
+                  },
+                },
+              },
+              contentFilters: {
+                type: 'object',
+                properties: {
+                  minPriority: { type: 'string', example: 'medium' },
+                  allowMarketing: { type: 'boolean', example: true },
+                  allowedCategories: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: ['updates', 'promotions'],
+                  },
+                },
+              },
+              privacySettings: {
+                type: 'object',
+                properties: {
+                  consentGiven: { type: 'boolean', example: true },
+                  allowAnalytics: { type: 'boolean', example: true },
+                  dataRetentionDays: { type: 'integer', example: 365 },
+                },
+              },
+              schedulingRules: {
+                type: 'object',
+                properties: {
+                  allowedHours: {
+                    type: 'object',
+                    properties: {
+                      start: { type: 'string', example: '08:00' },
+                      end: { type: 'string', example: '20:00' },
+                    },
+                  },
+                  allowedDays: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: [
+                      'monday',
+                      'tuesday',
+                      'wednesday',
+                      'thursday',
+                      'friday',
+                    ],
+                  },
+                  workingHoursOnly: { type: 'boolean', example: true },
+                },
+              },
+              metadata: {
+                type: 'object',
+                properties: {
+                  source: { type: 'string', example: 'imported' },
+                  setBy: { type: 'string', example: 'user' },
+                  reason: { type: 'string', example: 'Initial import' },
+                },
+              },
+            },
+          },
+          example: [
+            {
+              templateKey: 'weekly_update',
+              channel: 'email',
+              isEnabled: true,
+              frequencySettings: {
+                frequency: 'weekly',
+                digestEnabled: true,
+                digestFrequency: 'weekly',
+                digestDays: ['monday'],
+                digestTime: '09:00',
+              },
+              channelSettings: {
+                email: {
+                  address: 'user@example.com',
+                  format: 'html',
+                  includeAttachments: false,
+                },
+              },
+              contentFilters: {
+                minPriority: 'medium',
+                allowMarketing: true,
+                allowedCategories: ['updates', 'promotions'],
+              },
+              privacySettings: {
+                consentGiven: true,
+                allowAnalytics: true,
+                dataRetentionDays: 365,
+              },
+              schedulingRules: {
+                allowedHours: { start: '08:00', end: '20:00' },
+                allowedDays: [
+                  'monday',
+                  'tuesday',
+                  'wednesday',
+                  'thursday',
+                  'friday',
+                ],
+                workingHoursOnly: true,
+              },
+              metadata: {
+                source: 'imported',
+                setBy: 'user',
+                reason: 'Initial import',
+              },
+            },
+          ],
+        },
+      },
+      required: ['userIds', 'preferences'],
+      }
+  })
   async adminBulkUpdatePreferences(
     @Body('userIds') userIds: string[],
-    @Body('preferences') preferences: BulkUpdatePreferencesDto,
-    @CurrentUser() user: User,
+    @Body('preferences') preferences: IBulkUpdatePreferencesDto,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const results = [];
     

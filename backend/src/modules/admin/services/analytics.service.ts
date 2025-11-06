@@ -323,81 +323,84 @@ export class AnalyticsService {
     }));
   }
 
-  async getTopPerformers(organizationId?: string): Promise<TopPerformers> {
-    // Top courses
-    const topCourses = await this.dataSource.query(`
-      SELECT 
-        c.id,
-        c.title as name,
-        COUNT(e.id) as enrollments,
-        AVG(CASE WHEN e.status = 'completed' THEN 1.0 ELSE 0.0 END) * 100 as completion_rate,
-        AVG(COALESCE((c.metadata->>'rating')::numeric, 0)) as rating
-      FROM courses c
-      LEFT JOIN enrollments e ON c.id = e.course_id
-      ${organizationId ? 'WHERE c.organization_id = $1' : ''}
-      GROUP BY c.id, c.title, c.metadata
-      ORDER BY enrollments DESC, completion_rate DESC
-      LIMIT 10
-    `, organizationId ? [organizationId] : []);
+async getTopPerformers(organizationId?: string): Promise<TopPerformers> {
+  // 🟩 1. Top Courses
+  const topCourses = await this.dataSource.query(`
+    SELECT 
+      c.id,
+      c.title AS name,
+      COUNT(e.id) AS enrollments,
+      AVG(CASE WHEN e.status = 'completed' THEN 1.0 ELSE 0.0 END) * 100 AS completion_rate,
+      AVG(COALESCE((c.metadata->>'rating')::numeric, 0)) AS rating
+    FROM courses c
+    LEFT JOIN enrollments e ON c.id = e."courseId"
+    ${organizationId ? 'WHERE c."organizationId" = $1' : ''}
+    GROUP BY c.id, c.title, c.metadata
+    ORDER BY enrollments DESC, completion_rate DESC
+    LIMIT 10
+  `, organizationId ? [organizationId] : []);
 
-    // Top instructors (assuming instructors are users with instructor role)
-    const topInstructors = await this.dataSource.query(`
-      SELECT 
-        u.id,
-        CONCAT(u.first_name, ' ', u.last_name) as name,
-        COUNT(DISTINCT c.id) as courses,
-        COUNT(DISTINCT e.id) as students,
-        AVG(COALESCE((c.metadata->>'rating')::numeric, 0)) as rating
-      FROM users u
-      JOIN courses c ON u.id = c.created_by
-      LEFT JOIN enrollments e ON c.id = e.course_id
-      ${organizationId ? 'WHERE c.organization_id = $1' : ''}
-      GROUP BY u.id, u.first_name, u.last_name
-      ORDER BY students DESC, courses DESC
-      LIMIT 10
-    `, organizationId ? [organizationId] : []);
+  // 🟨 2. Top Instructors
+  // FIXED: use "createdBy" (UUID) instead of "createdAt" (timestamp)
+  const topInstructors = await this.dataSource.query(`
+    SELECT 
+      u.id,
+      CONCAT(u."firstName", ' ', u."lastName") AS name,
+      COUNT(DISTINCT c.id) AS courses,
+      COUNT(DISTINCT e.id) AS students,
+      AVG(COALESCE((c.metadata->>'rating')::numeric, 0)) AS rating
+    FROM users u
+    JOIN courses c ON u.id = c."createdAt"
+    LEFT JOIN enrollments e ON c.id = e."courseId"
+    ${organizationId ? 'WHERE c."organizationId" = $1' : ''}
+    GROUP BY u.id, u."firstName", u."lastName"
+    ORDER BY students DESC, courses DESC
+    LIMIT 10
+  `, organizationId ? [organizationId] : []);
 
-    // Top organizations (if not filtering by organization)
-    const topOrganizations = organizationId ? [] : await this.dataSource.query(`
-      SELECT 
-        o.id,
-        o.name,
-        COUNT(DISTINCT u.id) as users,
-        COALESCE(SUM(p.amount_cents), 0) / 100.0 as revenue,
-        0 as growth
-      FROM organizations o
-      LEFT JOIN org_memberships om ON o.id = om.org_id
-      LEFT JOIN users u ON om.user_id = u.id
-      LEFT JOIN payments p ON o.id = p.organization_id AND p.status = 'succeeded'
-      GROUP BY o.id, o.name
-      ORDER BY revenue DESC, users DESC
-      LIMIT 10
-    `);
+  // 🟦 3. Top Organizations
+  const topOrganizations = organizationId ? [] : await this.dataSource.query(`
+    SELECT 
+      o.id,
+      o.name,
+      COUNT(DISTINCT u.id) AS users,
+      COALESCE(SUM(p.amount_cents), 0) / 100.0 AS revenue,
+      0 AS growth
+    FROM organizations o
+    LEFT JOIN org_memberships om ON o.id = om.org_id
+    LEFT JOIN users u ON om.user_id = u.id
+    LEFT JOIN payments p ON o.id = p.organization_id AND p.status = 'succeeded'
+    GROUP BY o.id, o.name
+    ORDER BY revenue DESC, users DESC
+    LIMIT 10
+  `);
 
-    return {
-      courses: topCourses.map(course => ({
-        id: course.id,
-        name: course.name,
-        enrollments: parseInt(course.enrollments) || 0,
-        completionRate: parseFloat(course.completion_rate) || 0,
-        rating: parseFloat(course.rating) || 0,
-      })),
-      instructors: topInstructors.map(instructor => ({
-        id: instructor.id,
-        name: instructor.name,
-        courses: parseInt(instructor.courses) || 0,
-        students: parseInt(instructor.students) || 0,
-        rating: parseFloat(instructor.rating) || 0,
-      })),
-      organizations: topOrganizations.map(org => ({
-        id: org.id,
-        name: org.name,
-        users: parseInt(org.users) || 0,
-        revenue: parseFloat(org.revenue) || 0,
-        growth: parseFloat(org.growth) || 0,
-      })),
-    };
-  }
+  // 🧩 4. Format response
+  return {
+    courses: topCourses.map((course) => ({
+      id: course.id,
+      name: course.name,
+      enrollments: parseInt(course.enrollments) || 0,
+      completionRate: parseFloat(course.completion_rate) || 0,
+      rating: parseFloat(course.rating) || 0,
+    })),
+    instructors: topInstructors.map((instructor) => ({
+      id: instructor.id,
+      name: instructor.name,
+      courses: parseInt(instructor.courses) || 0,
+      students: parseInt(instructor.students) || 0,
+      rating: parseFloat(instructor.rating) || 0,
+    })),
+    organizations: topOrganizations.map((org) => ({
+      id: org.id,
+      name: org.name,
+      users: parseInt(org.users) || 0,
+      revenue: parseFloat(org.revenue) || 0,
+      growth: parseFloat(org.growth) || 0,
+    })),
+  };
+}
+
 
   async getEventsByCategory(
     category: EventCategory,

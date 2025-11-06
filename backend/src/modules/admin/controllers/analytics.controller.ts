@@ -38,7 +38,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @Controller('admin/analytics')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.HR)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
@@ -281,7 +281,7 @@ export class AnalyticsController {
   })
   async trackEvent(
     @Body(ValidationPipe) trackEventDto: TrackEventDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     event: AnalyticsEvent;

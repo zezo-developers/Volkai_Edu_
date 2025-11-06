@@ -19,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -26,17 +27,18 @@ import { User, UserRole } from '../../../database/entities/user.entity';
 import { NotificationChannel } from '../../../database/entities/notification-template.entity';
 import { 
   TemplateService, 
-  CreateTemplateDto, 
+  CreateTemplateDto as ICreateTemplateDto, 
   UpdateTemplateDto, 
   SearchTemplatesDto 
 } from '../services/template.service';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { CreateTemplateDto } from '@/modules/resume/dto/template-management.dto';
 
 @ApiTags('Notification Templates')
 @Controller('notifications/templates')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class TemplatesController {
   constructor(
     private readonly templateService: TemplateService,
@@ -46,6 +48,7 @@ export class TemplatesController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiOperation({ summary: 'Create notification template' })
+  @ApiBody({ type: CreateTemplateDto }) 
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Template created successfully',
@@ -63,8 +66,8 @@ export class TemplatesController {
     description: 'Insufficient permissions',
   })
   async createTemplate(
-    @Body(ValidationPipe) createDto: CreateTemplateDto,
-    @CurrentUser() user: User,
+    @Body(ValidationPipe) createDto: ICreateTemplateDto,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const template = await this.templateService.createTemplate(createDto, user);
     
@@ -107,6 +110,7 @@ export class TemplatesController {
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
   ): Promise<any> {
+    console.log("Inside search controller")
     const searchDto: SearchTemplatesDto = {
       search,
       category,
@@ -210,7 +214,7 @@ export class TemplatesController {
   async updateTemplate(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateTemplateDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const template = await this.templateService.updateTemplate(id, updateDto, user);
     
@@ -246,7 +250,7 @@ export class TemplatesController {
   @ApiParam({ name: 'id', description: 'Template ID' })
   async deleteTemplate(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     await this.templateService.deleteTemplate(id, user);
     
@@ -260,6 +264,22 @@ export class TemplatesController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR)
   @ApiOperation({ summary: 'Clone notification template' })
+  @ApiBody({
+    schema:{
+      type: 'object',
+      properties: {
+        newKey: {
+          type: 'string',
+          description: 'New template key',
+        },
+        newName: {
+          type: 'string',
+          description: 'New template name',
+        },
+      },
+      required: ['newKey', 'newName'],
+    }
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Template cloned successfully',
@@ -281,7 +301,7 @@ export class TemplatesController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('newKey') newKey: string,
     @Body('newName') newName: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const clonedTemplate = await this.templateService.cloneTemplate(id, newKey, newName, user);
     
@@ -300,6 +320,25 @@ export class TemplatesController {
 
   @Post(':id/preview')
   @ApiOperation({ summary: 'Preview template with variables' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        variables: {
+          type: 'object',
+          description: 'Template variables',
+        },
+        channel: {
+          type: 'string',
+          description: 'Notification channel',
+        },
+        language: {
+          type: 'string',
+          description: 'Language code',
+        },
+      }
+    }
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Template preview generated successfully',
@@ -427,7 +466,7 @@ export class TemplatesController {
     @Body('testEmail') testEmail: string,
     @Body('variables') variables: Record<string, any>,
     @Body('channels') channels: NotificationChannel[],
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     // This would send a test notification to the specified email
     // Implementation would use the notification service

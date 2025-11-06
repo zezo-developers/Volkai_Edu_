@@ -32,7 +32,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('Billing - Plans')
 @Controller('billing/plans')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class PlansController {
   constructor(private readonly billingService: BillingService) {}
 
@@ -146,7 +146,7 @@ export class PlansController {
   })
   async createPlan(
     @Body(ValidationPipe) createPlanDto: CreatePlanDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     plan: Plan;
@@ -187,7 +187,7 @@ export class PlansController {
   async updatePlan(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updatePlanDto: UpdatePlanDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     plan: Plan;
@@ -271,7 +271,7 @@ export class PlansController {
   async clonePlan(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('name') name?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     plan: Plan;
@@ -525,67 +525,75 @@ export class PlansController {
     };
   }
 
-  @Post(':id/calculate-proration')
-  @ApiOperation({ summary: 'Calculate proration for plan change' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Proration calculated successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Plan not found',
-  })
-  @ApiParam({ name: 'id', description: 'Current plan ID' })
-  async calculateProration(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body('targetPlanId', ParseUUIDPipe) targetPlanId: string,
-    @Body('changeDate') changeDate?: string,
-    @Body('currentPeriodStart') currentPeriodStart?: string,
-    @Body('currentPeriodEnd') currentPeriodEnd?: string,
-  ): Promise<{
-    success: boolean;
-    proration: {
-      creditAmount: number;
-      chargeAmount: number;
-      netAmount: number;
-      displayCredit: string;
-      displayCharge: string;
-      displayNet: string;
-    };
-  }> {
-    const currentPlan = await this.billingService.getPlan(id);
-    const targetPlan = await this.billingService.getPlan(targetPlanId);
-
-    const change = new Date(changeDate || Date.now());
-    const periodStart = new Date(currentPeriodStart || Date.now());
-    const periodEnd = new Date(currentPeriodEnd || Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    const prorationAmount = currentPlan.calculateProrationAmount(periodStart, periodEnd, change);
-    const targetAmount = targetPlan.calculateProrationAmount(periodStart, periodEnd, change);
-    
-    const creditAmount = prorationAmount;
-    const chargeAmount = targetAmount;
-    const netAmount = chargeAmount - creditAmount;
-
-    return {
-      success: true,
+    @Post(':id/calculate-proration')
+    @ApiOperation({ summary: 'Calculate proration for plan change' })
+    @ApiResponse({
+      status: HttpStatus.OK,
+      description: 'Proration calculated successfully',
+    })
+    @ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: 'Plan not found',
+    })
+    @ApiParam({ name: 'id', description: 'Current plan ID', required: true, type: 'string', format: 'uuid' })
+    @ApiParam({ name: 'targetPlanId', description: 'Target plan ID', required: true, type: 'string', format: 'uuid' })
+    @ApiParam({ name: 'changeDate', description: 'Date of plan change', required: false, type: 'string', format: 'date-time' })
+    @ApiParam({ name: 'currentPeriodStart', description: 'Current billing period start', required: false, type: 'string', format: 'date-time' })
+    @ApiParam({ name: 'currentPeriodEnd', description: 'Current billing period end', required: false, type: 'string', format: 'date-time' })
+    async calculateProration(
+      @Param('id', ParseUUIDPipe) id: string,
+      @Param('targetPlanId') targetPlanId: string,
+      @Param('changeDate') changeDate?: string,
+      @Param('currentPeriodStart') currentPeriodStart?: string,
+      @Param('currentPeriodEnd') currentPeriodEnd?: string,
+    ): Promise<{
+      success: boolean;
       proration: {
-        creditAmount,
-        chargeAmount,
-        netAmount,
-        displayCredit: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: currentPlan.currency,
-        }).format(creditAmount / 100),
-        displayCharge: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: targetPlan.currency,
-        }).format(chargeAmount / 100),
-        displayNet: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: targetPlan.currency,
-        }).format(Math.abs(netAmount) / 100),
-      },
-    };
-  }
+        creditAmount: number;
+        chargeAmount: number;
+        netAmount: number;
+        displayCredit: string;
+        displayCharge: string;
+        displayNet: string;
+      };
+    }> {
+      console.log('id: ', id)
+      console.log('targetPlanId: ', targetPlanId)
+      const currentPlan = await this.billingService.getPlan(id);
+      const targetPlan = await this.billingService.getPlan(targetPlanId);
+      console.log('currentPlan: ', currentPlan)
+      console.log('targetPlan: ', targetPlan)
+
+      const change = new Date(changeDate || Date.now());
+      const periodStart = new Date(currentPeriodStart || Date.now());
+      const periodEnd = new Date(currentPeriodEnd || Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      const prorationAmount = currentPlan.calculateProrationAmount(periodStart, periodEnd, change);
+      const targetAmount = targetPlan.calculateProrationAmount(periodStart, periodEnd, change);
+      
+      const creditAmount = prorationAmount;
+      const chargeAmount = targetAmount;
+      const netAmount = chargeAmount - creditAmount;
+
+      return {
+        success: true,
+        proration: {
+          creditAmount,
+          chargeAmount,
+          netAmount,
+          displayCredit: new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currentPlan.currency,
+          }).format(creditAmount / 100),
+          displayCharge: new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: targetPlan.currency,
+          }).format(chargeAmount / 100),
+          displayNet: new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: targetPlan.currency,
+          }).format(Math.abs(netAmount) / 100),
+        },
+      };
+    }
 }

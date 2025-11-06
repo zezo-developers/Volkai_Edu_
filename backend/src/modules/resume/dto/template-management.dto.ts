@@ -20,6 +20,20 @@ export class CreateTemplateDto {
   @IsString()
   name: string;
 
+  @ApiProperty({ description: 'Template key' })
+  @IsString()
+  key: string;
+
+  @ApiProperty({ description: 'Template body' })
+  @IsString()
+  bodyTemplate: string;
+
+  @ApiPropertyOptional({ description: 'Template channels' })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  channels?: string[];
+  
   @ApiPropertyOptional({ description: 'Template description' })
   @IsOptional()
   @IsString()

@@ -220,7 +220,7 @@ export class AdminService {
   async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['memberships', 'memberships.organization'],
+      relations: ['organizationMemberships', 'organizationMemberships.organization'],
     });
 
     if (!user) {
@@ -232,8 +232,11 @@ export class AdminService {
 
   async updateUser(id: string, updates: Partial<User>, adminId: string): Promise<User> {
     const user = await this.getUserById(id);
+    console.log('user: ', user)
     
     Object.assign(user, updates);
+
+    console.log('after asigning : ', user)
     const updatedUser = await this.userRepository.save(user);
 
     // Log the action
@@ -626,10 +629,10 @@ export class AdminService {
   }> {
     const query = this.auditLogRepository
       .createQueryBuilder('log')
-      .leftJoinAndSelect('log.user', 'user');
+      .leftJoinAndSelect('log.actor', 'actor');
 
     if (userId) {
-      query.andWhere('log.userId = :userId', { userId });
+      query.andWhere('log.actorId = :userId', { userId });
     }
 
     if (action) {
