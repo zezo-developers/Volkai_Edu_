@@ -361,7 +361,7 @@ export class AssessmentService {
     })
     // Create new attempt
     const attempt = this.attemptRepository.create({
-      userId: currentUser,
+      userId: currentUser as any,
       assessmentId,
       enrollmentId: enrollment.id,
       attemptNumber: previousAttempts + 1,

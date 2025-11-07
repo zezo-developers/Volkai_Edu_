@@ -320,8 +320,7 @@ export class AuthController {
     description: 'Invalid or expired verification token',
   })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<{ message: string }> {
-    await this.authService.verifyEmail(verifyEmailDto);
-    return { message: 'Email verified successfully' };
+    return await this.authService.verifyEmail(verifyEmailDto);
   }
 
   /**

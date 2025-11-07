@@ -63,79 +63,85 @@ export class AuthService {
   /**
    * Register a new user with optional organization creation
    */
-  async register(registerDto: RegisterDto): Promise<any> {
-    const { email, password, firstName, lastName, orgName, inviteToken } = registerDto;
-    console.log('Register DTO:', registerDto);
-    // Check if user already exists
-    const existingUser = await this.userRepository.findOne({
-      where: { email },
-    });
-    console.log('Existing User:', existingUser);
+    async register(registerDto: RegisterDto): Promise<any> {
+      const { email, password, firstName, lastName, orgName, inviteToken } = registerDto;
+      console.log('Register DTO:', registerDto);
+      // Check if user already exists
+      const existingUser = await this.userRepository.findOne({
+        where: { email },
+      });
+      console.log('Existing User:', existingUser);
 
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      if (existingUser) {
+        if(existingUser?.emailVerified){
+          throw new ConflictException('User with this email already exists');
+        }
+          try {
+          const response = await this.resendEmailVerification(email);
+          return { message: 'Verification email resent successfully' };
+        } catch (error) {
+          // Log but do not crash
+          console.log(`Failed to resend verification email: ${error.message}`);
+          // Return a safe response
+          throw new BadRequestException(error.message || 'Unable to resend verification email');
+        }
+      }
+
+      // // Hash password with enhanced security
+      const hashResult = await this.passwordSecurityService.hashPassword(password);
+      const passwordHash = hashResult.hash;
+
+      // // Generate email verification token
+      const emailVerificationToken = uuidv4();
+      const emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      // // Create user
+      const user = this.userRepository.create({
+        email,
+        passwordHash,
+        firstName,
+        lastName,
+        emailVerificationToken,
+        emailVerificationExpiresAt,
+        status: UserStatus.ACTIVE,
+        roles: Role.USER as string,
+      }) ;
+
+      const savedUser:any = await this.userRepository.save(user);
+      console.log('Saved User:', savedUser);
+
+      let organization: Organization | undefined;
+      let membership: OrganizationMembership | undefined;
+
+      // // // Handle organization creation or invitation
+      if (inviteToken) {
+        // Join existing organization via invitation
+        membership = await this.handleInvitationAcceptance(savedUser.id, savedUser.invitationToken);
+        organization = membership.organization;
+      } else if (orgName) {
+        // Create new organization
+        organization = await this.createOrganization(orgName, savedUser.id);
+        this.userRepository.update(savedUser.id, { organizationId: organization.id });
+        membership = await this.createMembership(savedUser.id, organization.id, MembershipRole.OWNER);
+      }
+
+
+      // Emit user registration event
+      this.eventEmitter.emit('user.registered', {
+        userId: savedUser.id,
+        email: savedUser.email,
+        organizationId: organization?.id,
+      });
+
+      this.logger.log(`User registered successfully: ${email}`);
+
+      return {
+        mes:'Registration endpoint is under maintenance.',
+        user: this.sanitizeUser(savedUser),
+        // tokens,
+        organization,
+      };
     }
-
-    // // Hash password with enhanced security
-    const hashResult = await this.passwordSecurityService.hashPassword(password);
-    const passwordHash = hashResult.hash;
-
-    // // Generate email verification token
-    const emailVerificationToken = uuidv4();
-    const emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    // // Create user
-    const user = this.userRepository.create({
-      email,
-      passwordHash,
-      firstName,
-      lastName,
-      emailVerificationToken,
-      emailVerificationExpiresAt,
-      status: UserStatus.ACTIVE,
-      roles: Role.USER as string,
-    }) ;
-
-    const savedUser:any = await this.userRepository.save(user);
-    console.log('Saved User:', savedUser);
-
-    let organization: Organization | undefined;
-    let membership: OrganizationMembership | undefined;
-
-    // // // Handle organization creation or invitation
-    if (inviteToken) {
-      // Join existing organization via invitation
-      membership = await this.handleInvitationAcceptance(savedUser.id, savedUser.invitationToken);
-      organization = membership.organization;
-    } else if (orgName) {
-      // Create new organization
-      organization = await this.createOrganization(orgName, savedUser.id);
-      membership = await this.createMembership(savedUser.id, organization.id, MembershipRole.OWNER);
-    }
-
-    // // // Generate tokens
-    const tokens = await this.generateTokens(savedUser);
-    console.log('Tokens:', tokens);
-
-    // // // Update user with refresh token hash
-    await this.updateRefreshTokenHash(savedUser.id, tokens.refresh);
-
-    // Emit user registration event
-    this.eventEmitter.emit('user.registered', {
-      userId: savedUser.id,
-      email: savedUser.email,
-      organizationId: organization?.id,
-    });
-
-    this.logger.log(`User registered successfully: ${email}`);
-
-    return {
-      mes:'Registration endpoint is under maintenance.',
-      user: this.sanitizeUser(savedUser),
-      tokens,
-      organization,
-    };
-  }
 
   /**
    * Authenticate user and return tokens
@@ -149,13 +155,13 @@ export class AuthService {
     });
 
     if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
     }
 
     // Verify password using enhanced security service
     const isPasswordValid = await this.passwordSecurityService.verifyPassword(password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new HttpException('Invalid credentials', HttpStatus.BAD_REQUEST);
     }
 
     // Check if password needs rehashing (algorithm upgrade)
@@ -174,7 +180,7 @@ export class AuthService {
 
     // Check if email is verified
     if (!user.emailVerified) {
-      throw new UnauthorizedException('Please verify your email before logging in');
+      throw new HttpException('Please verify your email before logging in', HttpStatus.BAD_REQUEST);
     }
 
     // Update last login
@@ -349,7 +355,7 @@ export class AuthService {
   /**
    * Verify user email using verification token
    */
-  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<void> {
+  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<any> {
     const { token } = verifyEmailDto;
 
     const user = await this.userRepository.findOne({
@@ -371,6 +377,19 @@ export class AuthService {
       emailVerificationExpiresAt: null,
     });
 
+    const organization = await this.organizationRepository.findOne({
+      where: {
+        id: user.organizationId,
+      },
+    })
+
+    // // // Generate tokens
+    const tokens = await this.generateTokens(user);
+    console.log('Tokens:', tokens);
+    
+    // // // Update user with refresh token hash
+    await this.updateRefreshTokenHash(user.id, tokens.refresh);
+
     // Emit email verification event
     this.eventEmitter.emit('user.emailVerified', {
       userId: user.id,
@@ -378,6 +397,12 @@ export class AuthService {
     });
 
     this.logger.log(`Email verified for user: ${user.email}`);
+
+    return {
+      tokens,
+      user,
+      organization
+    }
   }
 
   /**
@@ -406,6 +431,18 @@ export class AuthService {
     if (!user || user.emailVerified) {
       // Don't reveal if email exists or is already verified for security
       return;
+    }
+
+    const isEmailExpired = user.emailVerificationExpiresAt && user.emailVerificationExpiresAt < new Date();
+    if (isEmailExpired) {
+      // Email verification token has expired, so we need to generate a new one
+      await this.userRepository.update(user.id, {
+        emailVerificationToken: null,
+        emailVerificationExpiresAt: null,
+      });
+    }
+    else{
+      throw new BadRequestException('Email verification token has not expired');
     }
 
     // Generate new verification token
@@ -533,6 +570,14 @@ export class AuthService {
    */
   private async createOrganization(name: string, createdBy: string): Promise<Organization> {
     const slug = this.generateSlug(name);
+
+    const existingOrg = await this.organizationRepository.findOne({
+      where: { slug },
+    });
+
+    if (existingOrg) {
+      throw new ConflictException('Organization with this name already exists');
+    }
     
     const organization = this.organizationRepository.create({
       name,

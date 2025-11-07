@@ -37,6 +37,7 @@ import {
   CreateDataExportDto,
   ModerateContentDto,
 } from '../dto/admin.dto';
+import { SystemConfig } from '@/database/entities/system-config.entity';
 
 @ApiTags('Admin - System Management')
 @Controller('admin')
@@ -403,7 +404,7 @@ export class AdminController {
     description: 'Configuration created successfully',
   })
   async createSystemConfig(
-    @Body(ValidationPipe) createConfigDto: CreateSystemConfigDto,
+    @Body(ValidationPipe) createConfigDto: Partial<SystemConfig>,
     @CurrentUser() admin: any,
   ): Promise<{
     success: boolean;

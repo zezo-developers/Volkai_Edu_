@@ -10,7 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import AuthHttp from '../../api/auth/auth';
 import { AxiosError } from 'axios';
 import useAuthStore from '../../stores/authStore';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { handleErrorGlobally } from '../../utils/helper';
 
@@ -19,12 +19,9 @@ interface SignupPageProps {
   onSwitchToLogin: () => void;
 }
 
-export function SignupPage() {
+export function ResetPassPage() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    orgName: '',
+
     password: '',
     confirmPassword: ''
   });
@@ -33,6 +30,7 @@ export function SignupPage() {
   const [error, setError] = useState('');
   const {setAccessToken, setRefreshToken, setUser, setOrganization} = useAuthStore.getState();
   const navigate = useNavigate();
+  const token = useParams<{ token: string }>().token;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -54,7 +52,7 @@ export function SignupPage() {
     return false;
   }
 
-  const handleRegistration = useMutation({
+  const handleResetPass = useMutation({
     mutationKey: ['register'],
     mutationFn: async () => {
       const isValidFailed = handleFormValidation();
@@ -62,18 +60,15 @@ export function SignupPage() {
         throw new Error('Failed to create account. Please try again.');
       }
 
-      const res = await AuthHttp.registerUser({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        orgName: formData.orgName
-      })
+      const res = await AuthHttp.resetPassword(
+        formData.password,
+        token!
+      )
       return res;      
     },
     onSuccess: (data) => {
       // Handle successful registration     
-      toast.success('Please verify Email sended to your email');
+      toast.success('Password Reset Successfully');
       navigate('/auth/login');
     },
     onError: (error) => {
@@ -86,7 +81,7 @@ export function SignupPage() {
     e.preventDefault();
     setError('');    
     try {
-      handleRegistration.mutate();
+      handleResetPass.mutate();
     } catch (err) {
       setError('An error occurred. Please try again.');
     }
@@ -109,8 +104,7 @@ export function SignupPage() {
               </div>
               <span className="text-2xl font-semibold text-foreground">VolkaiHR EDU</span>
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Create Account</h1>
-            <p className="text-muted-foreground">Start preparing your students for success</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Reset Password </h1>
           </div>
 
           {/* Signup Form */}
@@ -121,75 +115,7 @@ export function SignupPage() {
               </div>
             )}
 
-            <div className='flex'>
-              <div className="space-y-2">
-                <Label htmlFor="name">First Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    name="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="John "
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Last Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="name"
-                    name="lastName"
-                    type="text"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    placeholder="Smith"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="admin@college.edu"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="college">Organization Name</Label>
-              <div className="relative">
-                <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="college"
-                  name="orgName"
-                  type="text"
-                  value={formData.orgName}
-                  onChange={handleChange}
-                  placeholder="ABC Institute of Technology"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -239,63 +165,19 @@ export function SignupPage() {
               </div>
             </div>
 
-            <div className="flex items-start space-x-2">
-              <input type="checkbox" className="mt-1 rounded border-border" required />
-              <span className="text-sm text-muted-foreground">
-                I agree to the{' '}
-                <a href="#" className="text-orange-500 hover:text-orange-400">Terms of Service</a>
-                {' '}and{' '}
-                <a href="#" className="text-orange-500 hover:text-orange-400">Privacy Policy</a>
-              </span>
-            </div>
-
             <Button
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={handleRegistration.isPending}
+              disabled={handleResetPass.isPending}
             >
-              {handleRegistration.isPending ? 'Creating Account...' : 'Create Account'}
+              {handleResetPass.isPending ? 'Creating Account...' : 'Create Account'}
             </Button>
           </form>
 
-          <div className="mt-6">
-            <Separator className="my-6" />
-            <div className="text-center">
-              <p className="text-muted-foreground text-sm">
-                Already have an account?{' '}
-                <button
-                  onClick={()=>{}}
-                  className="text-orange-500 hover:text-orange-400 font-medium"
-                >
-                  Sign in
-                </button>
-              </p>
-            </div>
-          </div>
 
-          {/* Benefits */}
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-            <p className="text-xs text-muted-foreground text-center mb-2">What you get:</p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div>✓ Free trial with 50 students</div>
-              <div>✓ AI-powered mock interviews</div>
-              <div>✓ Resume builder & analytics</div>
-              <div>✓ WhatsApp automation</div>
-            </div>
-          </div>
         </Card>
 
-        {/* Trust Indicators */}
-        <div className="mt-8 text-center">
-          <p className="text-white/60 text-sm mb-4">Join 50+ colleges already using VolkaiHR EDU</p>
-          <div className="flex items-center justify-center space-x-6 opacity-60">
-            {['IIT', 'NIT', 'BITS', 'VIT'].map((college) => (
-              <div key={college} className="text-white text-sm font-medium">
-                {college}
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
     </div>
   );

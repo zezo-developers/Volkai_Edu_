@@ -12,7 +12,7 @@ interface StudentLoginPageProps {
   onSwitchToSignup: () => void;
 }
 
-export function StudentLoginPage({ onBack, onSwitchToSignup }: StudentLoginPageProps) {
+export function StudentLoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +45,7 @@ export function StudentLoginPage({ onBack, onSwitchToSignup }: StudentLoginPageP
       
       {/* Back Button */}
       <button
-        onClick={onBack}
+        onClick={()=>{}}
         className="absolute top-6 left-6 flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -138,7 +138,7 @@ export function StudentLoginPage({ onBack, onSwitchToSignup }: StudentLoginPageP
               <p className="text-slate-600 text-sm">
                 Don't have an account?{' '}
                 <button
-                  onClick={onSwitchToSignup}
+                  onClick={()=>{}}
                   className="text-orange-500 hover:text-orange-400 font-medium"
                 >
                   Sign up here

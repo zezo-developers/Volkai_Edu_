@@ -164,7 +164,7 @@ export class IntegrationService {
       // Perform skill matching
       const matchResult = await this.performSkillMatching(
         candidateSkills,
-        requiredSkills,
+        requiredSkills as any,
         skillMap,
       );
 
@@ -478,7 +478,7 @@ export class IntegrationService {
 
   private async performSkillMatching(
     candidateSkills: string[],
-    requiredSkills: string[] | string,
+    requiredSkills:  string,
     skillMap: Map<string, any>,
   ): Promise<SkillMatchResult> {
     const matchedSkills: Array<{ skill: string; confidence: number; category?: string }> = [];
@@ -538,7 +538,7 @@ export class IntegrationService {
     );
 
     return {
-      requiredSkills,
+      requiredSkills: normalizedRequiredSkills,
       candidateSkills,
       matchedSkills,
       missingSkills,

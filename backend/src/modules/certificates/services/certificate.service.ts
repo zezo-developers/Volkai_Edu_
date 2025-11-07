@@ -135,7 +135,7 @@ export class CertificateService {
       console.log('request: ',request)
       // Check if certificate already exists
       const existingCertificate = await this.certificateRepository.findOne({
-        where: { enrollmentId: request },
+        where: { enrollmentId: request as any },
       });
       console.log('existing :',existingCertificate)
 
@@ -159,7 +159,7 @@ export class CertificateService {
       const certificate = this.certificateRepository.create({
         userId: enrollment.userId,
         courseId: enrollment.course.id,
-        enrollmentId: request,
+        enrollmentId: request as any,
         organizationId: enrollment.course.organizationId,
         certificateNumber,
         verificationCode,

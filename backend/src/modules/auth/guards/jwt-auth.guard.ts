@@ -40,11 +40,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getClass(),
     ]);
 
+
+
     if (err || !user) {
       if (isPublic) {
         return null; // Allow access to public routes without authentication
       }
-      throw err || new UnauthorizedException('Authentication required');
+      throw err || new UnauthorizedException('Authentication require handle request');
     }
 
     return user;
