@@ -133,7 +133,7 @@ export class UserSkill {
   }>;
 
   @ApiProperty({ description: 'Skill tags and specializations' })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'text', array:true, default: [] })
   tags: string[];
 
   @ApiProperty({ description: 'Additional notes about the skill' })
@@ -146,13 +146,27 @@ export class UserSkill {
   @UpdateDateColumn({ name: 'updatedAt' })
   updatedAt: Date;
 
-  @ManyToOne(() => Skill, skill => skill.userSkills)
+  @ManyToOne(() => Skill, (skill) => skill.userSkills, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinColumn({ name: 'skillId' })
   skill: Skill;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'verifiedBy' })
   verifier?: User;
+
+  // ✅ Relation with User (owner of the skill)
+  @ManyToOne(() => User, (user) => user.skills, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+
 
   get isVerified(): boolean {
     return !!this.verifiedAt;

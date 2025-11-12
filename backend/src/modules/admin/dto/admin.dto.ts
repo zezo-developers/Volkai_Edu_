@@ -10,6 +10,7 @@ import {
   IsUUID,
   Length,
   ValidateNested,
+  isObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserRole } from '../../../database/entities/user.entity';
@@ -118,6 +119,10 @@ export class CreateSystemConfigDto {
   @IsString()
   description?: string;
 
+  @IsObject()
+  @IsOptional()
+  value: Record<string, any>;
+
   @ApiProperty({ enum: ConfigCategory, description: 'Configuration category' })
   @IsEnum(ConfigCategory)
   category: ConfigCategory;
@@ -126,8 +131,7 @@ export class CreateSystemConfigDto {
   @IsEnum(ConfigType)
   type: ConfigType;
 
-  @ApiProperty({ description: 'Configuration value' })
-  value: any;
+
 
   @ApiPropertyOptional({ description: 'Default value' })
   @IsOptional()
@@ -160,13 +164,14 @@ export class CreateSystemConfigDto {
 }
 
 export class UpdateSystemConfigDto {
-  @ApiProperty({ description: 'New configuration value' })
-  value: any;
-
   @ApiPropertyOptional({ description: 'Reason for change' })
   @IsOptional()
   @IsString()
   reason?: string;
+
+    @IsObject()
+  @IsOptional()
+  value: Record<string, any>;
 }
 
 export class GenerateReportDto {

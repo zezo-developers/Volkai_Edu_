@@ -41,7 +41,7 @@ export class NotificationTemplate {
     isArray: true, 
     description: 'Supported notification channels' 
   })
-  @Column({ type: 'simple-array', default: [], name: 'channels' })
+  @Column({ type: 'text', array:true, default: [], name: 'channels' })
   channels: NotificationChannel[];
 
   @ApiProperty({ description: 'Subject template with variables' })

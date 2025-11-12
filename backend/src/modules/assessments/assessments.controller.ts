@@ -508,6 +508,11 @@ export class AssessmentsController {
     @Request() req: any,
   ): Promise<AssessmentAttemptResponseDto> {
     try {
+      console.log({
+        id,
+        user: req.user.id,
+        startAttemptDto,
+      })
       const attempt = await this.assessmentService.startAssessmentAttempt(
         id,
         req.user.id,

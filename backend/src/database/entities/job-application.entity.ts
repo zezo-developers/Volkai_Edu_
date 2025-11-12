@@ -48,6 +48,14 @@ export enum ApplicationSource {
 @Index(['assignedTo', 'status'])
 @Index(['stage', 'lastActivityAt'])
 export class JobApplication {
+  constructor() {
+    this.timeline = [];
+    this.communications = [];
+    this.formData = {};
+    this.screeningData = {};
+    this.interviewData = {};
+  }
+
   @ApiProperty({ description: 'Application ID' })
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -387,9 +395,16 @@ export class JobApplication {
     scheduledAt: Date;
     interviewers: string[];
   }, performedBy: string): void {
+    console.log('inside interview schedule',interviewData)
     if (!this.interviewData.scheduledInterviews) this.interviewData.scheduledInterviews = [];
     this.interviewData.scheduledInterviews.push({ ...interviewData, status: 'scheduled' });
     this.updateStatus(ApplicationStatus.INTERVIEWING, performedBy);
+    console.log('addTimelineEntry: ', {
+      action: 'interview_scheduled',
+      description: `${interviewData.type} interview scheduled for ${interviewData.scheduledAt.toLocaleString()}`,
+      performedBy,
+      metadata: interviewData,
+    })
     this.addTimelineEntry({
       action: 'interview_scheduled',
       description: `${interviewData.type} interview scheduled for ${interviewData.scheduledAt.toLocaleString()}`,

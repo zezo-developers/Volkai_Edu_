@@ -15,6 +15,8 @@ import {
   CompareVersionsDto,
   RestoreVersionDto,
 } from '../dto/versioning.dto';
+import { v4 as uuid } from 'uuid';
+
 
 export interface ContentVersion {
   id: string;
@@ -373,7 +375,8 @@ export class VersioningService {
   }
 
   private generateVersionId(): string {
-    return `version_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // return `version_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return uuid();
   }
 
   private async storeVersion(version: ContentVersion): Promise<void> {

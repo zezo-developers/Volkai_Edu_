@@ -2362,33 +2362,42 @@ await queryRunner.query(`
 
 // Skills Table
 await queryRunner.query(`
-  -- Create table
-  CREATE TABLE "skills" (
-    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-    "name" character varying(100) NOT NULL,
-    "categoryId" uuid,
-    "description" text,
-    "aliases" text[] NOT NULL DEFAULT '{}',
-    "isVerified" boolean NOT NULL DEFAULT false,
-    "isActive" boolean NOT NULL DEFAULT true,
-    "iconUrl" character varying,
-    "color" character varying,
-    "popularityScore" integer NOT NULL DEFAULT 0,
-    "trendingScore" integer NOT NULL DEFAULT 0,
-    "userCount" integer NOT NULL DEFAULT 0,
-    "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
-    "tags" text[] NOT NULL DEFAULT '{}',
-    "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
-    "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
-    CONSTRAINT "PK_skills_id" PRIMARY KEY ("id"),
-    CONSTRAINT "UQ_skills_name" UNIQUE ("name"),
-    CONSTRAINT "FK_skills_categoryId" FOREIGN KEY ("categoryId") REFERENCES "skill_categories"("id") ON DELETE SET NULL
-  );
+  -- Enable UUID extension if not already
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-  -- Indexes
-  CREATE INDEX "IDX_skills_name" ON "skills" ("name");
-  CREATE INDEX "IDX_skills_categoryId_isVerified" ON "skills" ("categoryId", "isVerified");
-  CREATE INDEX "IDX_skills_isVerified_popularityScore" ON "skills" ("isVerified", "popularityScore");
+-- Drop old table if needed (optional, only if you're resetting schema)
+-- DROP TABLE IF EXISTS "skills" CASCADE;
+
+-- Create new table
+CREATE TABLE "skills" (
+  "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+  "name" character varying(100) NOT NULL,
+  "categoryId" uuid,
+  "description" text,
+  "aliases" text[] NOT NULL DEFAULT '{}',
+  "isVerified" boolean NOT NULL DEFAULT false,
+  "isActive" boolean NOT NULL DEFAULT true,
+  "iconUrl" character varying,
+  "color" character varying,
+  "popularityScore" integer NOT NULL DEFAULT 0,
+  "trendingScore" integer NOT NULL DEFAULT 0,
+  "userCount" integer NOT NULL DEFAULT 0,
+  "metadata" jsonb NOT NULL DEFAULT '{}'::jsonb,
+  "tags" text[] NOT NULL DEFAULT '{}',
+  "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+  CONSTRAINT "PK_skills_id" PRIMARY KEY ("id"),
+  CONSTRAINT "UQ_skills_name" UNIQUE ("name"),
+  CONSTRAINT "FK_skills_categoryId" FOREIGN KEY ("categoryId")
+      REFERENCES "skill_categories"("id")
+      ON DELETE SET NULL
+);
+
+-- Indexes
+CREATE INDEX "IDX_skills_name" ON "skills" ("name");
+CREATE INDEX "IDX_skills_categoryId_isVerified" ON "skills" ("categoryId", "isVerified");
+CREATE INDEX "IDX_skills_isVerified_popularityScore" ON "skills" ("isVerified", "popularityScore");
+
 `);
 
 

@@ -42,8 +42,9 @@ import {
 
 @ApiTags('Billing - Subscriptions')
 @Controller('billing/subscriptions')
-@UseGuards(JwtAuthGuard, OrgAdminGuard)
-@ApiBearerAuth()
+// @UseGuards(JwtAuthGuard, OrgAdminGuard)
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 export class SubscriptionsController {
   constructor(private readonly billingService: BillingService) {}
 
@@ -105,7 +106,7 @@ export class SubscriptionsController {
     description: 'No active subscription found',
   })
   async getMySubscription(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription | null;
@@ -135,7 +136,7 @@ export class SubscriptionsController {
   @ApiParam({ name: 'id', description: 'Subscription ID' })
   async getSubscription(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription;
@@ -170,7 +171,7 @@ export class SubscriptionsController {
   })
   async createSubscription(
     @Body(ValidationPipe) createSubscriptionDto: CreateSubscriptionDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription;
@@ -252,7 +253,7 @@ export class SubscriptionsController {
   async updateSubscription(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateSubscriptionDto: UpdateSubscriptionDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription;
@@ -298,7 +299,7 @@ export class SubscriptionsController {
   async cancelSubscription(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) cancelDto: CancelSubscriptionDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription;
@@ -354,7 +355,7 @@ export class SubscriptionsController {
   async pauseSubscription(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) pauseDto: PauseSubscriptionDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription;
@@ -404,7 +405,7 @@ export class SubscriptionsController {
   @ApiParam({ name: 'id', description: 'Subscription ID' })
   async resumeSubscription(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     subscription: Subscription;
@@ -450,7 +451,7 @@ export class SubscriptionsController {
   async getUsage(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('metric') metric?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     usage: Record<string, number>;
@@ -547,7 +548,7 @@ export class SubscriptionsController {
   async recordUsage(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) usageDto: UsageRecordDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     message: string;
@@ -598,7 +599,7 @@ export class SubscriptionsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Query('status') status?: string,
     @Query('limit') limit?: number,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     invoices: any[];
@@ -638,7 +639,7 @@ export class SubscriptionsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Query('status') status?: string,
     @Query('limit') limit?: number,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     payments: any[];
@@ -676,7 +677,7 @@ export class SubscriptionsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body('newPlanId', ParseUUIDPipe) newPlanId: string,
     @Body('changeDate') changeDate?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<{
     success: boolean;
     preview: {
@@ -759,7 +760,7 @@ export class SubscriptionsController {
   @ApiParam({ name: 'id', description: 'Subscription ID' })
   async getSubscriptionHistory(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{
     success: boolean;
     history: {

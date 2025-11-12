@@ -172,6 +172,7 @@ export class SearchService implements OnModuleInit {
 
   async searchContent(query: string, filters: any = {}, user: User): Promise<SearchResultsDto> {
     try {
+      console.log('filters', filters)
       const searchQuery = {
         bool: {
           must: [
@@ -547,16 +548,34 @@ const response = await this.elasticsearchClient.search<any>({
     };
   }
 
-  private buildAccessFilters(user: User, additionalFilters: any = []) {
-    const filters = [...additionalFilters];
+private buildAccessFilters(user: User, additionalFilters: any = {}): any[] {
+  const filters: any[] = [];
 
-    // Only show published content to regular users
-    if (!user || !['admin', 'instructor', 'content_creator'].includes(user.roles)) {
-      filters.push({ term: { 'status.keyword': 'published' } });
-    }
-
-    return filters;
+  // ✅ Optionally, check if additionalFilters contains filter-type properties
+  // For example: types, courseId, moduleId, etc.
+  if (additionalFilters.types) {
+    const types = Array.isArray(additionalFilters.types)
+      ? additionalFilters.types
+      : [additionalFilters.types];
+    filters.push({ terms: { type: types } });
   }
+
+  if (additionalFilters.courseId) {
+    filters.push({ term: { courseId: additionalFilters.courseId } });
+  }
+
+  if (additionalFilters.moduleId) {
+    filters.push({ term: { moduleId: additionalFilters.moduleId } });
+  }
+
+  // ✅ Add access restrictions based on user roles
+  if (!user || !['admin', 'instructor', 'content_creator'].includes(user.roles)) {
+    filters.push({ term: { 'status.keyword': 'published' } });
+  }
+
+  return filters; // ✅ Always return an array
+}
+
 
   private buildSortOptions(sortBy?: string, sortOrder: 'ASC' | 'DESC' = 'DESC') {
     const order = sortOrder.toLowerCase();

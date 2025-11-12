@@ -21,6 +21,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -59,7 +60,7 @@ export class BulkNotificationDto {
 @ApiTags('Notifications')
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class NotificationsController {
   constructor(
     private readonly notificationService: NotificationService,
@@ -70,6 +71,70 @@ export class NotificationsController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.HR, UserRole.MANAGER, UserRole.INSTRUCTOR)
   @ApiOperation({ summary: 'Send a notification' })
+  @ApiBody({
+  description: 'Send a notification to a user or organization',
+  schema: {
+    type: 'object',
+    properties: {
+      userId: {
+        type: 'string',
+        description: 'Target user ID (optional if organizationId is provided)',
+        example: 'a2b3c4d5-e6f7-8901-2345-6789abcdef01',
+      },
+      organizationId: {
+        type: 'string',
+        description: 'Organization ID (optional if userId is provided)',
+        example: '334776ef-a838-4927-b38d-90a3b3a9c368',
+      },
+      templateKey: {
+        type: 'string',
+        description: 'Key of the notification template to use',
+        example: 'welcome_email',
+      },
+      channel: {
+        type: 'string',
+        enum: Object.values(NotificationChannel),
+        description: 'Delivery channel for the notification',
+        example: 'email',
+      },
+      subject: {
+        type: 'string',
+        description: 'Notification subject (used for email/SMS)',
+        example: 'Welcome to Volkai Edu!',
+      },
+      body: {
+        type: 'string',
+        description: 'Main body or message content of the notification',
+        example: 'Hello {{name}}, your account has been successfully created.',
+      },
+      data: {
+        type: 'object',
+        additionalProperties: true,
+        description: 'Additional structured data for the notification payload',
+        example: { userType: 'teacher', course: 'Mathematics 101' },
+      },
+      priority: {
+        type: 'string',
+        enum: Object.values(NotificationPriority),
+        description: 'Notification delivery priority',
+        example: 'high',
+      },
+      scheduledAt: {
+        type: 'string',
+        format: 'date-time',
+        description: 'When to send the notification (ISO 8601 timestamp)',
+        example: '2025-11-06T08:41:38.531Z',
+      },
+      variables: {
+        type: 'object',
+        additionalProperties: true,
+        description: 'Template variables for dynamic content',
+        example: { name: 'John', course: 'Physics' },
+      },
+    },
+    required: ['channel', 'body'],
+  },
+})
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Notification sent successfully',
@@ -83,8 +148,8 @@ export class NotificationsController {
     description: 'Insufficient permissions',
   })
   async sendNotification(
-    @Body(ValidationPipe) sendDto: SendNotificationDto,
-    @CurrentUser() user: User,
+    @Body() sendDto: any,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const options: SendNotificationOptions = {
       ...sendDto,
@@ -118,7 +183,7 @@ export class NotificationsController {
   })
   async sendBulkNotifications(
     @Body(ValidationPipe) bulkDto: BulkNotificationDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const options: BulkNotificationOptions = {
       ...bulkDto,
@@ -144,7 +209,7 @@ export class NotificationsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'offset', required: false, type: Number })
   async getMyNotifications(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Query('channel') channel?: NotificationChannel,
     @Query('status') status?: NotificationStatus,
     @Query('unreadOnly') unreadOnly?: boolean,
@@ -184,7 +249,7 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification ID' })
   async getNotificationById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const notification = await this.notificationService.getNotificationById(id);
     
@@ -214,7 +279,7 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification ID' })
   async markAsRead(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const notification = await this.notificationService.markAsRead(id, user.id);
     
@@ -236,7 +301,7 @@ export class NotificationsController {
   })
   @ApiQuery({ name: 'channel', required: false, enum: NotificationChannel })
   async markAllAsRead(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Query('channel') channel?: NotificationChannel,
   ): Promise<any> {
     const count = await this.notificationService.markAllAsRead(user.id, channel);
@@ -264,7 +329,7 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification ID' })
   async deleteNotification(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     await this.notificationService.deleteNotification(id, user.id);
     
@@ -293,7 +358,7 @@ export class NotificationsController {
   @ApiParam({ name: 'id', description: 'Notification ID' })
   async retryNotification(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const notification = await this.notificationService.retryFailedNotification(id);
     
@@ -317,7 +382,7 @@ export class NotificationsController {
   @ApiQuery({ name: 'dateFrom', required: false, description: 'Start date for statistics' })
   @ApiQuery({ name: 'dateTo', required: false, description: 'End date for statistics' })
   async getNotificationStats(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Query('organizationId') organizationId?: string,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,

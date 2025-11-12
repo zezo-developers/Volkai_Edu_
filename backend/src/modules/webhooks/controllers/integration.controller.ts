@@ -34,7 +34,7 @@ import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 @ApiTags('Integrations')
 @Controller('integrations')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 

@@ -33,7 +33,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('Resume Analytics')
 @Controller('resume/analytics')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class ResumeAnalyticsController {
   constructor(
     private readonly analyticsService: ResumeAnalyticsService,
@@ -55,7 +55,7 @@ export class ResumeAnalyticsController {
   @ApiQuery({ name: 'organizationId', required: false, description: 'Filter by organization' })
   async getAnalyticsOverview(
     @Query('organizationId') organizationId?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<ResumeAnalyticsOverviewDto> {
     return await this.analyticsService.getResumeAnalyticsOverview(organizationId, user);
   }
@@ -68,7 +68,7 @@ export class ResumeAnalyticsController {
     type: UserResumeAnalyticsDto,
   })
   async getMyResumeAnalytics(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<UserResumeAnalyticsDto> {
     return await this.analyticsService.getUserResumeAnalytics(user.id, user);
   }
@@ -89,7 +89,7 @@ export class ResumeAnalyticsController {
   @ApiParam({ name: 'userId', description: 'User ID' })
   async getUserResumeAnalytics(
     @Param('userId', ParseUUIDPipe) userId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<UserResumeAnalyticsDto> {
     return await this.analyticsService.getUserResumeAnalytics(userId, user);
   }
@@ -112,7 +112,7 @@ export class ResumeAnalyticsController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   async getResumePerformance(
     @Param('resumeId', ParseUUIDPipe) resumeId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumePerformanceDto> {
     return await this.analyticsService.getResumePerformanceMetrics(resumeId, user);
   }
@@ -133,7 +133,7 @@ export class ResumeAnalyticsController {
   @ApiQuery({ name: 'organizationId', required: false, description: 'Filter by organization' })
   async getSkillAnalytics(
     @Query('organizationId') organizationId?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<SkillAnalyticsDto> {
     return await this.analyticsService.getSkillAnalytics(organizationId, user);
   }
@@ -152,7 +152,7 @@ export class ResumeAnalyticsController {
     description: 'Insufficient permissions',
   })
   async getTemplateAnalytics(
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<TemplateAnalyticsDto> {
     return await this.analyticsService.getTemplateAnalytics(user);
   }
@@ -164,7 +164,7 @@ export class ResumeAnalyticsController {
     description: 'Dashboard data retrieved successfully',
   })
   async getDashboardData(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const userAnalytics = await this.analyticsService.getUserResumeAnalytics(user.id, user);
     
@@ -199,7 +199,7 @@ export class ResumeAnalyticsController {
   async getResumeTrends(
     @Query('period') period: string = '30d',
     @Query('organizationId') organizationId?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     // This would analyze trends over the specified period
     return {
@@ -254,7 +254,7 @@ export class ResumeAnalyticsController {
   async getPerformanceBenchmarks(
     @Query('industry') industry?: string,
     @Query('experience') experience?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     // This would provide industry and experience-level benchmarks
     return {
@@ -314,7 +314,7 @@ export class ResumeAnalyticsController {
     @Query('format') format: string = 'json',
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     const userAnalytics = await this.analyticsService.getUserResumeAnalytics(user.id, user);
     
@@ -349,7 +349,7 @@ export class ResumeAnalyticsController {
   @ApiQuery({ name: 'period', required: false, description: 'Report period' })
   async getSummaryReport(
     @Query('period') period: string = 'monthly',
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const userAnalytics = await this.analyticsService.getUserResumeAnalytics(user.id, user);
     

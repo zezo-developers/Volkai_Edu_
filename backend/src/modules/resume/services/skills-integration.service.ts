@@ -62,6 +62,7 @@ export class SkillsIntegrationService {
   ): Promise<SkillCategory> {
     try {
       // Check permissions
+
       if (user && user.roles === UserRole.STUDENT) {
         throw new ForbiddenException('Students cannot create skill categories');
       }
@@ -71,6 +72,7 @@ export class SkillsIntegrationService {
         description,
         displayOrder: await this.getNextCategoryOrder(),
       });
+
 
       const savedCategory = await this.skillCategoryRepository.save(category);
 
@@ -85,35 +87,27 @@ export class SkillsIntegrationService {
   // Skill Management
   async createSkill(createDto: CreateSkillDto, user?: User): Promise<Skill> {
     try {
-      // Check if skill already exists
-      const existingSkill = await this.skillRepository.findOne({
-        where: { name: createDto.name },
-      });
+      // Sanitize aliases and tags - remove problematic characters
+    const sanitizedAliases = Array.isArray(createDto.aliases) 
+      ? createDto.aliases.filter(a => a && !a.includes(','))
+      : [];
+    
+    const sanitizedTags = Array.isArray(createDto.tags)
+      ? createDto.tags.filter(t => t && !t.includes(','))
+      : [];
 
-      if (existingSkill) {
-        throw new BadRequestException('Skill already exists');
-      }
+    const skill = this.skillRepository.create({
+      name: createDto.name,
+      categoryId: createDto.categoryId,
+      description: createDto.description,
+      aliases: sanitizedAliases,
+      tags: sanitizedTags,
+      metadata: typeof createDto.metadata === 'object' && createDto.metadata !== null 
+        ? createDto.metadata 
+        : {},
+    });
 
-      // Validate category if provided
-      if (createDto.categoryId) {
-        const category = await this.skillCategoryRepository.findOne({
-          where: { id: createDto.categoryId },
-        });
-        if (!category) {
-          throw new NotFoundException('Skill category not found');
-        }
-      }
-
-      const skill = this.skillRepository.create({
-        name: createDto.name,
-        categoryId: createDto.categoryId,
-        description: createDto.description,
-        aliases: createDto.aliases || [],
-        tags: createDto.tags || [],
-        metadata: createDto.metadata || {},
-      });
-
-      const savedSkill = await this.skillRepository.save(skill);
+    const savedSkill = await this.skillRepository.save(skill);
 
       // Emit event
       this.eventEmitter.emit('skill.created', {
@@ -285,6 +279,7 @@ export class SkillsIntegrationService {
     user: User,
   ): Promise<UserSkill> {
     try {
+
       // Check if user already has this skill
       const existingUserSkill = await this.userSkillRepository.findOne({
         where: { 
@@ -292,6 +287,7 @@ export class SkillsIntegrationService {
           skillId: createDto.skillId,
         },
       });
+
 
       if (existingUserSkill) {
         throw new BadRequestException('User already has this skill');
@@ -321,7 +317,10 @@ export class SkillsIntegrationService {
 
       // Update skill user count
       skill.incrementUserCount();
-      await this.skillRepository.save(skill);
+
+      await  this.skillRepository.update(skill.id, {
+        userCount: skill.userCount,
+      });
 
       // Sync with user resumes
       await this.syncSkillWithResumes(savedUserSkill);
@@ -386,6 +385,11 @@ export class SkillsIntegrationService {
     updateDto: any,
     user: User,
   ): Promise<UserSkill> {
+    console.log({
+      id,
+      updateDto,
+      user
+    })
     try {
       const userSkill = await this.userSkillRepository.findOne({
         where: { id },
@@ -403,9 +407,9 @@ export class SkillsIntegrationService {
 
       // Update fields
       Object.assign(userSkill, updateDto);
-
+      console.log('saving udpate skill')
       const updatedUserSkill = await this.userSkillRepository.save(userSkill);
-
+      console.log('updated skill', updatedUserSkill)
       // Sync with user resumes
       await this.syncSkillWithResumes(updatedUserSkill);
 
@@ -634,6 +638,11 @@ export class SkillsIntegrationService {
     skillIds: string[],
   ): Promise<void> {
     try {
+      console.log({
+        userId,
+        courseId,
+        skillIds
+      })
       for (const skillId of skillIds) {
         // Check if user already has this skill
         const existingUserSkill = await this.userSkillRepository.findOne({
@@ -683,6 +692,7 @@ export class SkillsIntegrationService {
   // Private helper methods
   private async getNextCategoryOrder(): Promise<number> {
     const lastCategory = await this.skillCategoryRepository.findOne({
+      where: {}, // ✅ required in TypeORM v0.3+
       order: { displayOrder: 'DESC' },
     });
     return (lastCategory?.displayOrder || 0) + 1;

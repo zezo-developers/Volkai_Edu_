@@ -10,7 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -20,7 +20,7 @@ import { AdvancedCacheService } from './advanced-cache.service';
 @ApiTags('Cache')
 @Controller('cache')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class CacheController {
   constructor(private readonly cacheService: AdvancedCacheService) {}
 
@@ -144,6 +144,15 @@ export class CacheController {
 
   @Delete('pattern')
   @ApiOperation({ summary: 'Invalidate cache by pattern' })
+  @ApiBody({
+    schema:{
+      type:'object',
+      properties: {
+        pattern: { type: 'string' }
+      },
+      required: ['pattern']
+    }
+  })
   @ApiResponse({ status: 200, description: 'Cache invalidated by pattern successfully' })
   @HttpCode(HttpStatus.OK)
   @Roles(Role.ADMIN, Role.DEVELOPER)
@@ -172,6 +181,44 @@ export class CacheController {
 
   @Post('warm')
   @ApiOperation({ summary: 'Warm cache with predefined data' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        entries: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              key: { type: 'string', example: 'user:123' },
+              value: {
+                type: 'object',
+                example: { id: 123, name: 'John Doe', role: 'admin' },
+              },
+              options: {
+                type: 'object',
+                example: { ttl: 3600 },
+              },
+            },
+            required: ['key', 'value'],
+          },
+        },
+      },
+      example: {
+        entries: [
+          {
+            key: 'user:123',
+            value: { id: 123, name: 'John Doe', role: 'admin' },
+            options: { ttl: 3600 },
+          },
+          {
+            key: 'settings',
+            value: { theme: 'dark', language: 'en' },
+          },
+        ],
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: 'Cache warming completed successfully' })
   @HttpCode(HttpStatus.OK)
   @Roles(Role.ADMIN, Role.DEVELOPER)

@@ -69,6 +69,7 @@ export class NotificationService {
   async sendNotification(options: any): Promise<Notification> {
     try {
       let notification: Partial<Notification>;
+      console.log("options", options)
 
       if (options.templateKey) {
         // Create from template
@@ -84,6 +85,7 @@ export class NotificationService {
           options.userId,
           options.organizationId,
         );
+        console.log('notification: ', notification)
       } else {
         // Create direct notification
         notification = {
@@ -106,12 +108,14 @@ export class NotificationService {
 
       // Check user preferences
       if (options.userId) {
+        console.log('going in check user preferences')
         const shouldSend = await this.checkUserPreferences(
           options.userId,
           options.templateKey,
           options.channel,
           notification.priority,
         );
+        console.log("shouldSend", shouldSend)
 
         if (!shouldSend) {
           this.logger.log(`Notification blocked by user preferences: ${options.userId}`);
@@ -498,6 +502,7 @@ export class NotificationService {
     channel?: NotificationChannel,
     priority?: NotificationPriority,
   ): Promise<boolean> {
+    console.log("Check user preferences")
     // Get user preferences (most specific first)
     const preferences = await this.preferencesRepository.find({
       where: [
@@ -508,7 +513,7 @@ export class NotificationService {
       ],
       order: { createdAt: 'DESC' },
     });
-
+    console.log('preferences', preferences)
     // Use the most specific preference found
     const preference = preferences[0];
     

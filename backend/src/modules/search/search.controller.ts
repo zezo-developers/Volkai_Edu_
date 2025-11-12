@@ -37,6 +37,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 
 @ApiTags('Search')
 @Controller('search')
+@ApiBearerAuth('JWT-auth')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
@@ -126,6 +127,7 @@ export class SearchController {
         executionTime,
       });
     } catch (error) {
+      console.log('error: ', error)
       throw new HttpException(
         error.message || 'Content search operation failed',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,

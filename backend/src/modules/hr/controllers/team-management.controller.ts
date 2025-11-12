@@ -42,7 +42,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('Team Management')
 @Controller('hr/teams')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class TeamManagementController {
   constructor(
     private readonly teamService: TeamManagementService,
@@ -67,7 +67,7 @@ export class TeamManagementController {
   })
   async createTeam(
     @Body(ValidationPipe) createDto: CreateTeamDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamResponseDto> {
     const team = await this.teamService.createTeam(createDto, user);
     return new TeamResponseDto(team);
@@ -89,7 +89,7 @@ export class TeamManagementController {
   @ApiQuery({ name: 'limit', required: false, description: 'Items per page' })
   async searchTeams(
     @Query(ValidationPipe) searchDto: SearchTeamsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamListResponseDto> {
     return await this.teamService.searchTeams(searchDto, user);
   }
@@ -102,7 +102,7 @@ export class TeamManagementController {
     type: [TeamResponseDto],
   })
   async getMyTeams(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamResponseDto[]> {
     const teams = await this.teamService.getMyTeams(user);
     return teams.map(team => new TeamResponseDto(team));
@@ -126,7 +126,7 @@ export class TeamManagementController {
   @ApiParam({ name: 'id', description: 'Team ID' })
   async getTeamById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamResponseDto> {
     const team = await this.teamService.getTeamById(id, user);
     return new TeamResponseDto(team);
@@ -153,7 +153,7 @@ export class TeamManagementController {
   async updateTeam(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) updateDto: UpdateTeamDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamResponseDto> {
     const team = await this.teamService.updateTeam(id, updateDto, user);
     return new TeamResponseDto(team);
@@ -182,7 +182,7 @@ export class TeamManagementController {
   @ApiParam({ name: 'id', description: 'Team ID' })
   async deleteTeam(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<void> {
     await this.teamService.deleteTeam(id, user);
   }
@@ -212,7 +212,7 @@ export class TeamManagementController {
   async addTeamMember(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) addMemberDto: AddTeamMemberDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamMemberResponseDto> {
     const member = await this.teamService.addTeamMember(id, addMemberDto, user);
     return new TeamMemberResponseDto(member);
@@ -241,7 +241,7 @@ export class TeamManagementController {
     @Param('teamId', ParseUUIDPipe) teamId: string,
     @Param('memberId', ParseUUIDPipe) memberId: string,
     @Body(ValidationPipe) updateDto: UpdateTeamMemberDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamMemberResponseDto> {
     const member = await this.teamService.updateTeamMember(teamId, memberId, updateDto, user);
     return new TeamMemberResponseDto(member);
@@ -273,7 +273,7 @@ export class TeamManagementController {
     @Param('teamId', ParseUUIDPipe) teamId: string,
     @Param('memberId', ParseUUIDPipe) memberId: string,
     @Body('reason') reason?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<void> {
     await this.teamService.removeTeamMember(teamId, memberId, reason, user);
   }
@@ -301,7 +301,7 @@ export class TeamManagementController {
     @Param('teamId', ParseUUIDPipe) teamId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body('role') newRole: TeamRole,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamMemberResponseDto> {
     const member = await this.teamService.updateTeamMemberRole(teamId, userId, newRole, user);
     return new TeamMemberResponseDto(member);
@@ -328,7 +328,7 @@ export class TeamManagementController {
   async addTeamGoal(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() goal: { title: string; description: string; targetDate?: Date },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamResponseDto> {
     const team = await this.teamService.addTeamGoal(id, goal, user);
     return new TeamResponseDto(team);
@@ -355,7 +355,7 @@ export class TeamManagementController {
     @Param('teamId', ParseUUIDPipe) teamId: string,
     @Param('goalId') goalId: string,
     @Body('progress') progress: number,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamResponseDto> {
     const team = await this.teamService.updateTeamGoalProgress(teamId, goalId, progress, user);
     return new TeamResponseDto(team);
@@ -379,7 +379,7 @@ export class TeamManagementController {
   @ApiParam({ name: 'id', description: 'Team ID' })
   async getTeamStats(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamStatsDto> {
     return await this.teamService.getTeamStats(id, user);
   }
@@ -402,7 +402,7 @@ export class TeamManagementController {
   @ApiParam({ name: 'id', description: 'Team ID' })
   async getTeamMembers(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<TeamMemberResponseDto[]> {
     const team = await this.teamService.getTeamById(id, user);
     return (team.members || []).map(member => new TeamMemberResponseDto(member));
@@ -427,7 +427,7 @@ export class TeamManagementController {
   @ApiParam({ name: 'id', description: 'Team ID' })
   async getTeamPerformance(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     const team = await this.teamService.getTeamById(id, user);
     
@@ -475,7 +475,7 @@ export class TeamManagementController {
   @ApiQuery({ name: 'organizationId', required: false, description: 'Filter by organization' })
   async getTeamsAnalytics(
     @Query('organizationId') organizationId?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<any> {
     // This would typically call a dedicated analytics service
     return {
@@ -533,7 +533,7 @@ export class TeamManagementController {
   async requestToJoinTeam(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('message') message?: string,
-    @CurrentUser() user?: User,
+    @CurrentUser() user?: any,
   ): Promise<{ success: boolean; message: string }> {
     const team = await this.teamService.getTeamById(id, user!);
     
@@ -572,7 +572,7 @@ export class TeamManagementController {
   @ApiParam({ name: 'id', description: 'Team ID' })
   async getTeamJoinRequests(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any[]> {
     // This would typically fetch from a join_requests table
     // For now, return empty array

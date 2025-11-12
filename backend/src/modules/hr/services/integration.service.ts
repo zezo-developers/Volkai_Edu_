@@ -158,12 +158,13 @@ export class IntegrationService {
       
       // Get skill entities for better matching
       const skillEntities = await this.skillRepository.find();
+      console.log('skillEntities: ', skillEntities)
       const skillMap = new Map(skillEntities.map(skill => [skill.name.toLowerCase(), skill]));
-
+      console.log('skillMap: ', skillMap)
       // Perform skill matching
       const matchResult = await this.performSkillMatching(
         candidateSkills,
-        requiredSkills,
+        requiredSkills as any,
         skillMap,
       );
 
@@ -251,6 +252,8 @@ export class IntegrationService {
     applicationId: string,
   ): Promise<JobApplication> {
     try {
+      console.log('resumeId: ', resumeId);
+      console.log('applicationId: ', applicationId);
       const [resume, application] = await Promise.all([
         this.resumeRepository.findOne({ where: { id: resumeId } }),
         this.applicationRepository.findOne({ where: { id: applicationId } }),
@@ -475,16 +478,19 @@ export class IntegrationService {
 
   private async performSkillMatching(
     candidateSkills: string[],
-    requiredSkills: string[],
+    requiredSkills:  string,
     skillMap: Map<string, any>,
   ): Promise<SkillMatchResult> {
     const matchedSkills: Array<{ skill: string; confidence: number; category?: string }> = [];
     const missingSkills: string[] = [];
     const additionalSkills: string[] = [];
 
+    console.log('candidateSkills: ', candidateSkills)
+    console.log('requiredSkills: ', requiredSkills)
+
     // Normalize skills for comparison
     const normalizedCandidateSkills = candidateSkills.map(skill => skill.toLowerCase().trim());
-    const normalizedRequiredSkills = requiredSkills.map(skill => skill.toLowerCase().trim());
+    const normalizedRequiredSkills = requiredSkills.split(',').map(skill => skill.toLowerCase().trim());
 
     // Find matches
     for (const requiredSkill of normalizedRequiredSkills) {
@@ -532,7 +538,7 @@ export class IntegrationService {
     );
 
     return {
-      requiredSkills,
+      requiredSkills: normalizedRequiredSkills,
       candidateSkills,
       matchedSkills,
       missingSkills,

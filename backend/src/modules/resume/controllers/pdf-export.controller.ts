@@ -34,7 +34,7 @@ import {
 @ApiTags('Resume PDF Export')
 @Controller('resume/export')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class PdfExportController {
   constructor(
     private readonly pdfExportService: PdfExportService,
@@ -59,7 +59,7 @@ export class PdfExportController {
   async exportToPdf(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) exportDto: ExportResumeDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ExportResponseDto> {
     return await this.pdfExportService.exportResumeToPdf(id, exportDto, user);
   }
@@ -82,7 +82,7 @@ export class PdfExportController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async exportToATSPdf(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ExportResponseDto> {
     return await this.pdfExportService.generateATSOptimizedPdf(id, user);
   }
@@ -105,7 +105,7 @@ export class PdfExportController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getResumePreview(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<ResumePreviewDto> {
     return await this.pdfExportService.generateResumePreview(id, user);
   }
@@ -163,7 +163,7 @@ export class PdfExportController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getAvailableFormats(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     // This would check resume template and user permissions
     return {
@@ -213,7 +213,7 @@ export class PdfExportController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getExportHistory(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     // This would fetch actual export history from database
     return {
@@ -250,7 +250,7 @@ export class PdfExportController {
   async batchExport(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('formats') formats: string[],
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ exports: ExportResponseDto[] }> {
     const exports: ExportResponseDto[] = [];
 
@@ -277,7 +277,7 @@ export class PdfExportController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   async getExportOptions(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<any> {
     // This would analyze the resume and template to provide customization options
     return {
@@ -321,7 +321,7 @@ export class PdfExportController {
       format: string;
       email?: boolean;
     },
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ success: boolean; scheduleId: string }> {
     // This would create a scheduled job for automatic exports
     return {

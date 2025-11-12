@@ -5,35 +5,73 @@ import { Label } from '../ui/label';
 import { Card } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Eye, EyeOff, ArrowLeft, Building, Mail, Lock } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useMutation } from '@tanstack/react-query';
+import AuthHttp from '../../api/auth/auth';
+import { AxiosError } from 'axios';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../../stores/authStore';
+import { handleErrorGlobally } from '../../utils/helper';
+import { toast } from 'react-toastify';
 
 interface LoginPageProps {
   onBack: () => void;
   onSwitchToSignup: () => void;
 }
 
-export function LoginPage({ onBack, onSwitchToSignup }: LoginPageProps) {
-  const { login } = useAuth();
+export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const {setAccessToken, setRefreshToken, setUser, setOrganization} = useAuthStore.getState();
+  const navigate = useNavigate();
+
+  const handleFormValidation = ():Boolean => {
+    return false;
+  }
+
+  const handleLogin = useMutation({
+    mutationKey: ['login'],
+    mutationFn: async () => {
+      const isValidFailed = handleFormValidation();
+      if(isValidFailed){
+        throw new Error('Failed to create account. Please try again.');
+      }
+
+      const res = await AuthHttp.loginUser({
+        email: email,
+        password: password,
+      })
+      return res;      
+    },
+    onSuccess: (data) => {
+      // Handle successful registration
+      console.log('res data: ', data?.data?.data?.tokens);
+      const tokens = data?.data?.data?.tokens;
+      const user = data?.data?.data?.user;
+      const organization = data?.data?.data?.organization;
+      
+      setUser(user);
+      setOrganization(organization);
+      setAccessToken(tokens?.access);
+      setRefreshToken(tokens.refresh);
+
+      navigate('/dashboard');
+    },
+    onError: (error) => {
+      // Handle registration error 
+      console.log('error got: ', handleErrorGlobally(error))
+      toast.error(handleErrorGlobally(error));
+    }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
+    setError('');    
     try {
-      const success = await login(email, password, 'college');
-      if (!success) {
-        setError('Invalid email or password');
-      }
+      handleLogin.mutate();
     } catch (err) {
       setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -45,7 +83,7 @@ export function LoginPage({ onBack, onSwitchToSignup }: LoginPageProps) {
       
       {/* Back Button */}
       <button
-        onClick={onBack}
+        onClick={()=>{}}
         className="absolute top-6 left-6 flex items-center space-x-2 text-white/60 hover:text-white transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -118,7 +156,7 @@ export function LoginPage({ onBack, onSwitchToSignup }: LoginPageProps) {
                 <input type="checkbox" className="rounded border-border" />
                 <span className="text-muted-foreground">Remember me</span>
               </label>
-              <button type="button" className="text-sm text-orange-500 hover:text-orange-400">
+              <button type="button" onClick={()=>navigate('/auth/forgot-pass')} className="text-sm text-orange-500 hover:text-orange-400">
                 Forgot password?
               </button>
             </div>
@@ -126,9 +164,9 @@ export function LoginPage({ onBack, onSwitchToSignup }: LoginPageProps) {
             <Button
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={isLoading}
+              disabled={handleLogin.isPending}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {handleLogin.isPending ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
@@ -138,7 +176,7 @@ export function LoginPage({ onBack, onSwitchToSignup }: LoginPageProps) {
               <p className="text-muted-foreground text-sm">
                 Don't have an account?{' '}
                 <button
-                  onClick={onSwitchToSignup}
+                  onClick={()=>{}}
                   className="text-orange-500 hover:text-orange-400 font-medium"
                 >
                   Sign up for free

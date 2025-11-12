@@ -42,15 +42,16 @@ export class QuestionBankService {
     user: User,
   ): Promise<InterviewQuestionBank> {
     try {
+      console.log('got user in create question bank: ', user)
       // Validate permissions
       if (user.roles=== UserRole.STUDENT) {
         throw new ForbiddenException('Students cannot create question banks');
       }
 
       // Validate organization if specified
-      if (createDto.organizationId && createDto.organizationId !== user.organizationId) {
-        throw new ForbiddenException('Cannot create question bank for different organization');
-      }
+      // if (createDto.organizationId && createDto.organizationId !== user.organizationId) {
+      //   throw new ForbiddenException('Cannot create question bank for different organization');
+      // }
 
       const questionBank = this.questionBankRepository.create({
         organizationId: createDto.organizationId || user.organizationId,
@@ -421,6 +422,11 @@ export class QuestionBankService {
     updateDto: UpdateQuestionDto,
     user: User,
   ): Promise<InterviewQuestion> {
+    console.log({
+      id,
+      updateDto,
+      user
+    })
     try {
       const question = await this.getQuestionById(id, user);
 

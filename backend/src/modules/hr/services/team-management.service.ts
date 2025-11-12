@@ -282,6 +282,7 @@ export class TeamManagementService {
       const memberCount = await this.teamMemberRepository.count({
         where: { teamId: id },
       });
+      console.log('member count', memberCount)
 
       if (memberCount > 0) {
         throw new BadRequestException('Cannot delete team with existing members. Remove all members first.');

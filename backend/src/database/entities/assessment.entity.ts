@@ -226,11 +226,14 @@ export class Assessment {
 
   // --- Virtuals and Methods remain unchanged below ---
 
+
   get isActive(): boolean {
+    console.log('isAtive', this.status === AssessmentStatus.PUBLISHED && this.isPublished)
     return this.status === AssessmentStatus.PUBLISHED && this.isPublished;
   }
 
   get isAvailable(): boolean {
+    console.log('Inside isAvailable')
     const now = new Date();
     if (this.availableFrom && now < this.availableFrom) return false;
     if (this.availableUntil && now > this.availableUntil) return false;

@@ -127,11 +127,11 @@ export class Job {
   department?: string;
 
   @ApiProperty({ description: 'Job tags' })
-  @Column({ type: 'simple-array', default: [] })
+  @Column({ type: 'text', array:true, default: [] })
   tags: string[];
 
   @ApiProperty({ description: 'Required skills' })
-  @Column({ name: 'skillsRequired', type: 'simple-array', default: [] })
+  @Column({ name: 'skillsRequired', type: 'text', array:true, default: [] })
   skillsRequired: string[];
 
   @ApiProperty({ enum: JobStatus, description: 'Job status' })

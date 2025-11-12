@@ -6,25 +6,33 @@ import { Card } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Eye, EyeOff, ArrowLeft, User, Mail, Lock, Building } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMutation } from '@tanstack/react-query';
+import AuthHttp from '../../api/auth/auth';
+import { AxiosError } from 'axios';
+import useAuthStore from '../../stores/authStore';
+import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
+import { handleErrorGlobally } from '../../utils/helper';
 
 interface SignupPageProps {
   onBack: () => void;
   onSwitchToLogin: () => void;
 }
 
-export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
-  const { signup } = useAuth();
+export function SignupPage() {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    college: '',
+    orgName: '',
     password: '',
     confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const {setAccessToken, setRefreshToken, setUser, setOrganization} = useAuthStore.getState();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -33,32 +41,54 @@ export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
+  const handleFormValidation = ():Boolean => {
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
-      setIsLoading(false);
-      return;
+      return true;
     }
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
-      setIsLoading(false);
-      return;
+      return true;
     }
+    return false;
+  }
 
-    try {
-      const success = await signup(formData.name, formData.email, formData.password, formData.college, 'college');
-      if (!success) {
-        setError('Failed to create account. Please try again.');
+  const handleRegistration = useMutation({
+    mutationKey: ['register'],
+    mutationFn: async () => {
+      const isValidFailed = handleFormValidation();
+      if(isValidFailed){
+        throw new Error('Failed to create account. Please try again.');
       }
+
+      const res = await AuthHttp.registerUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        orgName: formData.orgName
+      })
+      return res;      
+    },
+    onSuccess: (data) => {
+      // Handle successful registration     
+      toast.success('Please verify Email sended to your email');
+      navigate('/auth/login');
+    },
+    onError: (error) => {
+      // Handle registration error 
+      toast.error(handleErrorGlobally(error));
+    }
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');    
+    try {
+      handleRegistration.mutate();
     } catch (err) {
       setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -68,14 +98,6 @@ export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
       <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-transparent to-slate-900" />
       
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="absolute top-6 left-6 flex items-center space-x-2 text-white/60 hover:text-white transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span>Back to Home</span>
-      </button>
 
       <div className="relative w-full max-w-md">
         <Card className="p-8 bg-card/95 backdrop-blur-sm border-border shadow-2xl">
@@ -99,20 +121,39 @@ export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Dr. John Smith"
-                  className="pl-10"
-                  required
-                />
+            <div className='flex'>
+              <div className="space-y-2">
+                <Label htmlFor="name">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    name="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="John "
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    name="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Smith"
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -134,14 +175,14 @@ export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="college">College/Institution Name</Label>
+              <Label htmlFor="college">Organization Name</Label>
               <div className="relative">
                 <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="college"
-                  name="college"
+                  name="orgName"
                   type="text"
-                  value={formData.college}
+                  value={formData.orgName}
                   onChange={handleChange}
                   placeholder="ABC Institute of Technology"
                   className="pl-10"
@@ -211,9 +252,9 @@ export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
             <Button
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={isLoading}
+              disabled={handleRegistration.isPending}
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {handleRegistration.isPending ? 'Creating Account...' : 'Create Account'}
             </Button>
           </form>
 
@@ -223,7 +264,7 @@ export function SignupPage({ onBack, onSwitchToLogin }: SignupPageProps) {
               <p className="text-muted-foreground text-sm">
                 Already have an account?{' '}
                 <button
-                  onClick={onSwitchToLogin}
+                  onClick={()=>{}}
                   className="text-orange-500 hover:text-orange-400 font-medium"
                 >
                   Sign in

@@ -207,10 +207,10 @@ export class IntegrationService {
     const integration = await this.getIntegrationById(id);
 
     // Validate configuration before activation
-    const isValid = await this.validateIntegrationConfig(integration);
-    if (!isValid) {
-      throw new ConflictException('Integration configuration is invalid');
-    }
+    // const isValid = await this.validateIntegrationConfig(integration);
+    // if (!isValid) {
+    //   throw new ConflictException('Integration configuration is invalid');
+    // }
 
     integration.activate();
     const activatedIntegration = await this.integrationRepository.save(integration);

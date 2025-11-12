@@ -43,7 +43,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('Versioning')
 @Controller('versioning')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class VersioningController {
   constructor(private readonly versioningService: VersioningService) {}
 
@@ -134,7 +134,7 @@ export class VersioningController {
     description: 'Version not found',
   })
   async getVersion(
-    @Param('versionId', ParseUUIDPipe) versionId: string,
+    @Param() versionId: string,
   ): Promise<VersionResponseDto> {
     try {
       return await this.versioningService.getVersion(versionId);

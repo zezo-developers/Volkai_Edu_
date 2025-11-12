@@ -44,7 +44,9 @@ export class ApplicationTrackingService {
         where: { id: createDto.jobId },
       });
 
-      if (!job || !job.isActive) {
+      console.log('create dto: ',createDto)
+
+      if (!job ) {
         throw new NotFoundException('Job not found or not accepting applications');
       }
 
@@ -70,13 +72,26 @@ export class ApplicationTrackingService {
         if (!resume) {
           throw new NotFoundException('Resume not found');
         }
-
+        console.log('resume.userId: ', resume.userId)
+        console.log('user.id: ', user?.id)
         // Check resume ownership
         if (user && resume.userId !== user.id) {
           throw new ForbiddenException('Cannot use another user\'s resume');
         }
       }
-
+      console.log({
+        jobId: createDto.jobId,
+        candidateId: user?.id,
+        externalEmail: createDto.externalEmail,
+        externalName: createDto.externalName,
+        resumeId: createDto.resumeId,
+        coverLetter: createDto.coverLetter,
+        source: createDto.source || 'direct',
+        formData: createDto.formData || {},
+        status: ApplicationStatus.APPLIED,
+        stage: ApplicationStage.SCREENING,
+      })
+      
       const application:any = this.applicationRepository.create({
         jobId: createDto.jobId,
         candidateId: user?.id,
@@ -88,7 +103,7 @@ export class ApplicationTrackingService {
         formData: createDto.formData || {},
         status: ApplicationStatus.APPLIED,
         stage: ApplicationStage.SCREENING,
-      }as any);
+      } as any);
 
       // Add initial timeline entry
       application.addTimelineEntry({
@@ -466,7 +481,7 @@ export class ApplicationTrackingService {
 
       // Generate interview ID
       const interviewId = `interview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+      console.log('interviewData: ',interviewData)
       application.scheduleInterview({
         id: interviewId,
         ...interviewData,

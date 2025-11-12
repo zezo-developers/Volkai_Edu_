@@ -46,7 +46,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 @ApiTags('AI Mock Interviews')
 @Controller('interviews/ai-mock')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 export class AiMockInterviewController {
   constructor(private readonly aiMockInterviewService: AiMockInterviewService) {}
 
@@ -269,6 +269,7 @@ export class AiMockInterviewController {
   ): Promise<AiMockInterviewResponseDto> {
     try {
       const interview = await this.aiMockInterviewService.getAiMockInterviewById(id, req.user);
+      console.log('interview: ', interview);
       const completedInterview = await this.aiMockInterviewService.completeAiInterview(interview);
       return new AiMockInterviewResponseDto(completedInterview);
     } catch (error) {

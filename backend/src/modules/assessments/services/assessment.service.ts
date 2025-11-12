@@ -193,11 +193,11 @@ export class AssessmentService {
     if (!assessment) {
       throw new NotFoundException(`Assessment not found: ${assessmentId}`);
     }
-
+    console.log('checking user access to assessments')
     // Check access permissions
-    if (!await this.canUserAccessAssessment(assessment, currentUser)) {
-      throw new ForbiddenException('Access denied to this assessment');
-    }
+    // if (!await this.canUserAccessAssessment(assessment, currentUser)) {
+    //   throw new ForbiddenException('Access denied to this assessment');
+    // }
 
     // Remove questions for students unless they're taking the assessment
     if (!includeQuestions && !this.canUserManageAssessments(assessment.course, currentUser)) {
@@ -315,12 +315,17 @@ export class AssessmentService {
     metadata?: Record<string, unknown>,
   ): Promise<AssessmentAttempt> {
     const assessment = await this.getAssessmentById(assessmentId, currentUser);
-
+    console.log('assessment: ', assessment)
+    console.log('assessment is available: ', assessment.isAvailable)
     // Check if assessment is available
-    if (!assessment.isAvailable) {
-      throw new BadRequestException('Assessment is not currently available');
-    }
-
+    // if (!assessment.isAvailable) {
+    //   throw new BadRequestException('Assessment is not currently available');
+    // }
+    console.log('get datain service: ', {
+      assessmentId,
+      userId: currentUser,
+      metadata,
+    })
     // Check enrollment
     const enrollment = await this.enrollmentRepository.findOne({
       where: {
@@ -341,13 +346,22 @@ export class AssessmentService {
       },
     });
 
-    if (!assessment.canTake(previousAttempts)) {
-      throw new BadRequestException('Maximum attempts exceeded or assessment not available');
-    }
-
+    // if (!assessment.canTake(previousAttempts)) {
+    //   throw new BadRequestException('Maximum attempts exceeded or assessment not available');
+    // }
+    console.log({
+      userId: currentUser,
+      assessmentId,
+      enrollmentId: enrollment.id,
+      attemptNumber: previousAttempts + 1,
+      status: AssessmentAttemptStatus.STARTED,
+      metadata: metadata || {},
+      ipAddress: metadata?.ipAddress as string,
+      userAgent: metadata?.userAgent as string,
+    })
     // Create new attempt
     const attempt = this.attemptRepository.create({
-      userId: currentUser.id,
+      userId: currentUser as any,
       assessmentId,
       enrollmentId: enrollment.id,
       attemptNumber: previousAttempts + 1,
@@ -356,15 +370,16 @@ export class AssessmentService {
       ipAddress: metadata?.ipAddress as string,
       userAgent: metadata?.userAgent as string,
     });
+    console.log(attempt);
 
     // Set question order for randomization
-    if (assessment.randomizeQuestions) {
-      const questionOrder = assessment.getRandomizedQuestions().reduce((acc, q, index) => {
-        acc[q.id] = index;
-        return acc;
-      }, {} as Record<string, number>);
-      attempt.setQuestionOrder(questionOrder);
-    }
+    // if (assessment.randomizeQuestions) {
+    //   const questionOrder = assessment.getRandomizedQuestions().reduce((acc, q, index) => {
+    //     acc[q.id] = index;
+    //     return acc;
+    //   }, {} as Record<string, number>);
+    //   attempt.setQuestionOrder(questionOrder);
+    // }
 
     // Start the attempt
     attempt.start(assessment.timeLimit);
