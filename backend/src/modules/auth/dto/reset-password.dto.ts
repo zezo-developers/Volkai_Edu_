@@ -21,7 +21,7 @@ export class ResetPasswordDto {
     maxLength: 128,
   })
   @IsStrongPassword({ 
-    message: 'Password must be at least 12 characters long.' 
+    message: 'Password must be at least 12 characters long, contain uppercase, lowercase, numbers, and special characters. It must not be a common password or found in data breaches.' 
   })
   newPassword: string;
 }

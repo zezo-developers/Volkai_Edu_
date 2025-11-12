@@ -22,7 +22,7 @@ function AppRoutes () {
     {path: '/student-login', element: <StudentLoginPage/>},
     {path: '/student-signup', element: <StudentSignupPage/>},
 
-    {path:'/dashboard', element:<ProtectRoutes/>, 
+    { element:<ProtectRoutes/>, 
       children: dashboardRoutes
     },
 
