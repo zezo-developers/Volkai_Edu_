@@ -15,7 +15,6 @@ import {
   X,
   LogOut
 } from 'lucide-react';
-import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Avatar } from '../ui/avatar';
 import { 
@@ -26,6 +25,7 @@ import {
   DropdownMenuTrigger 
 } from '../ui/dropdown-menu';
 import { useAuth } from '../../contexts/AuthContext';
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -38,78 +38,94 @@ interface SidebarItem {
   label: string;
   icon: any;
   children?: SidebarItem[];
+  path?: string;
 }
 
 const sidebarItems: SidebarItem[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: LayoutDashboard
+    icon: LayoutDashboard,
+    path: '/dashboard'
   },
   {
     id: 'students',
     label: 'Students',
-    icon: Users
+    icon: Users,
+    path: '/dashboard/students'
   },
   {
     id: 'instructors',
     label: 'Instructors',
-    icon: UserCheck
+    icon: UserCheck,
+    path: '/dashboard/instructors'
   },
   {
     id: 'interviews',
     label: 'Interviews',
-    icon: MessageSquare
+    icon: MessageSquare,
+    path: '/dashboard/interviews'
   },
   {
     id: 'reports',
     label: 'Reports',
-    icon: FileText
+    icon: FileText,
+    path: '/dashboard/reports'
   },
   {
     id: 'jobs',
     label: 'Jobs & Placement',
     icon: Briefcase,
     children: [
-      { id: 'job-postings', label: 'Job Postings', icon: Briefcase },
-      { id: 'placement-insights', label: 'Placement Insights', icon: FileText }
-    ]
+      { id: 'job-postings', label: 'Job Postings', icon: Briefcase, path:'/dashboard/job-postings' },
+      { id: 'placement-insights', label: 'Placement Insights', icon: FileText, path:'/dashboard/placement-insights' }
+    ],
+    path: '/dashboard/jobs'
   },
   {
     id: 'communication',
     label: 'Communication',
     icon: Mail,
     children: [
-      { id: 'email-campaigns', label: 'Email Campaigns', icon: Mail },
-      { id: 'whatsapp-notifications', label: 'WhatsApp', icon: MessageSquare }
-    ]
+      { id: 'email-campaigns', label: 'Email Campaigns', icon: Mail, path:'/dashboard/email-campaigns' },
+      { id: 'whatsapp-notifications', label: 'WhatsApp', icon: MessageSquare, path:'/dashboard/whatsapp-notifications' }
+    ],
+    path:'/dashboard/communication'
   },
   {
     id: 'settings',
     label: 'Settings & Billing',
-    icon: Settings
+    icon: Settings,
+    path: '/dashboard/settings'
   }
 ];
 
-export function DashboardLayout({ children, currentPage, onPageChange }: DashboardLayoutProps) {
+export function DashboardLayout({ children, onPageChange }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>(['jobs', 'communication']);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [currentPage, setCurrentPage] = useState(location.pathname);
 
-  const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+  const toggleExpanded = (itemPath: string) => {
+    setExpandedItems(prev =>{ 
+      const newArr = prev.includes(itemPath) 
+        ? prev.filter(id => id !== itemPath)
+        : [...prev, itemPath]
+      return newArr;
+      }
     );
+
   };
 
-  const handleItemClick = (itemId: string) => {
-    const item = sidebarItems.find(i => i.id === itemId);
+  const handleItemClick = (itemPath: string) => {
+    setCurrentPage(itemPath);
+    const item = sidebarItems.find(i => i.path === itemPath);
     if (item?.children) {
-      toggleExpanded(itemId);
+      toggleExpanded(itemPath);
     } else {
-      onPageChange(itemId);
+      navigate(itemPath);
       setSidebarOpen(false);
     }
   };
@@ -144,10 +160,10 @@ export function DashboardLayout({ children, currentPage, onPageChange }: Dashboa
             {sidebarItems.map((item) => (
               <div key={item.id}>
                 <button
-                  onClick={() => handleItemClick(item.id)}
+                  onClick={() => handleItemClick(item.path!)}
                   className={`
                     w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors
-                    ${currentPage === item.id 
+                    ${currentPage === item.path 
                       ? 'bg-orange-500 text-white' 
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }
@@ -159,20 +175,20 @@ export function DashboardLayout({ children, currentPage, onPageChange }: Dashboa
                   </div>
                   {item.children && (
                     <ChevronDown className={`h-3 w-3 transition-transform ${
-                      expandedItems.includes(item.id) ? 'rotate-180' : ''
+                      expandedItems.includes(item.path!) ? 'rotate-180' : ''
                     }`} />
                   )}
                 </button>
                 
-                {item.children && expandedItems.includes(item.id) && (
+                {item.children && expandedItems.includes(item.path!) && (
                   <div className="ml-6 mt-1 space-y-1">
                     {item.children.map((child) => (
                       <button
                         key={child.id}
-                        onClick={() => onPageChange(child.id)}
+                        onClick={() => navigate(child.path!)}
                         className={`
                           w-full flex items-center px-3 py-1.5 rounded-lg text-left transition-colors text-sm
-                          ${currentPage === child.id 
+                          ${currentPage === child.path 
                             ? 'bg-orange-500/20 text-orange-500' 
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                           }
@@ -268,8 +284,8 @@ export function DashboardLayout({ children, currentPage, onPageChange }: Dashboa
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6">
-          {children}
+        <main className="flex-1 overflow-auto p-6 ">
+          <Outlet/>
         </main>
       </div>
 
